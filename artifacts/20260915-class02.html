@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en" data-notes-ready="false">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PHYS5211, class 2: Floating-point error and catastrophic cancellation</title>
+<meta name="description" content="Lecture notes on floating-point representation, machine precision, catastrophic cancellation, stable algebraic reformulation, and harmonic-series summation.">
+<link id="katex-styles" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.7/dist/katex.min.css" integrity="sha384-JctiRyLzXCrSoOOzFlSoWLdyzQl7OrrRnhyeBmzB6ZWtcjccUyc8lCQJqIbs3uQX" crossorigin="anonymous">
+<script id="katex-runtime" defer src="https://cdn.jsdelivr.net/npm/katex@0.18.7/dist/katex.min.js" integrity="sha384-+7Keh381hSkXmXqnjC0JBM/kzsN6TFj+wMKychSLjTvJ8/0ElMde2uKl8i6p6Buj" crossorigin="anonymous"></script>
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{margin:0;background:#fff;color:#1f2328;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;word-wrap:break-word}
+main{max-width:980px;margin:0 auto;padding:45px 45px 72px}
+h1,h2,h3,h4{margin-top:24px;margin-bottom:16px;font-weight:600;line-height:1.25;letter-spacing:0}
+h1{font-size:2em;padding-bottom:.3em;border-bottom:1px solid #d1d9e0;margin-top:16px}
+h2{font-size:1.5em;padding-bottom:.3em;border-bottom:1px solid #d1d9e0;margin-top:36px}
+h3{font-size:1.25em}
+h4{font-size:1em}
+p{margin:0 0 16px}
+strong{font-weight:650}
+a{color:#0969da;text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+header{margin-bottom:24px}
+.meta{color:#59636e;font-size:14px;margin:0}
+.course-name{color:#59636e;margin-bottom:6px;font-size:16px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.print{font-size:13px;white-space:nowrap}
+.contents{padding-left:2em;margin:16px 0 24px}
+.contents li{margin:4px 0}
+li+li{margin-top:.25em}
+ul,ol{padding-left:2em;margin:0 0 16px}
+button,input,select{font:inherit;color:inherit}
+button{background:#f6f8fa;border:1px solid #d1d9e0;padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:500}
+button:hover{background:#eef1f4;border-color:#b7c0c9}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid #0969da;outline-offset:3px}
+input,select{background:#fff;border:1px solid #b7c0c9;border-radius:6px;padding:7px 9px;min-height:38px}
+input[type=number]{width:100%;min-width:0}
+input[type=range]{width:100%;padding:0;min-height:auto}
+button,input,select{font-size:14px}
+code{font:85% ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;padding:.2em .4em;background:#eff1f3;border-radius:6px}
+.small{font-size:13px;color:#59636e}
+.math{font-size:1em}
+.katex{font-size:1.1em}
+.math.display,.math-line{overflow-x:auto;overflow-y:hidden;padding:7px 0;margin:16px 0;text-align:center}
+.math.display .katex-display,.math-line .katex-display{margin:.2em 0;text-align:center}
+.math.display .katex-display>.katex,.math-line .katex-display>.katex{text-align:center}
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{width:100%;border-collapse:collapse;text-align:left;font-size:14px}
+th,td{border:1px solid #d1d9e0;padding:8px 13px;vertical-align:top}
+th{font-weight:600}
+tr{background:#fff}
+tbody tr:nth-child(2n){background:#f6f8fa}
+.diagram{margin:22px 0;text-align:center}
+.diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+.diagram figcaption{font-size:13px;color:#59636e;margin-top:10px}
+.box-diagram text{font-family:inherit;fill:#1f2328}
+.box-diagram .box{fill:#fff;stroke:#8c959f;stroke-width:1}
+.box-diagram .field-label{font-size:16px;fill:#59636e}
+.box-diagram .digit{font-size:22px}
+.box-diagram .field{font-size:21px}
+.box-diagram foreignObject{overflow:visible}
+.box-diagram .svg-math{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:18px}
+.notation td:first-child{width:90px}
+.interactive{border:1px solid #b6d5f7;border-radius:10px;background:#f8fbff;padding:18px 22px 22px;margin:24px 0;min-width:0}
+.interactive h3{margin-top:0}
+.interactive .instructions{font-size:14px;color:#424a53;margin:4px 0 18px}
+.controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:3px 0 15px}
+.control label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}
+.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.result{background:#fff;border:1px solid #d1d9e0;border-radius:7px;padding:12px 14px;min-width:0}
+.result-label{font-size:12px;color:#59636e;margin-bottom:5px}
+.result-value{font:16px ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.status{font-size:14px;min-height:21px;margin:8px 0;color:#424a53}
+.number-line-panel{background:#fff;border:1px solid #d1d9e0;border-radius:8px;padding:16px;margin:14px 0 20px}
+.line-controls{display:flex;align-items:end;gap:14px 20px;flex-wrap:wrap}
+.line-controls .control{flex:1 1 220px}
+.line-controls input,.line-controls select{width:100%}
+.number-line{display:block;width:100%;height:auto;margin:12px 0 4px;touch-action:pan-y}
+.line-legend{display:flex;flex-wrap:wrap;gap:10px 20px;font-size:12px;color:#59636e;margin:7px 0 10px}
+.line-legend>span{display:flex;align-items:center;gap:6px}
+.line-legend svg{width:12px;height:14px;flex:none}
+.round-result{background:#f6f8fa;border-radius:6px;padding:8px 12px;margin-top:14px}
+.formula-block{border:1px solid #d1d9e0;border-radius:7px;padding:12px 16px;margin:18px 0;background:#fff}
+.formula-block p:last-child{margin-bottom:0}
+.note{background:#f6f8fa;border-radius:6px;padding:12px 16px;margin:18px 0}
+.note p:last-child{margin-bottom:0}
+.column-work{margin:8px 0 0;font:14px/1.45 ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;white-space:pre-wrap}
+.mono{font-family:ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace}
+details{margin:20px 0;padding:14px 17px;border:1px solid #d1d9e0;border-radius:7px;background:#f6f8fa}
+summary{cursor:pointer;font-size:15px;font-weight:600;color:#0550ae}
+summary::marker{color:#0969da}
+details[open]>summary{margin-bottom:16px}
+.skip{position:absolute;left:10px;top:-50px}
+.skip:focus{top:8px}
+[hidden]{display:none!important}
+@media(max-width:767px){
+  main{padding:24px 18px 48px}
+  h1{font-size:1.8em}
+  h2{font-size:1.45em}
+  .controls{grid-template-columns:1fr 1fr;gap:12px}
+  .interactive{padding:14px 12px 18px}
+  .result-grid{grid-template-columns:1fr}
+  .topline{align-items:flex-start}
+  .number-line-panel{padding:12px 10px}
+  .line-controls{gap:12px}
+  .line-controls .control{flex-basis:130px}
+  th,td{padding:7px 10px}
+  .katex{font-size:1.04em}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{
+  @page{margin:18mm}
+  body{font-size:10.5pt;line-height:1.5}
+  main{margin:0;padding:0;max-width:none}
+  .print,.contents,.skip,.no-print{display:none!important}
+  h1{font-size:22pt}
+  h2{font-size:17pt;margin-top:25px}
+  h3{font-size:13pt}
+  h1,h2,h3,h4{break-after:avoid}
+  tr,.diagram,.math.display,.number-line-panel,details,.formula-block,.result{break-inside:avoid}
+  th,td{font-size:10pt;padding:7px}
+  .interactive{padding:12px;background:#fff}
+  .math.display,.math-line{overflow:visible}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<a href="#main" class="skip">Skip to notes</a>
+<main id="main">
+<header>
+  <p class="course-name">Introduction to Scientific Computing in the Era of AI</p>
+  <div class="topline">
+    <p class="meta">PHYS5211 · Second class · September 15, 2026</p>
+    <button class="print" type="button" id="print-note">Print / PDF</button>
+  </div>
+  <h1>Floating-point error and catastrophic cancellation</h1>
+  <ol class="contents">
+    <li><a href="#system">Floating-point systems</a></li>
+    <li><a href="#error">Representation error and machine precision</a></li>
+    <li><a href="#special">Special values: Inf and NaN</a></li>
+    <li><a href="#cancellation">Catastrophic cancellation and associativity</a></li>
+    <li><a href="#quadratic">Quadratic equation</a></li>
+    <li><a href="#harmonic">Harmonic series and summation order</a></li>
+    <li><a href="#workflow">AI coding workflow and homework</a></li>
+  </ol>
+</header>
+
+<section id="system">
+<h2>1. Floating-point systems</h2>
+<p>A floating-point system is specified by <span class="math" data-tex="\mathbb{F}(\beta,p,L,U)"></span>. A normalized nonzero number can be written as</p>
+<div class="math display" data-tex="x=\pm\left(d_0+\frac{d_1}{\beta}+\frac{d_2}{\beta^2}+\cdots+\frac{d_{p-1}}{\beta^{p-1}}\right)\beta^E,\qquad L\le E\le U,"></div>
+<p>where <span class="math" data-tex="d_0\ne 0"></span> and each digit satisfies <span class="math" data-tex="d_i\in\{0,1,\ldots,\beta-1\}"></span>.</p>
+
+<div class="table-wrap">
+<table class="notation">
+<thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><span class="math" data-tex="\beta"></span></td><td>Base, typically 2 for binary floating-point arithmetic.</td></tr>
+<tr><td><span class="math" data-tex="p"></span></td><td>Precision: number of significant digits in the significand.</td></tr>
+<tr><td><span class="math" data-tex="L"></span></td><td>Lower exponent bound.</td></tr>
+<tr><td><span class="math" data-tex="U"></span></td><td>Upper exponent bound.</td></tr>
+</tbody>
+</table>
+</div>
+
+<figure class="diagram">
+<svg class="box-diagram" width="364" height="112" viewBox="0 0 364 112" role="img" aria-labelledby="fields-title fields-desc">
+<title id="fields-title">Floating-point fields</title>
+<desc id="fields-desc">A sign, an exponent, and a significand with p significant digits.</desc>
+<g class="field-label" text-anchor="middle">
+  <text x="34" y="24">Sign</text>
+  <text x="112" y="24">Exponent</text>
+  <text x="259" y="24">Significand</text>
+</g>
+<rect class="box" x="6" y="38" width="56" height="47"/>
+<rect class="box" x="78" y="38" width="68" height="47"/>
+<rect class="box" x="168" y="38" width="182" height="47"/>
+<foreignObject x="6" y="38" width="56" height="47">
+  <div xmlns="http://www.w3.org/1999/xhtml" class="svg-math math" data-tex="\pm"></div>
+</foreignObject>
+<foreignObject x="78" y="38" width="68" height="47">
+  <div xmlns="http://www.w3.org/1999/xhtml" class="svg-math math" data-tex="E"></div>
+</foreignObject>
+<foreignObject x="168" y="38" width="182" height="47">
+  <div xmlns="http://www.w3.org/1999/xhtml" class="svg-math math" data-tex="d_0.d_1\ldots d_{p-1}"></div>
+</foreignObject>
+</svg>
+</figure>
+
+<h3>IEEE single precision</h3>
+<div class="math display" data-tex="\beta=2,\qquad p=24,\qquad L=-126,\qquad U=127."></div>
+<p>The spacing between representable numbers is not constant. There are the same significand patterns at each exponent, so the <strong>absolute spacing increases with magnitude</strong>.</p>
+</section>
+
+<section id="error">
+<h2>2. Representation error and machine precision</h2>
+<p>For a real number <span class="math" data-tex="x\in\mathbb{R}"></span> inside the representable range, there is a unique floating-point approximation <span class="math" data-tex="\hat{x}"></span> satisfying</p>
+<div class="math display" data-tex="\exists!\,\hat{x}\in\mathbb{F}\quad\text{s.t.}\quad |x-\hat{x}|\le \varepsilon_{\mathrm{machine}}|x|."></div>
+<p>This representation error is also called <strong>round-off error</strong>: <span class="math" data-tex="x"></span> is rounded up or down to a nearby representable value.</p>
+<div class="math display" data-tex="\varepsilon_{\mathrm{machine}}=\beta^{1-p}."></div>
+<p>The smallest positive normalized number is instead</p>
+<div class="math display" data-tex="x_{\min}=\beta^L."></div>
+<p><strong>Machine precision and the smallest positive representable number describe different limitations.</strong> The first controls relative spacing; the second is set by the lower exponent bound.</p>
+
+<div class="interactive no-print">
+<h3>Representable numbers and rounding</h3>
+<p class="instructions">Same toy system as before: <span class="math" data-tex="\beta=2,\ p=3,\ L=-1,\ U=2"></span>. Move the slider for <span class="math" data-tex="x"></span> and inspect the nearest representable number.</p>
+<div class="number-line-panel">
+  <div class="line-controls">
+    <div class="control">
+      <label for="round-x">Real number <span class="math" data-tex="x"></span> = <span id="round-x-value" class="mono">5.3</span></label>
+      <input id="round-x" type="range" step="0.05" min="-7" max="7" value="5.3">
+    </div>
+  </div>
+  <svg id="number-line" class="number-line" viewBox="0 0 800 180" role="img" aria-label="Floating-point number line"></svg>
+  <div class="line-legend">
+    <span><svg viewBox="0 0 12 14" aria-hidden="true"><line x1="6" y1="1" x2="6" y2="13" stroke="#57606a" stroke-width="2"/></svg>representable value</span>
+    <span><svg viewBox="0 0 12 14" aria-hidden="true"><circle cx="6" cy="7" r="4" fill="#0969da"/></svg><span class="math" data-tex="x"></span></span>
+    <span><svg viewBox="0 0 12 14" aria-hidden="true"><circle cx="6" cy="7" r="4" fill="#1f2328"/></svg><span class="math" data-tex="\hat{x}"></span></span>
+  </div>
+  <div class="round-result" id="round-result"></div>
+</div>
+</div>
+</section>
+
+<section id="special">
+<h2>3. Special values: Inf and NaN</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Operation</th><th>Floating-point value</th></tr></thead>
+<tbody>
+<tr><td><span class="math" data-tex="1/0"></span></td><td><code>Inf</code></td></tr>
+<tr><td><span class="math" data-tex="0/0"></span></td><td><code>NaN</code></td></tr>
+<tr><td><span class="math" data-tex="0\cdot\infty"></span></td><td><code>NaN</code></td></tr>
+<tr><td><span class="math" data-tex="\infty/\infty"></span></td><td><code>NaN</code></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="cancellation">
+<h2>4. Catastrophic cancellation and associativity</h2>
+<p>Take six significant decimal digits and</p>
+<div class="math display" data-tex="a=1.23456\times10^2,\qquad b=-1.23455\times10^2,\qquad c=-1.11123\times10^{-3}."></div>
+<p>Over the real numbers,</p>
+<div class="math display" data-tex="(a+b)+c=a+(b+c)."></div>
+<p>With finite precision, the two evaluation orders need not agree. Nearly cancelling numbers can erase significant digits, and subsequent arithmetic proceeds from the rounded intermediate result.</p>
+
+<h3>Concrete arithmetic with rounding</h3>
+<div class="result-grid">
+  <div class="result">
+    <div class="result-label">(a+b)+c</div>
+    <pre class="column-work">  123.456
+- 123.455
+---------
+    0.00100    = fl(a+b)
+
+    0.00100
+-   0.00111123
+-----------
+-0.00011123
+≈ -1.1123×10^-4</pre>
+  </div>
+  <div class="result">
+    <div class="result-label">a+(b+c)</div>
+    <pre class="column-work">-123.45500000
+-  0.00111123
+------------
+-123.45611123
+≈ -123.456    = fl(b+c)
+
+ 123.456000
+-123.456000
+-----------
+   0</pre>
+  </div>
+</div>
+
+<div class="interactive no-print">
+<h3>Associativity in finite precision</h3>
+<p class="instructions">Each operation is rounded to <em>p</em> significant decimal digits before the next operation.</p>
+<div class="controls">
+  <div class="control"><label for="assoc-a"><span class="math" data-tex="a"></span></label><input id="assoc-a" type="number" step="any" value="123.456"></div>
+  <div class="control"><label for="assoc-b"><span class="math" data-tex="b"></span></label><input id="assoc-b" type="number" step="any" value="-123.455"></div>
+  <div class="control"><label for="assoc-c"><span class="math" data-tex="c"></span></label><input id="assoc-c" type="number" step="any" value="-0.00111123"></div>
+  <div class="control"><label for="assoc-p">significant digits <span class="math" data-tex="p"></span></label><input id="assoc-p" type="number" min="1" max="15" value="6"></div>
+</div>
+<div class="result-grid">
+  <div class="result">
+    <div class="result-label">(a+b)+c</div>
+    <div class="result-value" id="assoc-left"></div>
+    <div class="small" id="assoc-left-detail"></div>
+  </div>
+  <div class="result">
+    <div class="result-label">a+(b+c)</div>
+    <div class="result-value" id="assoc-right"></div>
+    <div class="small" id="assoc-right-detail"></div>
+  </div>
+</div>
+<div class="status" id="assoc-status"></div>
+</div>
+
+<div class="note">
+<p><strong>Floating-point addition is not reliably associative.</strong> Parenthesization changes the intermediate values and therefore can change the final result.</p>
+</div>
+</section>
+
+<section id="quadratic">
+<h2>5. Quadratic equation</h2>
+<p>Consider</p>
+<div class="math display" data-tex="ax^2+x-1=0."></div>
+<p>The two exact mathematical roots are</p>
+<div class="math display" data-tex="x_{\pm}=\frac{-1\pm\sqrt{1+4a}}{2a}."></div>
+<p>For the example <span class="math" data-tex="a=10^{-4}"></span>,</p>
+<div class="math display" data-tex="x_+\approx 0.999900019995,\qquad x_-\approx -10000.99990002."></div>
+<p>The cancellation problem occurs in <span class="math" data-tex="x_+"></span>. For small positive <span class="math" data-tex="a"></span>, <span class="math" data-tex="\sqrt{1+4a}"></span> is close to 1, so the numerator <span class="math" data-tex="-1+\sqrt{1+4a}"></span> subtracts two nearly equal numbers.</p>
+<h3>Algebraic reformulation</h3>
+<p>Multiply numerator and denominator by the conjugate:</p>
+<div class="math display" data-tex="\begin{aligned}
+\frac{-1+\sqrt{1+4a}}{2a}
+&\cdot
+\frac{-1-\sqrt{1+4a}}{-1-\sqrt{1+4a}}\\
+&=
+\frac{2}{1+\sqrt{1+4a}}.
+\end{aligned}"></div>
+<p>The two formulas are algebraically equivalent, but the second avoids subtracting two nearly equal numbers.</p>
+
+<div class="interactive no-print">
+<h3>Naive formula vs. rationalized formula</h3>
+<p class="instructions">Intermediate operations are rounded to <em>p</em> significant decimal digits.</p>
+<div class="controls">
+  <div class="control"><label for="quad-a"><span class="math" data-tex="a"></span></label><input id="quad-a" type="number" step="any" value="0.0001"></div>
+  <div class="control"><label for="quad-p">significant digits <span class="math" data-tex="p"></span></label><input id="quad-p" type="number" min="2" max="15" value="4"></div>
+</div>
+<div class="result-grid">
+  <div class="result">
+    <div class="result-label">Naive formula</div>
+    <div class="result-value" id="quad-naive"></div>
+    <div class="small" id="quad-naive-detail"></div>
+  </div>
+  <div class="result">
+    <div class="result-label">Rationalized formula</div>
+    <div class="result-value" id="quad-stable"></div>
+    <div class="small" id="quad-stable-detail"></div>
+  </div>
+</div>
+<div class="status" id="quad-exact"></div>
+</div>
+</section>
+
+<section id="harmonic">
+<h2>6. Harmonic series and summation order</h2>
+<p>Consider the partial sums of the harmonic series:</p>
+<div class="math display" data-tex="H_N=\sum_{n=1}^{N}\frac{1}{n}."></div>
+
+<h3>Three failure modes in finite precision</h3>
+<ol>
+  <li><strong>Increment too small relative to the current partial sum.</strong>
+    <div class="math display" data-tex="\operatorname{fl}\!\left(S_i+\frac{1}{i}\right)=S_i."></div>
+  </li>
+  <li><strong>The term itself is smaller than the smallest positive representable number.</strong>
+    <div class="math display" data-tex="\frac{1}{i}<\beta^L."></div>
+  </li>
+  <li><strong>The accumulated partial sum leaves the upper representable range.</strong>
+    <div class="math display" data-tex="S_i>\beta^U."></div>
+  </li>
+</ol>
+
+<p>Changing the summation order does not change the mathematical sum, but it can change the floating-point result.</p>
+
+<h3>Direct summation</h3>
+<div class="math display" data-tex="\widehat H_N^{\mathrm{direct}}
+=
+\operatorname{fl}\!\left(
+\cdots
+\operatorname{fl}\!\left(
+\operatorname{fl}\!\left(1+\frac12\right)+\frac13
+\right)
++\cdots+\frac1N
+\right)."></div>
+
+<h3>Chunked summation</h3>
+<p>To test whether the computed answer depends on the order of addition, regroup the same terms into blocks and then add the block sums.</p>
+<p>For a chunk size <span class="math" data-tex="m"></span>, define</p>
+<div class="math display" data-tex="S_j^{(m)}
+=
+\sum_{i=(j-1)m+1}^{\min(jm,N)}\frac1i,
+\qquad
+j=1,\ldots,\left\lceil\frac Nm\right\rceil."></div>
+<p>The corresponding block/meta-sum is</p>
+<div class="math display" data-tex="B_N^{(m)}
+=
+\sum_{j=1}^{\lceil N/m\rceil}S_j^{(m)}
+=
+H_N."></div>
+<p>Mathematically, <span class="math" data-tex="B_N^{(m)}"></span> and <span class="math" data-tex="H_N"></span> are identical. In floating-point arithmetic, however, their implementations use different association patterns:</p>
+<div class="math display" data-tex="\widehat B_N^{(m)}
+=
+\operatorname{fl}\!\left(
+\cdots
+\operatorname{fl}\!\left(
+\operatorname{fl}\!\left(\widehat S_1^{(m)}+\widehat S_2^{(m)}\right)
++\widehat S_3^{(m)}
+\right)
++\cdots+\widehat S_{\lceil N/m\rceil}^{(m)}
+\right)."></div>
+
+<div class="formula-block">
+<p>For <span class="math" data-tex="m=1000"></span>,</p>
+<div class="math display" data-tex="\begin{aligned}
+S_1 &= \sum_{i=1}^{1000}\frac1i,\\
+S_2 &= \sum_{i=1001}^{2000}\frac1i,\\
+S_3 &= \sum_{i=2001}^{3000}\frac1i,\\
+&\ \vdots
+\end{aligned}"></div>
+<p>and <span class="math" data-tex="B_N^{(1000)}=S_1+S_2+S_3+\cdots"></span>. The final sum is again carried out in floating-point arithmetic.</p>
+</div>
+
+<div class="interactive no-print">
+<h3>Direct vs. chunked summation</h3>
+<p class="instructions">Low decimal precision makes the dependence on association visible at moderate <span class="math" data-tex="N"></span>.</p>
+<div class="controls">
+  <div class="control"><label for="harm-n"><span class="math" data-tex="N"></span></label><input id="harm-n" type="number" min="10" max="1000000" step="1000" value="300000"></div>
+  <div class="control"><label for="harm-p">significant digits <span class="math" data-tex="p"></span></label><input id="harm-p" type="number" min="3" max="12" value="6"></div>
+  <div class="control"><label for="harm-chunk">chunk size <span class="math" data-tex="m"></span></label><input id="harm-chunk" type="number" min="1" max="100000" value="1000"></div>
+  <div class="control" style="display:flex;align-items:end"><button id="harm-run" type="button" style="width:100%">Run</button></div>
+</div>
+<div class="result-grid">
+  <div class="result">
+    <div class="result-label">Direct summation</div>
+    <div class="result-value" id="harm-direct">—</div>
+    <div class="small" id="harm-direct-stop"></div>
+  </div>
+  <div class="result">
+    <div class="result-label">Chunked summation</div>
+    <div class="result-value" id="harm-chunked">—</div>
+    <div class="small" id="harm-chunked-detail"></div>
+  </div>
+</div>
+<div class="status" id="harm-status"></div>
+</div>
+
+<h3>Numerical diagnostic</h3>
+<p>Evaluate the same mathematical quantity using more than one reasonable association pattern: direct summation, chunks of 500, chunks of 1,000, chunks of 10,000, and so on. If the answers vary substantially, the numerical result is algorithm-dependent and should not be treated as a reliable approximation.</p>
+
+<details>
+<summary>Why “the sum stopped changing” does not prove convergence</summary>
+<p>A genuinely convergent sequence and a finite-precision sequence whose increments have become too small can both appear constant. Detecting <span class="math" data-tex="S_{i+1}=S_i"></span> identifies a machine limitation, but by itself it does not distinguish mathematical convergence from numerical stagnation.</p>
+</details>
+</section>
+
+<section id="workflow">
+<h2>7. AI coding workflow and homework</h2>
+<h3>Sandboxed coding</h3>
+<p>GitHub Codespaces provides a controlled environment for agent-assisted coding. Restricting an agent to a project workspace limits the scope of accidental file changes compared with giving it broad access to a local machine.</p>
+<h3>Homework direction</h3>
+<p>Construct or analyze a series that either converges or diverges but for which a finite-precision implementation produces a misleading numerical result. The explanation should identify the numerical mechanism responsible for the discrepancy, rather than only showing that two answers differ.</p>
+<h3>Schedule</h3>
+<p>Working schedule: Tuesdays and Thursdays, 2:00–3:30 p.m. A one-time adjustment for the next meeting was discussed separately.</p>
+</section>
+
+<section>
+<h2>8. Main takeaways</h2>
+<ul>
+<li>Floating-point arithmetic operates on a finite set of numbers.</li>
+<li><strong>Representable range and machine precision are separate properties.</strong></li>
+<li>Absolute spacing grows with magnitude even when the relative precision is fixed.</li>
+<li><strong>Catastrophic cancellation can remove significant digits.</strong></li>
+<li>Floating-point addition is not reliably associative.</li>
+<li>Algebraically equivalent formulas can have very different numerical behavior.</li>
+<li>Changing the summation order is a useful stress test when the exact answer is unknown.</li>
+</ul>
+</section>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    if (!window.katex) throw new Error('KaTeX did not load.');
+
+function renderMath() {
+  if (!window.katex) return;
+  document.querySelectorAll('[data-tex]').forEach((el) => {
+    katex.render(el.getAttribute('data-tex'), el, {
+      displayMode: el.classList.contains('display'),
+      throwOnError: false
+    });
+  });
+}
+
+renderMath();
+document.getElementById('print-note').addEventListener('click', () => window.print());
+
+function fl(x, p) {
+  if (!Number.isFinite(x) || x === 0) return x;
+  return Number(Number(x).toPrecision(p));
+}
+
+function fmt(x, p = 10) {
+  if (Number.isNaN(x)) return 'NaN';
+  if (!Number.isFinite(x)) return x > 0 ? 'Inf' : '-Inf';
+  if (x === 0) return '0';
+  return Number(x).toPrecision(Math.min(12, p)).replace(/\.?0+(e|$)/, '$1');
+}
+
+const toyValues = (() => {
+  const values = [0];
+  for (let e = -1; e <= 2; e++) {
+    for (let bits = 0; bits < 4; bits++) {
+      const d1 = (bits >> 1) & 1;
+      const d2 = bits & 1;
+      const significand = 1 + d1 / 2 + d2 / 4;
+      const v = significand * Math.pow(2, e);
+      values.push(v, -v);
+    }
+  }
+  return values.sort((a, b) => a - b);
+})();
+
+function nearestToy(x) {
+  let best = toyValues[0];
+  for (const v of toyValues) {
+    if (Math.abs(v - x) < Math.abs(best - x)) best = v;
+  }
+  return best;
+}
+
+function updateNumberLine() {
+  const slider = document.getElementById('round-x');
+  let x = Number(slider.value);
+  if (!Number.isFinite(x)) x = 0;
+  x = Math.max(-7, Math.min(7, x));
+  document.getElementById('round-x-value').textContent = Number(x).toFixed(2).replace(/0+$/,'').replace(/\.$/,'');
+
+  const xhat = nearestToy(x);
+  const absError = Math.abs(x - xhat);
+  const eps = Math.pow(2, 1 - 3);
+  const bound = eps * Math.abs(x);
+
+  const svg = document.getElementById('number-line');
+  const min = -7, max = 7;
+  const left = 45, right = 755, y = 90;
+  const scale = (v) => left + (v - min) / (max - min) * (right - left);
+
+  let markup = `<line x1="${left}" y1="${y}" x2="${right}" y2="${y}" stroke="#8c959f" stroke-width="1.5"/>`;
+
+  for (let t = -7; t <= 7; t++) {
+    const px = scale(t);
+    markup += `<line x1="${px}" y1="${y - 5}" x2="${px}" y2="${y + 5}" stroke="#8c959f"/>`;
+    markup += `<text x="${px}" y="${y + 26}" text-anchor="middle" font-size="11">${t}</text>`;
+  }
+
+  for (const v of toyValues) {
+    if (v < min || v > max) continue;
+    const px = scale(v);
+    markup += `<line x1="${px}" y1="${y - 18}" x2="${px}" y2="${y + 18}" stroke="#57606a" stroke-width="1.5"/>`;
+  }
+
+  const pxX = scale(x);
+  const pxHat = scale(xhat);
+  markup += `<line x1="${pxX}" y1="47" x2="${pxX}" y2="${y - 10}" stroke="#0969da" stroke-width="1"/>`;
+  markup += `<circle cx="${pxX}" cy="43" r="5" fill="#0969da"/>`;
+  markup += `<text x="${pxX}" y="29" text-anchor="middle" font-size="12">x=${x.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}</text>`;
+  markup += `<circle cx="${pxHat}" cy="${y}" r="5" fill="#1f2328"/>`;
+  markup += `<text x="${pxHat}" y="${y + 47}" text-anchor="middle" font-size="12">x̂=${xhat}</text>`;
+
+  if (pxX !== pxHat) {
+    markup += `<line x1="${Math.min(pxX, pxHat)}" y1="59" x2="${Math.max(pxX, pxHat)}" y2="59" stroke="#8c959f" stroke-width="1.5"/>`;
+    markup += `<line x1="${pxX}" y1="54" x2="${pxX}" y2="64" stroke="#8c959f"/>`;
+    markup += `<line x1="${pxHat}" y1="54" x2="${pxHat}" y2="64" stroke="#8c959f"/>`;
+  }
+
+  svg.innerHTML = markup;
+
+  const result = document.getElementById('round-result');
+  result.innerHTML = `
+    <div class="math-line" data-dynamic-tex="\\hat{x}=${xhat},\\qquad |x-\\hat{x}|=${absError.toPrecision(4)}"></div>
+    <div class="math-line" data-dynamic-tex="\\varepsilon_{\\mathrm{machine}}=2^{1-3}=0.25,\\qquad \\varepsilon_{\\mathrm{machine}}|x|=${bound.toPrecision(4)}"></div>
+  `;
+  result.querySelectorAll('[data-dynamic-tex]').forEach((el) => {
+    katex.render(el.getAttribute('data-dynamic-tex'), el, {displayMode: true, throwOnError: false});
+  });
+}
+
+document.getElementById('round-x').addEventListener('input', updateNumberLine);
+updateNumberLine();
+
+function updateAssoc() {
+  const a = Number(document.getElementById('assoc-a').value);
+  const b = Number(document.getElementById('assoc-b').value);
+  const c = Number(document.getElementById('assoc-c').value);
+  const p = Math.max(1, Math.min(15, Number(document.getElementById('assoc-p').value) || 6));
+
+  const ab = fl(a + b, p);
+  const left = fl(ab + c, p);
+  const bc = fl(b + c, p);
+  const right = fl(a + bc, p);
+
+  document.getElementById('assoc-left').textContent = fmt(left, p);
+  document.getElementById('assoc-right').textContent = fmt(right, p);
+  document.getElementById('assoc-left-detail').textContent = `intermediate fl(a+b) = ${fmt(ab, p)}`;
+  document.getElementById('assoc-right-detail').textContent = `intermediate fl(b+c) = ${fmt(bc, p)}`;
+
+  const status = document.getElementById('assoc-status');
+  status.innerHTML = left === right
+    ? 'These settings happen to produce the same stored result.'
+    : `<strong>Different stored results.</strong> Difference = ${fmt(left - right, p)}.`;
+}
+
+['assoc-a', 'assoc-b', 'assoc-c', 'assoc-p'].forEach((id) => {
+  document.getElementById(id).addEventListener('input', updateAssoc);
+});
+updateAssoc();
+
+function updateQuad() {
+  const a = Number(document.getElementById('quad-a').value);
+  const p = Math.max(2, Math.min(15, Number(document.getElementById('quad-p').value) || 4));
+
+  const fourA = fl(4 * a, p);
+  const onePlus = fl(1 + fourA, p);
+  const root = fl(Math.sqrt(onePlus), p);
+
+  const numerator = fl(-1 + root, p);
+  const denominator = fl(2 * a, p);
+  const naive = fl(numerator / denominator, p);
+
+  const stableDenominator = fl(1 + root, p);
+  const stable = fl(2 / stableDenominator, p);
+
+  const exact = (-1 + Math.sqrt(1 + 4 * a)) / (2 * a);
+
+  document.getElementById('quad-naive').textContent = fmt(naive, p);
+  document.getElementById('quad-stable').textContent = fmt(stable, p);
+  document.getElementById('quad-naive-detail').textContent = `fl(sqrt(1+4a)) = ${fmt(root, p)}; numerator = ${fmt(numerator, p)}`;
+  document.getElementById('quad-stable-detail').textContent = `same rounded square root; no subtraction of nearly equal values`;
+  document.getElementById('quad-exact').innerHTML = `Reference value computed without the simulated p-digit rounding: <strong>${exact.toPrecision(12)}</strong>.`;
+}
+
+['quad-a', 'quad-p'].forEach((id) => {
+  document.getElementById(id).addEventListener('input', updateQuad);
+});
+updateQuad();
+
+function directHarmonic(N, p) {
+  let s = 0;
+  let firstStagnant = null;
+  for (let i = 1; i <= N; i++) {
+    const term = fl(1 / i, p);
+    const next = fl(s + term, p);
+    if (firstStagnant === null && next === s) firstStagnant = i;
+    s = next;
+  }
+  return {sum: s, firstStagnant};
+}
+
+function chunkedHarmonic(N, p, m) {
+  let total = 0;
+  let blocks = 0;
+  for (let start = 1; start <= N; start += m) {
+    let block = 0;
+    const end = Math.min(N, start + m - 1);
+    for (let i = start; i <= end; i++) {
+      block = fl(block + fl(1 / i, p), p);
+    }
+    total = fl(total + block, p);
+    blocks++;
+  }
+  return {sum: total, blocks};
+}
+
+function runHarmonic() {
+  const N = Math.max(10, Math.min(1000000, Math.floor(Number(document.getElementById('harm-n').value) || 300000)));
+  const p = Math.max(3, Math.min(12, Math.floor(Number(document.getElementById('harm-p').value) || 6)));
+  const m = Math.max(1, Math.min(100000, Math.floor(Number(document.getElementById('harm-chunk').value) || 1000)));
+
+  const direct = directHarmonic(N, p);
+  const chunked = chunkedHarmonic(N, p, m);
+
+  document.getElementById('harm-direct').textContent = fmt(direct.sum, p);
+  document.getElementById('harm-chunked').textContent = fmt(chunked.sum, p);
+  document.getElementById('harm-direct-stop').textContent = direct.firstStagnant
+    ? `first unchanged update at i = ${direct.firstStagnant.toLocaleString()}`
+    : `no unchanged update by N = ${N.toLocaleString()}`;
+  document.getElementById('harm-chunked-detail').textContent = `${chunked.blocks.toLocaleString()} blocks of at most ${m.toLocaleString()} terms`;
+
+  const difference = fl(chunked.sum - direct.sum, p);
+  document.getElementById('harm-status').innerHTML = `Same mathematical partial sum, different association pattern. Difference between the direct result and the block/meta-sum result: <strong>${fmt(difference, p)}</strong>.`;
+}
+
+document.getElementById('harm-run').addEventListener('click', runHarmonic);
+runHarmonic();
+
+    await document.fonts.ready;
+    document.documentElement.dataset.notesReady = 'true';
+  } catch (error) { reportMathError(error); }
+}, {once: true});
+function reportMathError(error) {
+  document.documentElement.dataset.notesReady = 'error';
+  const message = document.createElement('p');
+  message.className = 'small error';
+  message.setAttribute('role', 'alert');
+  message.textContent = 'KaTeX could not initialize. Check your internet connection and reload to display equations and use the interactive controls.';
+  document.querySelector('header').append(message);
+  console.error('KaTeX initialization failed:', error);
+}
+</script>
+</body>
+</html>

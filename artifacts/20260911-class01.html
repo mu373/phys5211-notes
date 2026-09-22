@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en" data-notes-ready="false">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PHYS5211, class 1: Numerical computing and floating-point arithmetic</title>
+<meta name="description" content="Lecture notes on numerical reliability, well-posedness, floating-point systems, and numerical errors, with an interactive number-system example.">
+<link id="katex-styles" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.7/dist/katex.min.css" integrity="sha384-JctiRyLzXCrSoOOzFlSoWLdyzQl7OrrRnhyeBmzB6ZWtcjccUyc8lCQJqIbs3uQX" crossorigin="anonymous">
+<script id="katex-runtime" defer src="https://cdn.jsdelivr.net/npm/katex@0.18.7/dist/katex.min.js" integrity="sha384-+7Keh381hSkXmXqnjC0JBM/kzsN6TFj+wMKychSLjTvJ8/0ElMde2uKl8i6p6Buj" crossorigin="anonymous"></script>
+<style>
+/* Typography and spacing follow the familiar GitHub Markdown presentation. */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{margin:0;background:#fff;color:#1f2328;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";font-size:16px;line-height:1.5;word-wrap:break-word}
+main{max-width:980px;margin:0 auto;padding:45px 45px 72px}
+h1,h2,h3,h4{margin-top:24px;margin-bottom:16px;font-weight:600;line-height:1.25;letter-spacing:0}
+h1{font-size:2em;padding-bottom:.3em;border-bottom:1px solid #d1d9e0;margin-top:16px}
+h2{font-size:1.5em;padding-bottom:.3em;border-bottom:1px solid #d1d9e0;margin-top:36px}
+h3{font-size:1.25em}h4{font-size:1em}p{margin:0 0 16px}strong{font-weight:650}
+a{color:#0969da;text-decoration:none}a:hover{text-decoration:underline;text-underline-offset:3px}
+header{margin-bottom:24px}.meta{color:#59636e;font-size:14px;margin:0}.course-name{color:#59636e;margin-bottom:6px;font-size:16px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:16px}.print{font-size:13px;white-space:nowrap}
+.contents{padding-left:2em;margin:16px 0 24px}.contents li{margin:4px 0}li+li{margin-top:.25em}ul,ol{padding-left:2em;margin:0 0 16px}
+button,input,select{font:inherit;color:inherit}button{background:#f6f8fa;border:1px solid #d1d9e0;padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:500}button:hover{background:#eef1f4;border-color:#b7c0c9}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid #0969da;outline-offset:3px}
+input,select{background:#fff;border:1px solid #b7c0c9;border-radius:6px;padding:7px 9px;min-height:38px}
+input[type=number]{width:100%;min-width:0}button,input,select{font-size:14px}code{font:85% ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;padding:.2em .4em;background:#eff1f3;border-radius:6px}
+.small{font-size:13px;color:#59636e}.math{font-size:1em}.katex{font-size:1.1em}
+.math.display,.math-line{overflow-x:auto;overflow-y:hidden;padding:7px 0;margin:16px 0;text-align:center}
+.math.display .katex-display,.math-line .katex-display{margin:.2em 0;text-align:center}
+.math.display .katex-display>.katex,.math-line .katex-display>.katex{text-align:center}
+.table-wrap{overflow-x:auto;margin:16px 0}table{width:100%;border-collapse:collapse;text-align:left;font-size:14px}th,td{border:1px solid #d1d9e0;padding:8px 13px;vertical-align:top}th{font-weight:600}tr{background:#fff}tbody tr:nth-child(2n){background:#f6f8fa}caption{text-align:left;font-size:13px;color:#59636e;margin-bottom:8px}.notation td:first-child{width:90px}
+.diagram{margin:22px 0;text-align:center}.diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}.diagram figcaption{font-size:13px;color:#59636e;margin-top:10px}.box-diagram text{font-family:inherit;fill:#1f2328}.box-diagram .box{fill:#fff;stroke:#8c959f;stroke-width:1}.box-diagram .field-label{font-size:16px;fill:#59636e}.box-diagram .digit{font-size:22px}.box-diagram .field{font-size:21px}
+.system{border:1px solid #b6d5f7;border-radius:10px;background:#f5f9ff;padding:18px 22px 22px;margin:24px 0;min-width:0}.system legend{font-size:16px;font-weight:600;color:#0550ae;padding:0 8px}.system h4{margin-top:24px}.system .instructions{font-size:14px;color:#424a53;margin:4px 0 18px}
+.controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:3px 0 15px}.control label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}.presets{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.presets button{font-size:12px;background:#fff;border-color:#b6d5f7}.presets button:hover{background:#ddf4ff}
+.system-summary{line-height:1.6;margin:16px 0}.system-summary .math-line{margin:8px 0}.limits{display:flex;justify-content:center;gap:12px 28px;flex-wrap:wrap;margin:12px 0}.limits span{white-space:nowrap;font-size:14px}
+.builder-controls{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin:18px 0 10px}.box-group{min-width:0;max-width:100%}.box-label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}.box-group>select{min-width:66px;height:40px}.digit-boxes{display:flex;gap:5px;align-items:center;max-width:100%;overflow-x:auto;padding:2px}.digit-select{min-width:42px;width:42px;height:40px;padding:5px 3px;text-align:center}.point{padding:0 1px;font-size:20px}.builder-figure{width:100%;display:block;margin:12px auto 4px}
+.value-boxes{display:flex;gap:5px;flex-wrap:wrap;align-items:center}.value-box{display:inline-block;border:1px solid #c8d1da;border-radius:3px;background:#fff;padding:2px 7px;font-size:13px;font-variant-numeric:tabular-nums}.omitted{padding:0 5px}.system-values td{padding-top:10px;padding-bottom:10px}.system-values td:nth-child(1){width:55px}.system-values td:nth-child(3){width:100px;white-space:nowrap}
+.number-line-panel{background:#fff;border:1px solid #d1d9e0;border-radius:8px;padding:16px;margin:14px 0 20px}.line-controls{display:flex;align-items:end;gap:14px 20px;flex-wrap:wrap}.line-controls .control{flex:1 1 160px}.line-controls input,.line-controls select{width:100%}.number-line{display:block;width:100%;height:auto;margin:12px 0 4px;touch-action:pan-y;cursor:crosshair}.number-line text{font-family:inherit;fill:#1f2328}.line-legend{display:flex;flex-wrap:wrap;gap:10px 20px;font-size:12px;color:#59636e;margin:7px 0 10px}.line-legend>span{display:flex;align-items:center;gap:6px}.line-legend svg{width:12px;height:14px;flex:none}.line-caption{font-size:12px;color:#59636e;margin:10px 0 0}.status{font-size:14px;min-height:21px;margin:8px 0}.error{font-size:14px;color:#b42318}.round-result{background:#f6f8fa;border-radius:6px;padding:2px 12px 8px;margin-top:14px}.round-result .math-line{margin:6px 0}
+details{margin:20px 0;padding:14px 17px;border:1px solid #d1d9e0;border-radius:7px;background:#f6f8fa}summary{cursor:pointer;font-size:15px;font-weight:600;color:#0550ae}summary::marker{color:#0969da}details[open]>summary{margin-bottom:16px}details p:last-child{margin-bottom:0}.reference-list{font-size:14px}.reference-list li{margin:9px 0}.skip{position:absolute;left:10px;top:-50px}.skip:focus{top:8px}.print-note{display:none}[hidden]{display:none!important}
+@media(max-width:767px){main{padding:24px 18px 48px}h1{font-size:1.8em}h2{font-size:1.45em}.controls{grid-template-columns:1fr 1fr;gap:12px}.system{padding:14px 12px 18px}.builder-controls{gap:12px}.digit-select{min-width:34px;width:34px;padding:5px 0}.digit-boxes{gap:3px}.system-values th,.system-values td{font-size:12px;padding:8px 6px}.value-box{font-size:12px;padding:2px 5px}.system-values td:nth-child(1){width:30px}.system-values td:nth-child(3){width:auto}.topline{align-items:flex-start}.limits{gap:8px 16px}.limits>span{font-size:13px}.number-line-panel{padding:12px 10px}.line-controls{gap:12px}.line-controls .control{flex-basis:130px}th,td{padding:7px 10px}.katex{font-size:1.04em}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{@page{margin:18mm}body{font-size:10.5pt;line-height:1.5}main{margin:0;padding:0;max-width:none}.print,.presets,.contents,.skip,.no-print{display:none!important}h1{font-size:22pt}h2{font-size:17pt;margin-top:25px}h3{font-size:13pt}h1,h2,h3,h4{break-after:avoid}tr,.diagram,.math.display,.number-line-panel,details{break-inside:avoid}th,td{font-size:10pt;padding:7px}.system{padding:12px;background:#fff}.print-note{display:block;font-size:9pt;color:#555}.reference-list a:after{content:" (" attr(href) ")";font-size:8pt;overflow-wrap:anywhere}a{color:#222}.math.display,.math-line{overflow:visible}.value-box{font-size:9pt}.controls{gap:12px}.system legend{font-size:12pt}.system-values td{font-size:9pt}.number-line{max-height:165px}.builder-figure{max-height:115px}.line-controls .control{flex-basis:160px}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<a href="#main" class="skip">Skip to notes</a>
+<main id="main">
+<header>
+ <p class="course-name">Introduction to Scientific Computing in the Era of AI</p>
+ <div class="topline"><p class="meta">PHYS5211 · First class · September 11, 2026</p><button class="print" type="button" id="print-note">Print / PDF</button></div>
+ <h1>Numerical computing and floating-point arithmetic</h1>
+ <ol class="contents">
+ <li><a href="#introduction">Introduction</a></li>
+ <li><a href="#ai">AI-assisted scientific computing</a></li>
+ <li><a href="#topics">Course topics</a></li>
+ <li><a href="#problems">Problem formulation</a></li>
+ <li><a href="#representation">Number representation</a></li>
+ <li><a href="#systems">Floating-point systems</a></li>
+ <li><a href="#errors">Numerical errors</a></li>
+ </ol>
+</header>
+
+<section id="introduction">
+ <h2>1. Introduction</h2>
+ <p>The central objective is to assess <strong>whether a proposed computational solution is correct</strong>. A program may run without errors and still produce an inaccurate or inappropriate answer. <strong>Successful execution does not establish numerical correctness.</strong></p>
+ <p><strong>Uncertainty quantification</strong> uses mathematics and computation to quantify uncertainty, including uncertainty in natural phenomena. Numerical reliability is part of this broader concern: a computed result needs an explanation of its accuracy and limitations.</p>
+ <h3>Motivating failures</h3>
+ <ul>
+ <li>Therac-25 radiation overdoses</li>
+ <li><a href="https://www-users.cse.umn.edu/~arnold/disasters/patriot.html" target="_blank" rel="noopener noreferrer">Patriot missile failure</a></li>
+ <li><a href="https://www-users.cse.umn.edu/~arnold/disasters/ariane5rep.html" target="_blank" rel="noopener noreferrer">Ariane 5 maiden-flight failure</a></li>
+ <li>Sleipner A platform collapse</li>
+ </ul>
+ <p>These cases involve different combinations of software, numerical, design, and validation failures. They illustrate the consequences of relying on computational results without sufficient checks.</p>
+</section>
+
+<section id="ai">
+ <h2>2. AI-assisted scientific computing</h2>
+ <p>AI can generate working code quickly. <strong>Evaluating the output still requires knowledge of the problem, the method, and possible numerical failure modes.</strong></p>
+ <p>The recurring themes are <strong>stability</strong> and <strong>accuracy</strong>. Useful questions include whether an implementation solves the intended problem, how it handles invalid inputs, and whether its behavior changes under small perturbations.</p>
+ <h3>Learning process</h3>
+ <ol>
+ <li>Understand the problem and method; implement the method yourself when useful.</li>
+ <li>Generate an AI-assisted solution.</li>
+ <li>Validate the result and compare it with a reference.</li>
+ <li>Explain discrepancies and what you learned.</li>
+ </ol>
+ <h3>Evaluation of AI-generated code</h3>
+ <p>A useful exercise is to ask an AI assistant to implement a numerical method, then test the implementation on problems with known answers. Include inputs that may expose its assumptions, such as very small increments, large differences in scale, or invalid values.</p>
+ <p>For example, ask for a program that repeatedly adds a small number to a large one. Compare the computed sum with the exact result and examine whether each increment changes the stored value. <strong>The task is to identify a failure, explain its cause, and assess a correction.</strong> This develops the judgment needed to evaluate AI-generated scientific code.</p>
+</section>
+
+<section id="topics">
+ <h2>3. Course topics</h2>
+ <p>The following are <strong>examples of topics</strong> within the course’s broader areas.</p>
+ <div class="table-wrap"><table><thead><tr><th>Area</th><th>Example topics</th></tr></thead><tbody>
+ <tr><td>Computational foundations</td><td>Floating-point arithmetic, condition numbers, error propagation</td></tr>
+ <tr><td>Linear algebra</td><td>Direct and iterative solvers, LU and Cholesky decompositions</td></tr>
+ <tr><td>Transform methods</td><td>FFT, spectral analysis</td></tr>
+ <tr><td>Data-driven methods and ML</td><td>Least squares, regularization, LASSO</td></tr>
+ <tr><td>Root finding and optimization</td><td>Newton–Raphson</td></tr>
+ <tr><td>Differential equations</td><td>Initial-value problems</td></tr>
+ <tr><td>Differentiation</td><td>Automatic differentiation, gradient validation, stability</td></tr>
+ <tr><td>Deployment</td><td>Mixed precision, reproducibility failures</td></tr>
+ </tbody></table></div>
+</section>
+
+<section id="problems">
+ <h2>4. Problem formulation</h2>
+ <h3>Well-posedness</h3>
+ <p>A <a href="https://en.wikipedia.org/wiki/Well-posed_problem" target="_blank" rel="noopener noreferrer">well-posed problem</a> has three properties:</p>
+ <ol>
+ <li><strong>Existence:</strong> a solution exists.</li>
+ <li><strong>Uniqueness:</strong> the solution is unique.</li>
+ <li><strong>Continuous dependence:</strong> the solution changes continuously with the input conditions, such as initial or boundary values.</li>
+ </ol>
+ <p>These properties concern the mathematical problem itself. <strong>Describing the conditions a solution would satisfy does not establish that a solution exists.</strong></p>
+ <h3>Mathematical and computational formulations</h3>
+ <p><strong>A mathematical model and its computational implementation require separate examination.</strong> For example, an epidemic model may be expressed as differential equations, while its implementation uses a particular time-stepping method and finite-precision numbers. The resulting computation must preserve the properties needed for the intended application.</p>
+ <p>A basic linear algebra example is</p>
+ <div class="math display" data-tex="Ax=b.">Ax=b.</div>
+ <p>Formulating this equation, establishing that it has a unique solution, and choosing a reliable way to compute that solution are distinct tasks.</p>
+ <h3>Conditioning and stability</h3>
+ <p><strong>Conditioning</strong> describes how sensitive a problem’s solution is to perturbations in its inputs. Continuous dependence does not imply low sensitivity. <strong>Numerical stability</strong> concerns how an algorithm handles errors introduced during computation.</p>
+ <div class="table-wrap"><table><thead><tr><th>Concept</th><th>Object of study</th><th>Main question</th></tr></thead><tbody>
+ <tr><td>Well-posedness</td><td>Mathematical problem</td><td>Existence, uniqueness, and continuous dependence?</td></tr>
+ <tr><td>Conditioning</td><td>Problem at given inputs</td><td>How sensitive is the solution?</td></tr>
+ <tr><td>Stability</td><td>Algorithm</td><td>How do computational errors affect its behavior?</td></tr>
+ <tr><td>Accuracy</td><td>Computed result</td><td>How close is it to the intended answer?</td></tr>
+ </tbody></table></div>
+ <details><summary>Additional definition: scalar condition number</summary>
+ <p>For differentiable <span class="math" data-tex="f">f</span>, with <span class="math" data-tex="x\ne0">x\ne0</span> and <span class="math" data-tex="f(x)\ne0">f(x)\ne0</span>, the local relative condition number is</p>
+ <div class="math display" data-tex="\kappa_f(x)=\left|\frac{x f&#x27;(x)}{f(x)}\right|.">\kappa_f(x)=\left|\frac{x f'(x)}{f(x)}\right|.</div>
+ <p>For example, <span class="math" data-tex="f(x)=x-1">f(x)=x-1</span> is continuous, but <span class="math" data-tex="\kappa_f(x)=|x/(x-1)|">\kappa_f(x)=|x/(x-1)|</span> becomes large near 1. Small relative changes in the input can produce much larger relative changes in the output. See the <a href="https://www.cs.cornell.edu/courses/cs4220/2026sp/lec/2026-02-02.html" target="_blank" rel="noopener noreferrer">Cornell numerical analysis notes</a>.</p>
+ </details>
+</section>
+
+<section id="representation">
+ <h2>5. Number representation</h2>
+ <h3>Scientific notation</h3>
+ <p>Floating-point representation uses a significand and an exponent, as in scientific notation:</p>
+ <div class="math display" data-tex="123456=1.23456\times10^5,">123456=1.23456\times10^5,</div>
+ <div class="math display" data-tex="0.00568=5.68\times10^{-3}.">0.00568=5.68\times10^{-3}.</div>
+ <p>The sign of the number and the sign of the exponent have different roles. A negative exponent changes the scale; it does not make a positive number negative.</p>
+ <h3>Positional notation</h3>
+ <p>Each digit contributes its value multiplied by a power of the base. For example, the binary number <span class="math" data-tex="(101.01)_2">(101.01)_2</span> represents</p>
+ <div class="math display" data-tex="\begin{aligned}5.25&amp;=1\cdot2^2+0\cdot2^1+1\cdot2^0\\&amp;\quad+0\cdot2^{-1}+1\cdot2^{-2}.\end{aligned}">\begin{aligned}5.25&amp;=1\cdot2^2+0\cdot2^1+1\cdot2^0\\&amp;\quad+0\cdot2^{-1}+1\cdot2^{-2}.\end{aligned}</div>
+ <figure class="diagram">
+ <svg class="box-diagram" width="364" height="112" viewBox="0 0 364 112" role="img" aria-labelledby="place-title place-desc">
+ <title id="place-title">Binary digits and their place values</title><desc id="place-desc">The digits 1, 0, 1, 0, 1 multiply powers of two from 2 squared to 2 to the minus 2, with the radix point after the third digit.</desc>
+ <g text-anchor="middle"><text class="field-label" x="32" y="24">2<tspan dy="-6" font-size="12">2</tspan></text><text class="field-label" x="96" y="24">2<tspan dy="-6" font-size="12">1</tspan></text><text class="field-label" x="160" y="24">2<tspan dy="-6" font-size="12">0</tspan></text><text class="field-label" x="244" y="24">2<tspan dy="-6" font-size="12">−1</tspan></text><text class="field-label" x="308" y="24">2<tspan dy="-6" font-size="12">−2</tspan></text></g>
+ <rect class="box" x="7" y="38" width="50" height="47"/><rect class="box" x="71" y="38" width="50" height="47"/><rect class="box" x="135" y="38" width="50" height="47"/><rect class="box" x="219" y="38" width="50" height="47"/><rect class="box" x="283" y="38" width="50" height="47"/>
+ <g class="digit" text-anchor="middle"><text x="32" y="69">1</text><text x="96" y="69">0</text><text x="160" y="69">1</text><text x="202" y="70">.</text><text x="244" y="69">0</text><text x="308" y="69">1</text></g>
+ </svg>
+ </figure>
+ <p>Its normalized form is <span class="math" data-tex="(1.0101)_2\times2^2">(1.0101)_2\times2^2</span>, which requires five significant binary digits.</p>
+ <h3>Normalized floating-point representation</h3>
+ <div class="math display" data-tex="x=s\,(d_0.d_1\ldots d_{p-1})_\beta\,\beta^e.">x=s\,(d_0.d_1\ldots d_{p-1})_\beta\,\beta^e.</div>
+ <figure class="diagram">
+ <svg class="box-diagram" width="364" height="112" viewBox="0 0 364 112" role="img" aria-labelledby="fields-title fields-desc">
+ <title id="fields-title">Floating-point fields</title><desc id="fields-desc">A sign, an exponent, and a significand with p significant digits.</desc>
+ <g class="field-label" text-anchor="middle"><text x="34" y="24">Sign</text><text x="112" y="24">Exponent</text><text x="259" y="24">Significand</text></g>
+ <rect class="box" x="6" y="38" width="56" height="47"/><rect class="box" x="78" y="38" width="68" height="47"/><rect class="box" x="168" y="38" width="182" height="47"/>
+ <g class="field" text-anchor="middle"><text x="34" y="69" font-style="italic">s</text><text x="112" y="69" font-style="italic">e</text><text x="259" y="68">d₀ . d₁ … dₚ₋₁</text></g>
+ </svg>
+ </figure>
+ <div class="table-wrap"><table class="notation"><thead><tr><th>Symbol</th><th>Meaning</th></tr></thead><tbody>
+ <tr><td class="math" data-tex="\beta">\beta</td><td>Base, such as 2 or 10</td></tr>
+ <tr><td class="math" data-tex="p">p</td><td>Number of significant digits, including the leading digit</td></tr>
+ <tr><td class="math" data-tex="L,U">L,U</td><td>Lower and upper exponent bounds</td></tr>
+ <tr><td class="math" data-tex="e">e</td><td>Integer exponent satisfying <span class="math" data-tex="L\le e\le U">L\le e\le U</span></td></tr>
+ <tr><td class="math" data-tex="s">s</td><td>Sign, either <span class="math" data-tex="-1">-1</span> or <span class="math" data-tex="+1">+1</span></td></tr>
+ <tr><td class="math" data-tex="d_i">d_i</td><td>Digits in <span class="math" data-tex="\{0,1,\ldots,\beta-1\}">\{0,1,\ldots,\beta-1\}</span></td></tr>
+ </tbody></table></div>
+ <p>For a <strong>normalized nonzero number</strong>, <span class="math" data-tex="d_0\ne0">d_0\ne0</span>. In binary, <strong>the leading digit must therefore be 1</strong>. Zero is represented separately.</p>
+</section>
+
+<section id="systems">
+ <h2>6. Floating-point systems</h2>
+ <h3>Example system</h3>
+ <p>Let’s consider a system with the following parameters:</p>
+ <div class="math display" data-tex="\beta=2,\qquad p=3,\qquad L=-1,\qquad U=2.">\beta=2,\qquad p=3,\qquad L=-1,\qquad U=2.</div>
+ <p>A significand has three binary digits:</p>
+ <div class="math display" data-tex="(1.d_1d_2)_2=1+\frac{d_1}{2}+\frac{d_2}{4}.">(1.d_1d_2)_2=1+\frac{d_1}{2}+\frac{d_2}{4}.</div>
+ <p>The four possibilities are <span class="math" data-tex="(1.00)_2=1">(1.00)_2=1</span>, <span class="math" data-tex="(1.01)_2=1.25">(1.01)_2=1.25</span>, <span class="math" data-tex="(1.10)_2=1.5">(1.10)_2=1.5</span>, and <span class="math" data-tex="(1.11)_2=1.75">(1.11)_2=1.75</span>. Multiplying them by each allowed power of two gives the positive representable values.</p>
+ <div class="table-wrap"><table><thead><tr><th>Exponent</th><th>Positive values</th><th>Spacing</th></tr></thead><tbody>
+ <tr><td>−1</td><td><div class="value-boxes"><span class="value-box">0.5</span><span class="value-box">0.625</span><span class="value-box">0.75</span><span class="value-box">0.875</span></div></td><td>0.125</td></tr>
+ <tr><td>0</td><td><div class="value-boxes"><span class="value-box">1</span><span class="value-box">1.25</span><span class="value-box">1.5</span><span class="value-box">1.75</span></div></td><td>0.25</td></tr>
+ <tr><td>1</td><td><div class="value-boxes"><span class="value-box">2</span><span class="value-box">2.5</span><span class="value-box">3</span><span class="value-box">3.5</span></div></td><td>0.5</td></tr>
+ <tr><td>2</td><td><div class="value-boxes"><span class="value-box">4</span><span class="value-box">5</span><span class="value-box">6</span><span class="value-box">7</span></div></td><td>1</td></tr>
+ </tbody></table></div>
+ <p>The negative counterparts and zero complete the system. There are 16 positive values, 16 negative values, and zero: <strong>33 distinct numbers</strong>.</p>
+ <p>For example,</p>
+ <div class="math display" data-tex="\begin{aligned}(1.01)_2\times2^{-1}&amp;=1\cdot2^{-1}+0\cdot2^{-2}+1\cdot2^{-3}\\&amp;=\frac12+0+\frac18=\frac58=0.625.\end{aligned}">\begin{aligned}(1.01)_2\times2^{-1}&amp;=1\cdot2^{-1}+0\cdot2^{-2}+1\cdot2^{-3}\\&amp;=\frac12+0+\frac18=\frac58=0.625.\end{aligned}</div>
+
+ <h3>Interactive system</h3>
+ <p>Change the base, precision, and exponent bounds to construct a different system. The digit boxes below select one of its representable numbers.</p>
+ <noscript><p>Enable JavaScript to change the system parameters. The fixed example above is available without JavaScript.</p></noscript>
+ <fieldset class="system">
+ <legend>Interactive: floating-point system</legend>
+ <p class="instructions">Change the parameters, choose digits, or place an input on the number line to inspect its rounded value.</p>
+ <div class="controls">
+ <div class="control"><label for="base">Base <span class="math" data-tex="\beta">\beta</span></label><input id="base" type="number" min="2" max="10" step="1" value="2"></div>
+ <div class="control"><label for="precision">Precision <span class="math" data-tex="p">p</span></label><input id="precision" type="number" min="1" max="6" step="1" value="3"></div>
+ <div class="control"><label for="lower">Lower bound <span class="math" data-tex="L">L</span></label><input id="lower" type="number" min="-6" max="6" step="1" value="-1"></div>
+ <div class="control"><label for="upper">Upper bound <span class="math" data-tex="U">U</span></label><input id="upper" type="number" min="-6" max="6" step="1" value="2"></div>
+ </div>
+ <div class="presets"><button type="button" data-example="binary">Binary example</button><button type="button" data-example="decimal">Decimal example</button><button type="button" data-example="5.25">5.25 in binary</button></div>
+ <p class="error" id="config-error" role="alert" hidden></p>
+ <div id="system-content">
+ <div class="system-summary" id="system-summary" aria-live="polite"></div>
+ <h4>Number construction</h4>
+ <div class="builder-controls">
+ <div class="box-group"><label class="box-label" for="number-sign">Sign</label><select id="number-sign"><option value="1">+</option><option value="-1">−</option></select></div>
+ <div class="box-group"><label class="box-label" for="number-exponent">Exponent <span class="math" data-tex="e">e</span></label><select id="number-exponent"></select></div>
+ <div class="box-group"><span class="box-label" id="digits-label">Significand</span><div class="digit-boxes" id="digit-boxes" role="group" aria-labelledby="digits-label"></div></div>
+ </div>
+ <svg id="builder-diagram" class="builder-figure box-diagram" role="img" aria-label="Selected sign, exponent, and significand digits"></svg>
+ <div id="number-output" aria-live="polite" aria-atomic="true"><div id="normalized-number" class="math-line" data-tex=""></div><div id="expanded-number" class="math-line" data-tex=""></div><div id="decimal-number" class="math-line" hidden data-tex=""></div></div>
+ <h4>Number line and rounding</h4>
+ <div class="number-line-panel">
+ <div class="line-controls">
+ <div class="control"><label for="line-view">Number-line view</label><select id="line-view"><option value="all">All exponents</option></select></div>
+ <div class="control"><label for="rounding-input">Input <span class="math" data-tex="x">x</span></label><input id="rounding-input" type="text" inputmode="decimal" value="4.625" spellcheck="false" autocomplete="off"></div>
+ </div>
+ <svg id="number-line" class="number-line" role="img" aria-label="Nonnegative representable values, input magnitude, and rounded magnitude"></svg>
+ <div class="line-legend">
+ <span><svg aria-hidden="true" viewBox="0 0 12 14"><circle cx="6" cy="7" r="3" fill="#0969da"/></svg>Representable value</span>
+ <span><svg aria-hidden="true" viewBox="0 0 12 14"><path d="M6 1 11 7 6 13 1 7Z" fill="#bc4c00"/></svg>Input magnitude</span>
+ <span><svg aria-hidden="true" viewBox="0 0 12 14"><path d="M6 1V13" stroke="#1f2328" stroke-width="2"/></svg>Rounded magnitude</span>
+ </div>
+ <p class="line-caption" id="line-caption"></p>
+ <p class="line-caption no-print">Click the line to choose an input, or enter a value above. Negative inputs use the same line of magnitudes.</p>
+ <div class="round-result"><div id="rounding-output" class="math-line" aria-live="polite" data-tex=""></div><p id="rounding-status" class="status"></p></div>
+ </div>
+ <h4>Representable values</h4>
+ <div class="table-wrap"><table class="system-values"><thead><tr><th><span class="math" data-tex="e">e</span></th><th>Positive values</th><th>Spacing</th></tr></thead><tbody id="system-values"></tbody></table></div>
+ <p id="value-count" class="small"></p>
+ <p class="small">This example uses normalized numbers plus zero, without subnormal values. Rounding selects the nearest value; exact midpoint ties go toward zero. Inputs beyond the largest magnitude are reported as out of range. These are the rules of this example, rather than a complete IEEE 754 implementation.</p>
+ </div>
+ <p class="print-note">The interactive example is shown with the settings selected at the time of printing.</p>
+ </fieldset>
+
+ <h3>Range and spacing</h3>
+ <p>For a normalized system, the smallest and largest positive values are</p>
+ <div class="math display" data-tex="x_{\min}^{+}=\beta^L,">x_{\min}^{+}=\beta^L,</div>
+ <div class="math display" data-tex="x_{\max}=(\beta-\beta^{1-p})\,\beta^U.">x_{\max}=(\beta-\beta^{1-p})\,\beta^U.</div>
+ <p>Within an exponent block, the spacing is</p>
+ <div class="math display" data-tex="\Delta_e=\beta^{e-p+1}.">\Delta_e=\beta^{e-p+1}.</div>
+ <p>For the three-digit binary example, <span class="math" data-tex="x_{\min}^{+}=0.5">x_{\min}^{+}=0.5</span>, <span class="math" data-tex="x_{\max}=7">x_{\max}=7</span>, and <span class="math" data-tex="\Delta_e=2^{e-2}">\Delta_e=2^{e-2}</span>. Increasing the exponent by one doubles the spacing. Increasing the precision by one halves the spacing at a fixed exponent.</p>
+ <p><strong>Range and exact representability are different.</strong> The number 4.625 lies within the system’s range but between its available values. The number 8 requires exponent 3 and is outside the range.</p>
+ <details><summary>Additional example: rational numbers in binary</summary>
+ <p>A reduced rational number has a terminating binary expansion only if its denominator is a power of 2. Thus <span class="math" data-tex="1/8=(0.001)_2">1/8=(0.001)_2</span> terminates, while <span class="math" data-tex="1/10=(0.000110011\ldots)_2">1/10=(0.000110011\ldots)_2</span> repeats. A terminating expansion must also fit the system’s precision and exponent bounds to be stored exactly.</p>
+ </details>
+</section>
+
+<section id="errors">
+ <h2>7. Numerical errors</h2>
+ <h3>Representation error</h3>
+ <p>An input may need to be replaced with an available machine number before arithmetic begins. Let <span class="math" data-tex="\operatorname{fl}(x)">\operatorname{fl}(x)</span> denote the rounded representation of <span class="math" data-tex="x">x</span>.</p>
+ <p>In the three-digit binary example, the smallest positive value is 0.5. Under rounding to the nearest available number,</p>
+ <div class="math display" data-tex="\operatorname{fl}(0.1)=0.">\operatorname{fl}(0.1)=0.</div>
+ <p>This example concerns the gap near zero. Even a binary system with a much wider exponent range still cannot represent 0.1 exactly with finitely many digits, because its binary expansion repeats.</p>
+ <h3>Arithmetic rounding error</h3>
+ <p>Exactly representable inputs can produce a result that is not representable. Both 4 and 0.625 are available, but</p>
+ <div class="math display" data-tex="4+0.625=4.625.">4+0.625=4.625.</div>
+ <p>Rounding the result to the nearest available value gives</p>
+ <div class="math display" data-tex="\operatorname{fl}(4+0.625)=5,\qquad 5-4.625=0.375.">\operatorname{fl}(4+0.625)=5,\qquad 5-4.625=0.375.</div>
+ <p>The inputs introduced no representation error. <strong>The error entered when the arithmetic result was rounded.</strong></p>
+ <div class="table-wrap"><table><thead><tr><th>Stage</th><th>Source of error</th></tr></thead><tbody>
+ <tr><td>Input representation</td><td>The original value is not available in the number system.</td></tr>
+ <tr><td>Arithmetic operation</td><td>The exact result is not available in the number system.</td></tr>
+ </tbody></table></div>
+ <h3>Small increments and operation order</h3>
+ <p>Using the example’s midpoint rule, 4.5 rounds to 4. Adding a nonzero increment can therefore leave the stored value unchanged:</p>
+ <div class="math display" data-tex="\operatorname{fl}(4+0.5)=4.">\operatorname{fl}(4+0.5)=4.</div>
+ <p>As a worked consequence, the order of addition matters:</p>
+ <div class="math display" data-tex="\operatorname{fl}\bigl(\operatorname{fl}(4+0.5)+0.5\bigr)=4,">\operatorname{fl}\bigl(\operatorname{fl}(4+0.5)+0.5\bigr)=4,</div>
+ <div class="math display" data-tex="\operatorname{fl}\bigl(4+\operatorname{fl}(0.5+0.5)\bigr)=5.">\operatorname{fl}\bigl(4+\operatorname{fl}(0.5+0.5)\bigr)=5.</div>
+ <p>The first computation loses the two increments separately. The second combines them into 1 before adding them to 4. <strong>Floating-point addition is not generally associative.</strong></p>
+ <h3>Error propagation and validation</h3>
+ <p>Individual errors may be small but can be amplified or accumulated during a computation. A larger numerical range alone does not remove the finite set of representable values.</p>
+ <p>A practical starting point is a <strong>simple problem with a known answer</strong>. Compute the result, compare it with the reference, and identify where any discrepancy entered.</p>
+ <ul>
+ <li>Check whether the mathematical problem is well posed.</li>
+ <li>State the assumptions introduced by the computational method.</li>
+ <li>Separate input representation errors from arithmetic errors.</li>
+ <li>Compare with an analytic answer or an independent calculation.</li>
+ <li>Explain the effects of precision, input scale, and operation order.</li>
+ </ul>
+</section>
+
+<section id="references">
+ <h2>References</h2>
+ <ul class="reference-list">
+ <li><a href="https://www-users.cse.umn.edu/~arnold/disasters/patriot.html" target="_blank" rel="noopener noreferrer">Douglas N. Arnold, The Patriot Missile Failure</a></li>
+ <li><a href="https://www-users.cse.umn.edu/~arnold/disasters/GAO-IMTEC-92-96.pdf" target="_blank" rel="noopener noreferrer">GAO, Patriot Missile Defense: Software Problem Led to System Failure at Dhahran, Saudi Arabia</a></li>
+ <li><a href="https://www-users.cse.umn.edu/~arnold/disasters/ariane5rep.html" target="_blank" rel="noopener noreferrer">Ariane 501 Inquiry Board report</a></li>
+ <li><a href="https://en.wikipedia.org/wiki/Well-posed_problem" target="_blank" rel="noopener noreferrer">Well-posed problem</a></li>
+ <li><a href="https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html" target="_blank" rel="noopener noreferrer">David Goldberg, What Every Computer Scientist Should Know About Floating-Point Arithmetic</a></li>
+ <li><a href="https://www.cs.cornell.edu/courses/cs4220/2026sp/lec/2026-02-02.html" target="_blank" rel="noopener noreferrer">Cornell CS 4220, Forward and backward error and conditioning</a></li>
+ </ul>
+</section>
+
+</main>
+
+<script id="note-script">
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    if (!window.katex) throw new Error('KaTeX did not load.');
+  document.querySelectorAll('[data-tex]').forEach(el => {
+    katex.render(el.dataset.tex, el, {displayMode: el.classList.contains('display') || el.classList.contains('math-line'), throwOnError: true, trust: false});
+  });
+
+'use strict';
+// Exact rational arithmetic keeps the example independent of binary64 rounding.
+const byId = id => document.getElementById(id);
+const SVG_NS='http://www.w3.org/2000/svg';
+function svgElement(tag,attrs={},text=''){
+ const element=document.createElementNS(SVG_NS,tag);
+ Object.entries(attrs).forEach(([key,value])=>element.setAttribute(key,String(value)));
+ if(text!=='')element.textContent=text;
+ return element;
+}
+function gcd(a,b){a=a<0n?-a:a;while(b){const r=a%b;a=b;b=r;}return a;}
+function rational(n,d=1n){if(d<0n){n=-n;d=-d;}const g=gcd(n,d);return {n:n/g,d:d/g};}
+function power(base,e){return e>=0?rational(BigInt(base)**BigInt(e)):rational(1n,BigInt(base)**BigInt(-e));}
+function multiply(a,b){return rational(a.n*b.n,a.d*b.d);}
+function subtract(a,b){return rational(a.n*b.d-b.n*a.d,a.d*b.d);}
+function divide(a,b){return rational(a.n*b.d,a.d*b.n);}
+function abs(a){return {n:a.n<0n?-a.n:a.n,d:a.d};}
+function compare(a,b){const c=a.n*b.d-b.n*a.d;return c<0n?-1:c>0n?1:0;}
+function parseDecimal(raw){
+ const match=raw.trim().match(/^([+-]?)(\d+\.?\d*|\.\d+)(?:[eE]([+-]?\d+))?$/);
+ if(!match||raw.length>80)return null;
+ const exponent=Number(match[3]||0),parts=match[2].split('.');
+ const places=(parts[1]||'').length-exponent;
+ if(!Number.isInteger(exponent)||Math.abs(places)>50)return null;
+ const n=BigInt(parts.join(''))*(match[1]==='-'?-1n:1n);
+ return places>=0?rational(n,10n**BigInt(places)):rational(n*10n**BigInt(-places));
+}
+function format(a){
+ const value=Number(a.n)/Number(a.d);
+ if(!value)return '0';
+ if(Math.abs(value)>=1e8||Math.abs(value)<1e-7)return value.toExponential(6).replace(/\.?0+e/,'e');
+ return Number(value.toPrecision(10)).toString();
+}
+function fractionTex(a){return a.d===1n?a.n.toString():`${a.n<0n?'-':''}\\frac{${a.n<0n?-a.n:a.n}}{${a.d}}`;}
+function valueTex(a){const label=format(a),decimal=parseDecimal(label);return decimal&&compare(a,decimal)===0?label:fractionTex(a);}
+function mathText(el,tex,display=false){katex.render(tex,el,{displayMode:display,throwOnError:true,strict:'error',trust:false});}
+function mathSpan(tex){const span=document.createElement('span');mathText(span,tex);return span;}
+function system(base,p,L,U){
+ const start=BigInt(base)**BigInt(p-1),stop=BigInt(base)**BigInt(p)-1n;
+ return {base,p,L,U,start,stop,perBlock:stop-start+1n,min:power(base,L),max:multiply(rational(stop),power(base,U-p+1))};
+}
+function machineValue(sys,m,e){return multiply(rational(m),power(sys.base,e-sys.p+1));}
+function roundValue(input,sys){
+ const x=abs(input),sign=input.n<0n?-1n:1n;
+ if(compare(x,sys.max)>0)return {status:'range'};
+ if(compare(x,sys.min)<0){
+  const nearMin=compare(multiply(x,rational(2n)),sys.min)>0;
+  return {status:'ok',value:nearMin?multiply(rational(sign),sys.min):rational(0n)};
+ }
+ let e=sys.L;
+ while(e<sys.U&&compare(x,power(sys.base,e+1))>=0)e++;
+ const step=power(sys.base,e-sys.p+1),units=divide(x,step);
+ let coefficient=units.n/units.d;
+ if(2n*(units.n%units.d)>units.d)coefficient++;
+ return {status:'ok',value:multiply(rational(sign*coefficient),step)};
+}
+let currentSystem=system(2,3,-1,2);
+let digitValues=[1,0,1];
+let selectedExponent=-1;
+let lineDomain=null;
+function drawBuilderDiagram(){
+ const svg=byId('builder-diagram'),width=Math.max(220,svg.getBoundingClientRect().width||640);
+ const stacked=width<520,sys=currentSystem;
+ const digitWidth=Math.min(42,(width-32-(sys.p-1)*5-(sys.p>1?15:0))/sys.p);
+ const digitSpan=sys.p*digitWidth+(sys.p-1)*5+(sys.p>1?15:0);
+ const height=stacked?167:105;
+ svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.replaceChildren();
+ svg.append(svgElement('title',{},`Sign ${byId('number-sign').value==='-1'?'negative':'positive'}, exponent ${selectedExponent}, digits ${digitValues.join(', ')} in base ${sys.base}.`));
+ const left=stacked?(width-138)/2:(width-174-digitSpan)/2;
+ function box(x,y,w,text,label){
+  svg.append(svgElement('text',{x:x+w/2,y:y-10,'text-anchor':'middle','font-size':12,fill:'#59636e'},label));
+  svg.append(svgElement('rect',{x,y,width:w,height:39,class:'box'}));
+  svg.append(svgElement('text',{x:x+w/2,y:y+26,'text-anchor':'middle','font-size':20},text));
+ }
+ box(left,31,52,byId('number-sign').value==='-1'?'−':'+','Sign');
+ box(left+72,31,66,String(selectedExponent),'Exponent');
+ let x=stacked?(width-digitSpan)/2:left+174;
+ const y=stacked?113:31;
+ svg.append(svgElement('text',{x:x+digitSpan/2,y:y-10,'text-anchor':'middle','font-size':12,fill:'#59636e'},'Significand'));
+ digitValues.forEach((digit,i)=>{
+  if(i===1){svg.append(svgElement('text',{x:x+5,y:y+27,'text-anchor':'middle','font-size':21},'.'));x+=15;}
+  svg.append(svgElement('rect',{x,y,width:digitWidth,height:39,class:'box'}));
+  svg.append(svgElement('text',{x:x+digitWidth/2,y:y+26,'text-anchor':'middle','font-size':20},String(digit)));
+  x+=digitWidth+5;
+ });
+}
+function updateBuilder(){
+ const sys=currentSystem;
+ const sign=byId('number-sign').value==='-1'?-1n:1n;
+ selectedExponent=Number(byId('number-exponent').value);
+ const digits=[...byId('digit-boxes').querySelectorAll('select')].map(select=>Number(select.value));
+ digitValues=digits;
+ const coefficient=digits.reduce((acc,digit)=>acc*BigInt(sys.base)+BigInt(digit),0n);
+ const value=multiply(rational(sign),machineValue(sys,coefficient,selectedExponent));
+ const digitString=digits[0]+(digits.length>1?'.'+digits.slice(1).join(''):'');
+ const exactLabel=valueTex(value);
+ mathText(byId('normalized-number'),`${exactLabel}=${sign<0n?'-':''}(${digitString})_{${sys.base}}\\times ${sys.base}^{${selectedExponent}}`,true);
+ const terms=digits.map((digit,i)=>`${i===0?(sign<0n?'-':''):(sign<0n?'-':'+')}${digit}\\cdot ${sys.base}^{${selectedExponent-i}}`);
+ const expansion=terms.length<=3?`${exactLabel}=${terms.join('')}`:`\\begin{aligned}${exactLabel}&=${terms.slice(0,3).join('')}\\\\&\\quad${terms.slice(3).join('')}\\end{aligned}`;
+ mathText(byId('expanded-number'),expansion,true);
+ const decimal=format(value),exactFraction=fractionTex(value);
+ const decimalRational=parseDecimal(decimal);
+ const isExactDecimal=decimalRational&&compare(value,decimalRational)===0;
+ byId('decimal-number').hidden=!!isExactDecimal;
+ if(!isExactDecimal)mathText(byId('decimal-number'),`${exactFraction}\\approx${decimal}`,true);
+ drawBuilderDiagram();
+}
+function buildDigitControls(){
+ const sys=currentSystem,wrap=byId('digit-boxes');wrap.replaceChildren();
+ for(let i=0;i<sys.p;i++){
+  if(i===1){const point=document.createElement('span');point.className='point';point.textContent='.';point.setAttribute('aria-hidden','true');wrap.append(point);}
+  const select=document.createElement('select');select.className='digit-select';select.setAttribute('aria-label',`Digit d${i}`);
+  for(let d=i===0?1:0;d<sys.base;d++){const option=document.createElement('option');option.value=String(d);option.textContent=String(d);select.append(option);}
+  const old=digitValues[i]===undefined?0:digitValues[i];select.value=String(Math.min(sys.base-1,Math.max(i===0?1:0,old)));
+  select.addEventListener('change',updateBuilder);wrap.append(select);
+ }
+ const exponent=byId('number-exponent');exponent.replaceChildren();
+ for(let e=sys.L;e<=sys.U;e++){const option=document.createElement('option');option.value=String(e);option.textContent=String(e);exponent.append(option);}
+ exponent.value=String(Math.min(sys.U,Math.max(sys.L,selectedExponent)));
+ updateBuilder();
+}
+function renderValues(){
+ const sys=currentSystem,body=byId('system-values');body.replaceChildren();
+ let showAll=sys.perBlock<=8n;
+ for(let e=sys.L;e<=sys.U;e++){
+  const row=document.createElement('tr'),exponent=document.createElement('td'),values=document.createElement('td'),spacing=document.createElement('td');
+  exponent.textContent=String(e);const boxes=document.createElement('div');boxes.className='value-boxes';
+  const coefficients=showAll?Array.from({length:Number(sys.perBlock)},(_,i)=>sys.start+BigInt(i)):[sys.start,sys.start+1n,sys.start+2n,null,sys.stop-1n,sys.stop];
+  coefficients.forEach(m=>{const span=document.createElement('span');if(m===null){span.className='omitted';span.textContent='…';span.setAttribute('aria-label','Intermediate values omitted');}else{span.className='value-box';span.textContent=format(machineValue(sys,m,e));}boxes.append(span);});
+  values.append(boxes);spacing.textContent=format(power(sys.base,e-sys.p+1));row.append(exponent,values,spacing);body.append(row);
+ }
+ const positives=BigInt(sys.U-sys.L+1)*sys.perBlock;
+ byId('value-count').textContent=`${positives.toLocaleString('en-US')} positive values; ${(2n*positives+1n).toLocaleString('en-US')} distinct values including negatives and zero. `+(showAll?'All positive values are shown.':'Rows show the first three and last two values. Decimal labels are rounded to at most 10 significant digits.');
+}
+function refreshLineViews(){
+ const select=byId('line-view'),old=select.value;
+ select.replaceChildren();
+ const all=document.createElement('option');all.value='all';all.textContent='All exponents';select.append(all);
+ for(let e=currentSystem.L;e<=currentSystem.U;e++){
+  const option=document.createElement('option');option.value=String(e);option.textContent=`Exponent e = ${e}`;select.append(option);
+ }
+ select.value=old!==''&&old!=='all'&&Number(old)>=currentSystem.L&&Number(old)<=currentSystem.U?old:'all';
+}
+function lineTick(value){
+ if(value===0)return '0';
+ return Math.abs(value)>=1e5||Math.abs(value)<1e-3?value.toExponential(1).replace('.0e','e'):String(Number(value.toPrecision(5)));
+}
+function drawNumberLine(){
+ const svg=byId('number-line'),sys=currentSystem;
+ const width=Math.max(220,svg.getBoundingClientRect().width||680),height=174;
+ const view=byId('line-view').value||'all',all=view==='all',selected=Number(view);
+ const exponents=all?Array.from({length:sys.U-sys.L+1},(_,i)=>sys.L+i):[selected];
+ const low=all?0:sys.base**selected,high=sys.base**(all?sys.U+1:selected+1);
+ const left=12,right=width-12,y=86,xp=value=>left+(value-low)/(high-low)*(right-left);
+ lineDomain={low,high,left,right,width};
+ svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.replaceChildren();
+ svg.append(svgElement('title',{},`Representable magnitudes for base ${sys.base}, precision ${sys.p}, exponents ${sys.L} to ${sys.U}. ${all?'All exponents.':`Exponent ${selected}.`}`));
+ const perBlock=Number(sys.perBlock),budget=Math.max(3,Math.floor(240/exponents.length));
+ let shown=0;
+ exponents.forEach((e,index)=>{
+  const lo=sys.base**e,hi=sys.base**(e+1),start=xp(lo),end=xp(hi);
+  svg.append(svgElement('rect',{x:start,y:y-25,width:Math.max(0,end-start),height:50,fill:index%2?'#eaf3ff':'#f3f7fc'}));
+  if(end-start>60)svg.append(svgElement('text',{x:(start+end)/2,y:y-38,'text-anchor':'middle','font-size':12},`e = ${e}`));
+  const count=Math.min(perBlock,budget);
+  for(let i=0;i<count;i++){
+   const index=count===1?0:Math.floor(i*(perBlock-1)/(count-1));
+   const value=machineValue(sys,sys.start+BigInt(index),e);
+   const pos=xp(Number(value.n)/Number(value.d));
+   svg.append(svgElement('line',{x1:pos,y1:y-9,x2:pos,y2:y+9,stroke:'#0969da','stroke-width':1.3}));shown++;
+  }
+ });
+ if(all)svg.append(svgElement('circle',{cx:xp(0),cy:y,r:3,fill:'#0969da'}));
+ if(!all&&selected<sys.U)svg.append(svgElement('line',{x1:xp(high),y1:y-9,x2:xp(high),y2:y+9,stroke:'#0969da','stroke-width':1.3}));
+ svg.append(svgElement('line',{x1:left,y1:y,x2:right,y2:y,stroke:'#8c959f','stroke-width':1}));
+ const candidates=all?[0,...exponents.map(e=>sys.base**e),high]:[low,...[1,2,3].map(i=>low+(high-low)*i/4),high];
+ let previousRight=-100;
+ const lastLabel=lineTick(high),lastLeft=right-lastLabel.length*7;
+ candidates.forEach((value,i)=>{
+  const label=lineTick(value),pos=xp(value),first=i===0,last=i===candidates.length-1;
+  const labelLeft=first?pos:last?pos-label.length*7:pos-label.length*3.5;
+  const labelRight=first?pos+label.length*7:last?pos:pos+label.length*3.5;
+  if(!first&&!last&&(labelLeft<previousRight+8||labelRight>lastLeft-8))return;
+  svg.append(svgElement('text',{x:pos,y:y+45,'text-anchor':first?'start':last?'end':'middle','font-size':12},label));
+  previousRight=labelRight;
+ });
+ const input=parseDecimal(byId('rounding-input').value);
+ let inputOutside=false;
+ if(input){
+  const magnitude=Number(abs(input).n)/Number(input.d);
+  if(magnitude>=low&&magnitude<=high){
+   const px=xp(magnitude);
+   svg.append(svgElement('path',{d:`M ${px} ${y-26} l 5 6 l -5 6 l -5 -6 Z`,fill:'#bc4c00'}));
+  }else inputOutside=true;
+  const rounded=roundValue(input,sys);
+  if(rounded.status==='ok'){
+   const value=Number(abs(rounded.value).n)/Number(rounded.value.d);
+   if(value>=low&&value<=high){const px=xp(value);svg.append(svgElement('line',{x1:px,y1:y-16,x2:px,y2:y+23,stroke:'#1f2328','stroke-width':2.3}));}
+  }
+ }
+ svg.append(svgElement('text',{x:width/2,y:height-7,'text-anchor':'middle','font-size':12},'Magnitude |x| · linear scale'));
+ const total=perBlock*exponents.length;
+ byId('line-caption').textContent=(shown===total?`All ${total.toLocaleString('en-US')} positive values ${all?'':'in this exponent block '}are shown.`:`${shown.toLocaleString('en-US')} of ${total.toLocaleString('en-US')} positive values are shown. The table gives the actual spacing.`)+(inputOutside?' The input lies outside this view.':'');
+}
+function updateRounding(){
+ const input=parseDecimal(byId('rounding-input').value),out=byId('rounding-output'),status=byId('rounding-status');
+ if(!input){out.textContent='';status.textContent='Enter a finite decimal number, such as 0.625 or 1e-3.';byId('rounding-input').setAttribute('aria-invalid','true');drawNumberLine();return;}
+ byId('rounding-input').setAttribute('aria-invalid','false');
+ const result=roundValue(input,currentSystem);
+ if(result.status==='range'){
+  mathText(out,`|x|>${valueTex(currentSystem.max)}`,true);status.textContent=`Out of range. The largest available magnitude is ${format(currentSystem.max)}.`;drawNumberLine();return;
+ }
+ const error=subtract(result.value,input);
+ mathText(out,`\\begin{aligned}\\operatorname{fl}(x)&=${valueTex(result.value)}\\\\\\operatorname{fl}(x)-x&=${valueTex(error)}\\end{aligned}`,true);
+ if(error.n===0n)status.textContent='This input is exactly representable.';
+ else if(compare(abs(input),currentSystem.min)<0)status.textContent='The input lies in the gap between zero and the smallest positive magnitude.';
+ else status.textContent='The input is within range but lies between representable values.';
+ drawNumberLine();
+}
+function updateSystem(){
+ const inputs=['base','precision','lower','upper'].map(id=>byId(id).value);
+ const [base,p,L,U]=inputs.map(Number);
+ let error='';
+ if(inputs.some(value=>value.trim()==='')||![base,p,L,U].every(Number.isInteger))error='Enter an integer in each parameter field.';
+ else if(base<2||base>10||p<1||p>6||L< -6||L>6||U< -6||U>6)error='Use a base from 2 to 10, precision from 1 to 6, and exponent bounds from −6 to 6.';
+ else if(L>U)error='The lower exponent bound L must be less than or equal to U.';
+ byId('config-error').hidden=!error;byId('config-error').textContent=error;byId('system-content').hidden=!!error;
+ if(error)return;
+ currentSystem=system(base,p,L,U);
+ const summary=byId('system-summary');summary.replaceChildren();
+ const equation=document.createElement('div');equation.className='math-line';mathText(equation,`\\beta=${base},\\quad p=${p},\\quad L=${L},\\quad U=${U}`,true);summary.append(equation);
+ const limits=document.createElement('div');limits.className='limits';limits.append(mathSpan(`x_{\\min}^{+}=${fractionTex(currentSystem.min)}`),mathSpan(`x_{\\max}=${fractionTex(currentSystem.max)}`));summary.append(limits);
+ buildDigitControls();renderValues();refreshLineViews();updateRounding();
+}
+function chooseExample(name){
+ const params=name==='decimal'?[10,2,-1,1]:name==='5.25'?[2,5,-1,2]:[2,3,-1,2];
+ ['base','precision','lower','upper'].forEach((id,i)=>byId(id).value=String(params[i]));
+ digitValues=name==='decimal'?[1,5]:name==='5.25'?[1,0,1,0,1]:[1,0,1];
+ selectedExponent=name==='5.25'?2:-1;byId('number-sign').value='1';byId('line-view').value='all';
+ byId('rounding-input').value=name==='decimal'?'0.1':name==='5.25'?'5.25':'4.625';updateSystem();
+}
+['base','precision','lower','upper'].forEach(id=>byId(id).addEventListener('input',updateSystem));
+byId('number-sign').addEventListener('change',updateBuilder);byId('number-exponent').addEventListener('change',updateBuilder);byId('rounding-input').addEventListener('input',updateRounding);
+document.querySelectorAll('[data-example]').forEach(button=>button.addEventListener('click',()=>chooseExample(button.dataset.example)));
+byId('line-view').addEventListener('change',drawNumberLine);
+byId('number-line').addEventListener('click',event=>{
+ if(!lineDomain)return;
+ const rect=byId('number-line').getBoundingClientRect(),d=lineDomain;
+ const x=(event.clientX-rect.left)*d.width/rect.width;
+ const fraction=Math.max(0,Math.min(1,(x-d.left)/(d.right-d.left)));
+ const value=d.low+fraction*(d.high-d.low);
+ byId('rounding-input').value=String(Number(value.toPrecision(7)));updateRounding();
+});
+byId('print-note').addEventListener('click',()=>window.print());
+let closedForPrint=[];
+window.addEventListener('beforeprint',()=>{closedForPrint=[...document.querySelectorAll('details')].filter(el=>!el.open);closedForPrint.forEach(el=>el.open=true);});
+window.addEventListener('afterprint',()=>closedForPrint.forEach(el=>el.open=false));
+updateSystem();
+if(typeof ResizeObserver!=='undefined'){
+ const resizeObserver=new ResizeObserver(()=>{if(!byId('system-content').hidden){drawBuilderDiagram();drawNumberLine();}});
+ resizeObserver.observe(byId('builder-diagram'));resizeObserver.observe(byId('number-line'));
+}
+
+    await document.fonts.ready;
+    document.documentElement.dataset.notesReady = 'true';
+  } catch (error) { reportMathError(error); }
+}, {once: true});
+function reportMathError(error) {
+  document.documentElement.dataset.notesReady = 'error';
+  const message = document.createElement('p');
+  message.className = 'small error';
+  message.setAttribute('role', 'alert');
+  message.textContent = 'KaTeX could not initialize. Check your internet connection and reload to display equations and use the interactive controls.';
+  document.querySelector('header').append(message);
+  console.error('KaTeX initialization failed:', error);
+}
+</script>
+</body>
+</html>

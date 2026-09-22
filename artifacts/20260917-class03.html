@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en" data-notes-ready="false"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>PHYS5211, class 3: Gaussian elimination, pivoting, and conditioning</title>
+<meta content="Class 2 review, the worked Gaussian-elimination example, condition number, the two nearby right-hand sides, and equivalent invertibility conditions. September 17, 2026." name="description">
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{margin:0;background:#fff;color:#1f2328;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;word-wrap:break-word}
+main{max-width:980px;margin:0 auto;padding:45px 45px 72px}
+h1,h2,h3,h4{margin-top:24px;margin-bottom:16px;font-weight:600;line-height:1.25;letter-spacing:0}
+h1{font-size:2em;padding-bottom:.3em;border-bottom:1px solid #d1d9e0;margin-top:16px}
+h2{font-size:1.5em;padding-bottom:.3em;border-bottom:1px solid #d1d9e0;margin-top:36px}
+h3{font-size:1.25em}h4{font-size:1em}p{margin:0 0 16px}strong{font-weight:650}
+a{color:#0969da;text-decoration:none}a:hover{text-decoration:underline;text-underline-offset:3px}
+header{margin-bottom:24px}.meta{color:#59636e;font-size:14px;margin:0}.course-name{color:#59636e;margin-bottom:6px;font-size:16px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:16px}.print{font-size:13px;white-space:nowrap}
+.contents{padding-left:2em;margin:16px 0 24px}.contents li{margin:4px 0}li+li{margin-top:.25em}ul,ol{padding-left:2em;margin:0 0 16px}
+button,input,select{font:inherit;color:inherit}button{background:#f6f8fa;border:1px solid #d1d9e0;padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:500}
+button:hover{background:#eef1f4;border-color:#b7c0c9}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid #0969da;outline-offset:3px}
+input,select{background:#fff;border:1px solid #b7c0c9;border-radius:6px;padding:7px 9px;min-height:38px}
+input[type=number]{width:100%;min-width:0}input[type=range]{width:100%;padding:0;min-height:24px;accent-color:#0969da}
+button,input,select{font-size:14px}code{font:85% ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;padding:.2em .4em;background:#eff1f3;border-radius:6px}
+.small,.source-ref{font-size:13px;color:#59636e}.source-ref{margin:6px 0 16px}.source-ref a{white-space:nowrap}
+.math{font-size:1.04em}.math.display{overflow-x:auto;overflow-y:hidden;padding:7px 0;margin:16px 0;text-align:center}
+.katex{font-size:1.1em}.math.display .katex-display{margin:.2em 0}
+.math:not(.display){white-space:nowrap}
+.table-wrap{overflow-x:auto;margin:16px 0}table{width:100%;border-collapse:collapse;text-align:left;font-size:14px}th,td{border:1px solid #d1d9e0;padding:8px 13px;vertical-align:top}th{font-weight:600}tr{background:#fff}tbody tr:nth-child(2n){background:#f6f8fa}caption{text-align:left;font-size:13px;color:#59636e;margin-bottom:8px}
+.formula-block{border:1px solid #d1d9e0;border-radius:7px;padding:12px 16px;margin:18px 0;background:#fff}.formula-block p:last-child{margin-bottom:0}
+.figure{margin:22px 0;text-align:center}.figure>svg{display:block;margin:0 auto;max-width:100%;height:auto}.figure figcaption{font-size:13px;color:#59636e;margin-top:10px}
+.interactive{border:1px solid #b6d5f7;border-radius:10px;background:#f8fbff;padding:18px 22px 22px;margin:24px 0;min-width:0}
+.interactive h3{margin-top:3px}.interactive .instructions{font-size:14px;color:#424a53;margin:4px 0 18px}.panel-caption{font-size:12px;color:#59636e;margin:0 0 8px}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:3px 0 15px}.controls.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.control label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}.control output{font-variant-numeric:tabular-nums}.control select{width:100%}
+.slider-labels{display:flex;justify-content:space-between;font-size:12px;color:#59636e;margin:0 0 4px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}.presets button{font-size:12px;background:#fff}
+.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.result{background:#fff;border:1px solid #d1d9e0;border-radius:7px;padding:12px 14px;min-width:0}.result-label{font-size:12px;color:#59636e;margin-bottom:5px}.result-value{font:16px ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.result .small{margin-top:5px}.status{font-size:14px;min-height:21px;margin:10px 0;color:#424a53}.error{color:#b42318}
+.trace td:not(:first-child){font-family:ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;white-space:nowrap}.trace th{white-space:nowrap}.trace{font-size:13px}
+.plot-panel{background:#fff;border:1px solid #d1d9e0;border-radius:7px;padding:12px;margin:15px 0}
+.plot{display:block;width:100%;height:auto}.plot text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;fill:#59636e;font-size:12px}.plot .axis-label{fill:#1f2328;font-size:14px}.plot .point-label{fill:#1f2328;font-size:12px}
+.legend{display:flex;gap:12px 20px;flex-wrap:wrap;font-size:12px;color:#59636e;margin:0 0 8px}.legend span{display:flex;align-items:center;gap:6px}.legend i{display:inline-block;width:22px;height:0;border-top:2px solid #59636e}.legend i.blue{border-color:#0969da}.legend i.dashed{border-top-style:dashed}.legend i.dot{height:9px;width:9px;border:none;border-radius:50%;background:#0969da}.legend i.hollow{height:9px;width:9px;border:1.5px solid #59636e;border-radius:50%;background:white}
+.math-note{font-size:14px;color:#424a53;margin:14px 0 18px}.math-note strong{font-weight:600}.math-note .math{font-size:1em}
+details{margin:20px 0;padding:14px 17px;border:1px solid #d1d9e0;border-radius:7px;background:#f6f8fa}summary{cursor:pointer;font-size:15px;font-weight:600;color:#0550ae}summary::marker{color:#0969da}details[open]>summary{margin-bottom:16px}details p:last-child{margin-bottom:0}
+.equivalences li{margin-bottom:11px}.equivalences .math.display{margin:7px 0}.reference-list{font-size:13px}.reference-list td:first-child{width:58px;white-space:nowrap}
+footer{border-top:1px solid #d1d9e0;margin-top:34px;padding-top:15px;font-size:13px;color:#59636e}.skip{position:absolute;left:10px;top:-50px}.skip:focus{top:8px}[hidden]{display:none!important}
+@media(max-width:767px){main{padding:24px 18px 48px}h1{font-size:1.8em}h2{font-size:1.45em}.controls,.controls.two{grid-template-columns:1fr 1fr;gap:12px}.control.full-mobile{grid-column:1/-1}.interactive{padding:14px 12px 18px}.result-grid{grid-template-columns:1fr}.topline{align-items:flex-start}.plot-panel{padding:8px 4px}th,td{padding:7px 10px}.math{font-size:1em}.plot text{font-size:13px}.plot .point-label{font-size:13px}.trace{font-size:12px}.reference-list{font-size:12px}}
+@media(max-width:380px){.controls,.controls.two{grid-template-columns:1fr}.control.full-mobile{grid-column:auto}.topline{gap:8px}.print{padding:5px 8px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{@page{margin:18mm}body{font-size:10.5pt;line-height:1.5}main{margin:0;padding:0;max-width:none}.print,.contents,.skip,.no-print,.controls,.presets,.panel-caption{display:none!important}h1{font-size:22pt}h2{font-size:17pt;margin-top:25px}h3{font-size:13pt}h1,h2,h3,h4{break-after:avoid}tr,.figure,.math.display,.formula-block,.result,.plot-panel{break-inside:avoid}th,td{font-size:10pt;padding:7px}.interactive{padding:12px;background:#fff}.math.display{overflow:visible}.result-grid{grid-template-columns:1fr 1fr}a{color:#222}.plot-panel{max-width:650px;margin-inline:auto}details{background:#fff}.source-ref,.small{font-size:9pt}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+
+
+
+
+.presets button[aria-pressed="true"]{color:#0550ae;border-color:#0969da;background:#ddf4ff;font-weight:600}
+
+
+
+/* Equations remain unboxed; only the interactive controls use panels. */
+#tangent-overview,#tan-plot{display:block;width:100%;max-width:520px;height:auto;aspect-ratio:1/1;margin-inline:auto}
+.result-value{font-family:inherit;line-height:1.7}
+.result-value .math{font-size:1em}
+.result-label .math,.control label .math,.instructions .math,.status .math,.legend .math{font-size:1em}
+.trace td:not(:first-child){font-family:inherit}
+.math-label{overflow:visible;color:#1f2328}
+.math-label{overflow:visible}.math-label .katex{font-size:1em}
+@media print{#tangent-overview,#tan-plot{max-width:115mm}}
+</style>
+<link id="katex-styles" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.7/dist/katex.min.css" integrity="sha384-JctiRyLzXCrSoOOzFlSoWLdyzQl7OrrRnhyeBmzB6ZWtcjccUyc8lCQJqIbs3uQX" crossorigin="anonymous">
+<script id="katex-runtime" defer src="https://cdn.jsdelivr.net/npm/katex@0.18.7/dist/katex.min.js" integrity="sha384-+7Keh381hSkXmXqnjC0JBM/kzsN6TFj+wMKychSLjTvJ8/0ElMde2uKl8i6p6Buj" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to notes</a>
+<main id="main">
+<header>
+<p class="course-name">Introduction to Scientific Computing in the Era of AI</p>
+<div class="topline"><p class="meta">PHYS5211 · Third class · September 17, 2026</p><button class="print" id="print-note" type="button">Print / PDF</button></div>
+<h1>Gaussian elimination, pivoting, and conditioning</h1>
+<ol class="contents"><li><a href="#recap">Review of Class 2</a></li><li><a href="#elimination">Gaussian elimination and pivoting</a></li><li><a href="#conditioning">Condition number</a></li><li><a href="#near-singularity">Ill-conditioned linear system</a></li><li><a href="#invertibility">Equivalent conditions for invertibility</a></li><li><a href="#error-types">Sources of numerical error</a></li><li><a href="#homework">Homework and next class</a></li></ol>
+</header>
+<section id="recap">
+<h2>1. Review of Class 2</h2><h3>Floating-point arithmetic</h3>
+<p>A floating-point number system contains a <strong>finite set of representable values</strong>. It is not dense in the real numbers, unlike the rational numbers: rational approximations can be made arbitrarily close to any real number, whereas a fixed floating-point system has gaps.</p>
+<p>Two limitations must be kept separate: the <strong>range</strong> of finite representable magnitudes and the <strong>precision</strong> available within that range. Rounding also means that familiar algebraic properties need not carry over to the implemented operations. For example,</p>
+<div class="math display" data-tex="\operatorname{fl}\!\left(\operatorname{fl}(a+b)+c\right)
+\ne
+\operatorname{fl}\!\left(a+\operatorname{fl}(b+c)\right)">\operatorname{fl}\!\left(\operatorname{fl}(a+b)+c\right)
+\ne
+\operatorname{fl}\!\left(a+\operatorname{fl}(b+c)\right)</div>
+<p>can occur even though the two expressions are equal in exact arithmetic. Cancellation can remove significant information, and a small increment can disappear when added to a much larger number.</p>
+<p>The quadratic formula and the summation examples in <a href="20260915-class02.html">Class 2</a> show why <strong>algebraically equivalent procedures can give different numerical results</strong>. The same issue appears when solving linear systems.</p>
+<div id="harmonic">
+<h3>Harmonic series</h3>
+<p>If an infinite series converges, its terms must tend to zero. The converse is false. The harmonic series is the basic counterexample:</p>
+<div class="math display" data-tex="H_N=\sum_{i=1}^{N}\frac{1}{i},
+\qquad \frac{1}{i}\longrightarrow 0,
+\qquad H_N\longrightarrow\infty.">H_N=\sum_{i=1}^{N}\frac{1}{i},
+\qquad \frac{1}{i}\longrightarrow 0,
+\qquad H_N\longrightarrow\infty.</div>
+<p>The integral comparison explains the divergence:</p>
+<div class="math display" data-tex="H_N\ge \int_{1}^{N+1}\frac{dt}{t}
+=\ln(N+1)\longrightarrow\infty.">H_N\ge \int_{1}^{N+1}\frac{dt}{t}
+=\ln(N+1)\longrightarrow\infty.</div>
+<h4>Finite-precision failures</h4>
+<div class="table-wrap"><table>
+<thead><tr><th>Failure</th><th>What happens?</th></tr></thead><tbody>
+<tr><td><strong>Loss of a small increment</strong></td><td>The next term is nonzero, but adding it to a much larger partial sum does not change the stored sum.</td></tr>
+<tr><td><strong>Underflow</strong></td><td>The term becomes too small to be represented and is rounded to zero.</td></tr>
+<tr><td><strong>Overflow</strong></td><td>The accumulated sum exceeds the finite representable range.</td></tr>
+</tbody></table></div>
+<p>The computational question is <strong>which failure happens first</strong>, and how many steps it takes. The harmonic series grows very slowly, even though it diverges mathematically.</p>
+<p><strong>A stored sum that stops changing does not prove mathematical convergence.</strong> The direct and chunked summations in Class 2 provide another way to investigate the role of operation order.</p>
+</div></section>
+<section id="elimination">
+<h2>2. Gaussian elimination and pivoting</h2>
+<p>Linear algebra is a central computational tool, including for approximations to nonlinear problems. The basic task is to find <span class="math" data-tex="x">x</span> in</p>
+<div class="math display" data-tex="Ax=b.">Ax=b.</div>
+<p>Gaussian elimination removes a variable by subtracting a multiple of one equation from another. Eliminate the first variable, then substitute back to obtain the other variable. The coefficient used for this elimination step is the <strong>pivot</strong>.</p>
+<h3>Small pivot</h3>
+<div class="math display" data-tex="A=\begin{bmatrix}0.0001&amp;1\\1&amp;1\end{bmatrix},
+\qquad b=\begin{bmatrix}1\\2\end{bmatrix},
+\qquad
+\begin{cases}
+0.0001x_1+x_2=1,\\
+x_1+x_2=2.
+\end{cases}">A=\begin{bmatrix}0.0001&amp;1\\1&amp;1\end{bmatrix},
+\qquad b=\begin{bmatrix}1\\2\end{bmatrix},
+\qquad
+\begin{cases}
+0.0001x_1+x_2=1,\\
+x_1+x_2=2.
+\end{cases}</div>
+<p>First keep the equation order fixed. Eliminating <span class="math" data-tex="x_1">x_1</span> from the second equation requires the multiplier</p>
+<div class="math display" data-tex="\frac{1}{0.0001}=10000.">\frac{1}{0.0001}=10000.</div>
+<p><strong>Multiply the first equation by <span class="math" data-tex="10000">10000</span>, then subtract it from the second equation.</strong> Apply the subtraction to both sides:</p>
+<div class="math display" data-tex="\begin{aligned}
+x_1+x_2&amp;=2,\\
+-(x_1+10000x_2)&amp;=-10000,\\ \hline
+-9999x_2&amp;=-9998.
+\end{aligned}">\begin{aligned}
+x_1+x_2&amp;=2,\\
+-(x_1+10000x_2)&amp;=-10000,\\ \hline
+-9999x_2&amp;=-9998.
+\end{aligned}</div>
+<p>The exact triangular system is therefore</p>
+<div class="math display" data-tex="\begin{bmatrix}0.0001&amp;1\\0&amp;-9999\end{bmatrix}
+\begin{bmatrix}x_1\\x_2\end{bmatrix}
+=\begin{bmatrix}1\\-9998\end{bmatrix}.">\begin{bmatrix}0.0001&amp;1\\0&amp;-9999\end{bmatrix}
+\begin{bmatrix}x_1\\x_2\end{bmatrix}
+=\begin{bmatrix}1\\-9998\end{bmatrix}.</div>
+<p>Substituting back gives</p>
+<div class="math display" data-tex="x_2=\frac{9998}{9999}=0.999899989998\ldots,
+\qquad
+x_1=\frac{1-x_2}{0.0001}
+=\frac{10000}{9999}=1.000100010001\ldots.">x_2=\frac{9998}{9999}=0.999899989998\ldots,
+\qquad
+x_1=\frac{1-x_2}{0.0001}
+=\frac{10000}{9999}=1.000100010001\ldots.</div>
+<h3>Three-digit arithmetic</h3>
+<p>Now use a <strong>base-10 system with <span class="math" data-tex="p=3">p=3</span> significant digits</strong>, rounding after each arithmetic operation. Assume the exponent range is wide enough for all intermediate values. All entries of the original system can be represented exactly in this toy system, including <span class="math" data-tex="0.0001=1.00\times10^{-4}">0.0001=1.00\times10^{-4}</span>.</p>
+<div class="math display" data-tex="\operatorname{fl}(-9999)=-1.00\times10^4,
+\qquad
+\operatorname{fl}(-9998)=-1.00\times10^4.">\operatorname{fl}(-9999)=-1.00\times10^4,
+\qquad
+\operatorname{fl}(-9998)=-1.00\times10^4.</div>
+<p>The distinction between these two numbers disappears, giving</p>
+<div class="math display" data-tex="x_2=\frac{-10000}{-10000}=1,
+\qquad
+x_1=\frac{1-1}{0.0001}=0.">x_2=\frac{-10000}{-10000}=1,
+\qquad
+x_1=\frac{1-1}{0.0001}=0.</div>
+<p>Rounding <span class="math" data-tex="x_2">x_2</span> to <span class="math" data-tex="1">1</span> looks harmless by itself. But the first equation recovers <span class="math" data-tex="x_1">x_1</span> from the small difference <span class="math" data-tex="1-x_2">1-x_2</span>, then divides by <span class="math" data-tex="0.0001">0.0001</span>. Losing that difference produces <strong>a <span class="math" data-tex="100\%">100\%</span> relative error in <span class="math" data-tex="x_1">x_1</span></strong>.</p>
+<h3>Row interchange</h3>
+<p>Interchanging the two equations leaves the exact problem unchanged:</p>
+<div class="math display" data-tex="\begin{cases}
+x_1+x_2=2,\\
+0.0001x_1+x_2=1.
+\end{cases}">\begin{cases}
+x_1+x_2=2,\\
+0.0001x_1+x_2=1.
+\end{cases}</div>
+<p>The first pivot is now <span class="math" data-tex="1">1</span>. <strong>Multiply the first equation by <span class="math" data-tex="0.0001">0.0001</span>, then subtract it from the second equation:</strong></p>
+<div class="math display" data-tex="\begin{aligned}
+0.0001x_1+x_2&amp;=1,\\
+-(0.0001x_1+0.0001x_2)&amp;=-0.0002,\\ \hline
+0.9999x_2&amp;=0.9998.
+\end{aligned}">\begin{aligned}
+0.0001x_1+x_2&amp;=1,\\
+-(0.0001x_1+0.0001x_2)&amp;=-0.0002,\\ \hline
+0.9999x_2&amp;=0.9998.
+\end{aligned}</div>
+<p>In three-significant-digit arithmetic, the last equation becomes <span class="math" data-tex="1.00x_2=1.00">1.00x_2=1.00</span>. Back substitution now uses the equation <span class="math" data-tex="x_1+x_2=2">x_1+x_2=2</span>, so</p>
+<div class="math display" data-tex="x_2=1,\qquad x_1=2-1=1.">x_2=1,\qquad x_1=2-1=1.</div>
+<p>The approximate solution <span class="math" data-tex="(1,1)^T">(1,1)^T</span> is close to the exact solution. <strong>The same mathematical system gives a very different computed answer solely because the row order changed.</strong> This row-reordering step is an example of <strong>pivoting</strong>.</p>
+<div class="table-wrap"><table>
+<caption>Elimination comparison</caption>
+<thead><tr><th>Quantity</th><th>Original order</th><th>Rows interchanged</th></tr></thead>
+<tbody>
+<tr><td>First pivot</td><td><span class="math" data-tex="0.0001">0.0001</span></td><td><span class="math" data-tex="1">1</span></td></tr>
+<tr><td>Multiplier</td><td><span class="math" data-tex="10000">10000</span></td><td><span class="math" data-tex="0.0001">0.0001</span></td></tr>
+<tr><td>Exact reduced equation</td><td><span class="math" data-tex="-9999x_2=-9998">-9999x_2=-9998</span></td><td><span class="math" data-tex="0.9999x_2=0.9998">0.9999x_2=0.9998</span></td></tr>
+<tr><td>Back substitution at <span class="math" data-tex="p=3">p=3</span></td><td><span class="math" data-tex="x_1=(1-1)/0.0001">x_1=(1-1)/0.0001</span></td><td><span class="math" data-tex="x_1=2-1">x_1=2-1</span></td></tr>
+<tr><td>Computed solution</td><td><span class="math" data-tex="(0,1)^T">(0,1)^T</span></td><td><span class="math" data-tex="(1,1)^T">(1,1)^T</span></td></tr>
+</tbody></table></div>
+<div class="interactive" id="pivot-demo">
+<p class="panel-caption">Worked-example comparison</p>
+<h3>Row order</h3>
+<p class="instructions">Switch between exact arithmetic and the three-significant-digit calculation. The matrix and right-hand side stay the same.</p>
+<div aria-label="Arithmetic used in the worked example" class="presets" role="group">
+<button aria-pressed="false" data-pivot-mode="exact" type="button">Exact arithmetic</button>
+<button aria-pressed="true" data-pivot-mode="rounded" type="button"><span class="math" data-tex="p=3">p=3</span> significant digits</button>
+</div>
+<div aria-live="polite" class="result-grid">
+<div class="result"><div class="result-label">Original order: <span class="math" data-tex="(x_1,x_2)">(x_1,x_2)</span></div><div class="result-value" id="pivot-no-result"><span class="math" data-tex="\left(0,\;1.00\right)">\left(0,\;1.00\right)</span></div></div>
+<div class="result"><div class="result-label">Equations interchanged: <span class="math" data-tex="(x_1,x_2)">(x_1,x_2)</span></div><div class="result-value" id="pivot-yes-result"><span class="math" data-tex="\left(1.00,\;1.00\right)">\left(1.00,\;1.00\right)</span></div></div>
+</div>
+<div class="table-wrap"><table class="trace"><caption id="pivot-caption">Values after rounding to three significant digits</caption>
+<thead><tr><th>Step</th><th>Original order</th><th>Equations interchanged</th></tr></thead><tbody id="pivot-trace"><tr><td>First-equation multiplier</td><td><span class="math" data-tex="1.00\times10^{4}">1.00\times10^{4}</span></td><td><span class="math" data-tex="0.000100">0.000100</span></td></tr><tr><td>Remaining coefficient of <span class="math" data-tex="x_2">x_2</span></td><td><span class="math" data-tex="-1.00\times10^{4}">-1.00\times10^{4}</span></td><td><span class="math" data-tex="1.00">1.00</span></td></tr><tr><td>Remaining right-hand side</td><td><span class="math" data-tex="-1.00\times10^{4}">-1.00\times10^{4}</span></td><td><span class="math" data-tex="1.00">1.00</span></td></tr><tr><td><span class="math" data-tex="x_2">x_2</span></td><td><span class="math" data-tex="1.00">1.00</span></td><td><span class="math" data-tex="1.00">1.00</span></td></tr><tr><td>Difference used to recover <span class="math" data-tex="x_1">x_1</span></td><td><span class="math" data-tex="0">0</span></td><td><span class="math" data-tex="1.00">1.00</span></td></tr><tr><td><span class="math" data-tex="x_1">x_1</span></td><td><span class="math" data-tex="0">0</span></td><td><span class="math" data-tex="1.00">1.00</span></td></tr></tbody></table></div>
+<p class="status" id="pivot-status">Rounding gives different answers, although the original equations are the same.</p>
+</div>
+</section>
+<section id="conditioning">
+<h2>3. Condition number</h2>
+<p>Changing an algorithm is not the only way to change an answer. A problem can itself be highly sensitive to small changes in its input, <strong>even when the calculation is exact</strong>.</p>
+<h3>Sensitivity of the tangent function</h3>
+<p>Consider the function evaluation <span class="math" data-tex="x=\tan(b)">x=\tan(b)</span>, with angles measured in <strong>radians</strong>:</p>
+<div class="math display" data-tex="b=1.57079,\qquad b^*=1.57078,\qquad
+\delta b=|b-b^*|=10^{-5}.">b=1.57079,\qquad b^*=1.57078,\qquad
+\delta b=|b-b^*|=10^{-5}.</div>
+<p>Both inputs lie just below and very close to the tangent function’s vertical asymptote at</p><div class="math display" data-tex="\frac{\pi}{2}\approx 1.5707963268.">\frac{\pi}{2}\approx 1.5707963268.</div><p>The curve is steep near this value, so the small input difference produces a much larger output difference:</p>
+<div class="math display" data-tex="\begin{aligned}
+x=\tan(b)&amp;\approx 158057.9134185,\\
+x^*=\tan(b^*)&amp;\approx 61249.0085313,\\
+\delta x=|x-x^*|&amp;\approx 96808.9048873.
+\end{aligned}">\begin{aligned}
+x=\tan(b)&amp;\approx 158057.9134185,\\
+x^*=\tan(b^*)&amp;\approx 61249.0085313,\\
+\delta x=|x-x^*|&amp;\approx 96808.9048873.
+\end{aligned}</div>
+
+
+<p id="condition-number">For these inputs, the <strong>condition number</strong> measures the amplification of the input change:</p><div class="math display" data-tex="\underbrace{\frac{\delta x}{\delta b}}_{\text{condition number}}=\frac{|x-x^*|}{|b-b^*|}">\underbrace{\frac{\delta x}{\delta b}}_{\text{condition number}}=\frac{|x-x^*|}{|b-b^*|}</div><div class="math display" data-tex="\frac{\delta x}{\delta b}\approx 9.68\times10^9\approx 10^{10}.">\frac{\delta x}{\delta b}\approx 9.68\times10^9\approx 10^{10}.</div><p><strong>A large condition number means that small input changes are strongly amplified.</strong></p>
+<p>A change of only <span class="math" data-tex="10^{-5}">10^{-5}</span> in the input produces a change of almost <span class="math" data-tex="10^5">10^5</span> in the output.</p>
+
+
+<figure class="figure">
+<svg aria-labelledby="tangent-overview-title" class="plot" id="tangent-overview" role="img" viewBox="0 0 520 520"><title id="tangent-overview-title">The central branch of tangent, with vertical asymptotes at minus pi over two and pi over two</title><defs><clipPath id="tan-overview-clip"><rect x="42" y="42" width="436" height="436"></rect></clipPath></defs><line x1="42" y1="260" x2="478" y2="260" stroke="#8c959f"></line><line x1="260" y1="42" x2="260" y2="478" stroke="#8c959f"></line><line x1="71.84967074654537" y1="42" x2="71.84967074654537" y2="478" stroke="#59636e" stroke-dasharray="5 5"></line><line x1="448.1503292534547" y1="42" x2="448.1503292534547" y2="478" stroke="#59636e" stroke-dasharray="5 5"></line><path d="M 71.862 519307.617 L 72.399 11573.808 L 72.937 5979.119 L 73.474 4086.672 L 74.012 3135.168 L 74.549 2562.546 L 75.087 2180.066 L 75.624 1906.497 L 76.162 1701.111 L 76.699 1541.236 L 77.237 1413.250 L 77.775 1308.473 L 78.312 1221.113 L 78.850 1147.158 L 79.387 1083.741 L 79.925 1028.756 L 80.462 980.625 L 81.000 938.140 L 81.537 900.361 L 82.075 866.546 L 82.612 836.101 L 83.150 808.545 L 83.687 783.484 L 84.225 760.594 L 84.763 739.603 L 85.300 720.283 L 85.838 702.443 L 86.375 685.917 L 86.913 670.565 L 87.450 656.265 L 87.988 642.913 L 88.525 630.417 L 89.063 618.696 L 89.600 607.680 L 90.138 597.308 L 90.675 587.523 L 91.213 578.277 L 91.751 569.526 L 92.288 561.232 L 92.826 553.359 L 93.363 545.875 L 93.901 538.752 L 94.438 531.964 L 94.976 525.489 L 95.513 519.303 L 96.051 513.390 L 96.588 507.729 L 97.126 502.306 L 97.663 497.106 L 98.201 492.115 L 98.739 487.320 L 99.276 482.710 L 99.814 478.274 L 100.351 474.002 L 100.889 469.886 L 101.426 465.916 L 101.964 462.085 L 102.501 458.386 L 103.039 454.812 L 103.576 451.355 L 104.114 448.012 L 104.651 444.775 L 105.189 441.641 L 105.727 438.603 L 106.264 435.657 L 106.802 432.800 L 107.339 430.027 L 107.877 427.334 L 108.414 424.718 L 108.952 422.175 L 109.489 419.703 L 110.027 417.298 L 110.564 414.958 L 111.102 412.679 L 111.639 410.460 L 112.177 408.298 L 112.715 406.191 L 113.252 404.136 L 113.790 402.132 L 114.327 400.176 L 114.865 398.267 L 115.402 396.404 L 115.940 394.584 L 116.477 392.805 L 117.015 391.067 L 117.552 389.368 L 118.090 387.707 L 118.627 386.082 L 119.165 384.492 L 119.703 382.936 L 120.240 381.412 L 120.778 379.920 L 121.315 378.459 L 121.853 377.028 L 122.390 375.625 L 122.928 374.250 L 123.465 372.902 L 124.003 371.579 L 124.540 370.283 L 125.078 369.010 L 125.615 367.762 L 126.153 366.536 L 126.691 365.333 L 127.228 364.151 L 127.766 362.991 L 128.303 361.851 L 128.841 360.731 L 129.378 359.631 L 129.916 358.549 L 130.453 357.485 L 130.991 356.439 L 131.528 355.411 L 132.066 354.399 L 132.603 353.404 L 133.141 352.425 L 133.679 351.461 L 134.216 350.512 L 134.754 349.578 L 135.291 348.659 L 135.829 347.753 L 136.366 346.861 L 136.904 345.982 L 137.441 345.117 L 137.979 344.264 L 138.516 343.423 L 139.054 342.594 L 139.591 341.777 L 140.129 340.972 L 140.667 340.178 L 141.204 339.394 L 141.742 338.622 L 142.279 337.859 L 142.817 337.107 L 143.354 336.365 L 143.892 335.633 L 144.429 334.910 L 144.967 334.197 L 145.504 333.492 L 146.042 332.797 L 146.579 332.110 L 147.117 331.432 L 147.655 330.762 L 148.192 330.100 L 148.730 329.446 L 149.267 328.800 L 149.805 328.162 L 150.342 327.531 L 150.880 326.907 L 151.417 326.291 L 151.955 325.681 L 152.492 325.079 L 153.030 324.483 L 153.567 323.894 L 154.105 323.311 L 154.643 322.735 L 155.180 322.165 L 155.718 321.601 L 156.255 321.043 L 156.793 320.491 L 157.330 319.944 L 157.868 319.403 L 158.405 318.868 L 158.943 318.338 L 159.480 317.814 L 160.018 317.294 L 160.555 316.780 L 161.093 316.271 L 161.631 315.767 L 162.168 315.267 L 162.706 314.773 L 163.243 314.283 L 163.781 313.797 L 164.318 313.316 L 164.856 312.840 L 165.393 312.367 L 165.931 311.900 L 166.468 311.436 L 167.006 310.976 L 167.543 310.521 L 168.081 310.069 L 168.619 309.621 L 169.156 309.177 L 169.694 308.737 L 170.231 308.301 L 170.769 307.868 L 171.306 307.439 L 171.844 307.013 L 172.381 306.590 L 172.919 306.172 L 173.456 305.756 L 173.994 305.344 L 174.531 304.935 L 175.069 304.529 L 175.607 304.126 L 176.144 303.726 L 176.682 303.329 L 177.219 302.936 L 177.757 302.545 L 178.294 302.157 L 178.832 301.771 L 179.369 301.389 L 179.907 301.009 L 180.444 300.632 L 180.982 300.258 L 181.519 299.886 L 182.057 299.517 L 182.595 299.150 L 183.132 298.786 L 183.670 298.424 L 184.207 298.065 L 184.745 297.708 L 185.282 297.353 L 185.820 297.001 L 186.357 296.651 L 186.895 296.303 L 187.432 295.957 L 187.970 295.613 L 188.507 295.272 L 189.045 294.932 L 189.583 294.595 L 190.120 294.259 L 190.658 293.926 L 191.195 293.594 L 191.733 293.265 L 192.270 292.937 L 192.808 292.611 L 193.345 292.287 L 193.883 291.965 L 194.420 291.645 L 194.958 291.326 L 195.495 291.009 L 196.033 290.694 L 196.570 290.380 L 197.108 290.069 L 197.646 289.758 L 198.183 289.450 L 198.721 289.142 L 199.258 288.837 L 199.796 288.533 L 200.333 288.230 L 200.871 287.929 L 201.408 287.629 L 201.946 287.331 L 202.483 287.034 L 203.021 286.739 L 203.558 286.445 L 204.096 286.152 L 204.634 285.861 L 205.171 285.571 L 205.709 285.282 L 206.246 284.994 L 206.784 284.708 L 207.321 284.423 L 207.859 284.139 L 208.396 283.856 L 208.934 283.575 L 209.471 283.294 L 210.009 283.015 L 210.546 282.737 L 211.084 282.460 L 211.622 282.184 L 212.159 281.909 L 212.697 281.635 L 213.234 281.362 L 213.772 281.090 L 214.309 280.819 L 214.847 280.549 L 215.384 280.280 L 215.922 280.012 L 216.459 279.745 L 216.997 279.479 L 217.534 279.214 L 218.072 278.949 L 218.610 278.686 L 219.147 278.423 L 219.685 278.161 L 220.222 277.900 L 220.760 277.640 L 221.297 277.380 L 221.835 277.122 L 222.372 276.864 L 222.910 276.607 L 223.447 276.350 L 223.985 276.094 L 224.522 275.840 L 225.060 275.585 L 225.598 275.332 L 226.135 275.079 L 226.673 274.826 L 227.210 274.575 L 227.748 274.324 L 228.285 274.073 L 228.823 273.824 L 229.360 273.575 L 229.898 273.326 L 230.435 273.078 L 230.973 272.831 L 231.510 272.584 L 232.048 272.337 L 232.586 272.091 L 233.123 271.846 L 233.661 271.601 L 234.198 271.357 L 234.736 271.113 L 235.273 270.870 L 235.811 270.627 L 236.348 270.384 L 236.886 270.142 L 237.423 269.901 L 237.961 269.660 L 238.498 269.419 L 239.036 269.178 L 239.574 268.938 L 240.111 268.699 L 240.649 268.459 L 241.186 268.220 L 241.724 267.982 L 242.261 267.743 L 242.799 267.506 L 243.336 267.268 L 243.874 267.031 L 244.411 266.793 L 244.949 266.557 L 245.486 266.320 L 246.024 266.084 L 246.562 265.848 L 247.099 265.612 L 247.637 265.377 L 248.174 265.141 L 248.712 264.906 L 249.249 264.671 L 249.787 264.436 L 250.324 264.202 L 250.862 263.968 L 251.399 263.733 L 251.937 263.499 L 252.474 263.265 L 253.012 263.032 L 253.550 262.798 L 254.087 262.564 L 254.625 262.331 L 255.162 262.098 L 255.700 261.864 L 256.237 261.631 L 256.775 261.398 L 257.312 261.165 L 257.850 260.932 L 258.387 260.699 L 258.925 260.466 L 259.462 260.233 L 260.000 260.000 L 260.538 259.767 L 261.075 259.534 L 261.613 259.301 L 262.150 259.068 L 262.688 258.835 L 263.225 258.602 L 263.763 258.369 L 264.300 258.136 L 264.838 257.902 L 265.375 257.669 L 265.913 257.436 L 266.450 257.202 L 266.988 256.968 L 267.526 256.735 L 268.063 256.501 L 268.601 256.267 L 269.138 256.032 L 269.676 255.798 L 270.213 255.564 L 270.751 255.329 L 271.288 255.094 L 271.826 254.859 L 272.363 254.623 L 272.901 254.388 L 273.438 254.152 L 273.976 253.916 L 274.514 253.680 L 275.051 253.443 L 275.589 253.207 L 276.126 252.969 L 276.664 252.732 L 277.201 252.494 L 277.739 252.257 L 278.276 252.018 L 278.814 251.780 L 279.351 251.541 L 279.889 251.301 L 280.426 251.062 L 280.964 250.822 L 281.502 250.581 L 282.039 250.340 L 282.577 250.099 L 283.114 249.858 L 283.652 249.616 L 284.189 249.373 L 284.727 249.130 L 285.264 248.887 L 285.802 248.643 L 286.339 248.399 L 286.877 248.154 L 287.414 247.909 L 287.952 247.663 L 288.490 247.416 L 289.027 247.169 L 289.565 246.922 L 290.102 246.674 L 290.640 246.425 L 291.177 246.176 L 291.715 245.927 L 292.252 245.676 L 292.790 245.425 L 293.327 245.174 L 293.865 244.921 L 294.402 244.668 L 294.940 244.415 L 295.478 244.160 L 296.015 243.906 L 296.553 243.650 L 297.090 243.393 L 297.628 243.136 L 298.165 242.878 L 298.703 242.620 L 299.240 242.360 L 299.778 242.100 L 300.315 241.839 L 300.853 241.577 L 301.390 241.314 L 301.928 241.051 L 302.466 240.786 L 303.003 240.521 L 303.541 240.255 L 304.078 239.988 L 304.616 239.720 L 305.153 239.451 L 305.691 239.181 L 306.228 238.910 L 306.766 238.638 L 307.303 238.365 L 307.841 238.091 L 308.378 237.816 L 308.916 237.540 L 309.454 237.263 L 309.991 236.985 L 310.529 236.706 L 311.066 236.425 L 311.604 236.144 L 312.141 235.861 L 312.679 235.577 L 313.216 235.292 L 313.754 235.006 L 314.291 234.718 L 314.829 234.429 L 315.366 234.139 L 315.904 233.848 L 316.442 233.555 L 316.979 233.261 L 317.517 232.966 L 318.054 232.669 L 318.592 232.371 L 319.129 232.071 L 319.667 231.770 L 320.204 231.467 L 320.742 231.163 L 321.279 230.858 L 321.817 230.550 L 322.354 230.242 L 322.892 229.931 L 323.430 229.620 L 323.967 229.306 L 324.505 228.991 L 325.042 228.674 L 325.580 228.355 L 326.117 228.035 L 326.655 227.713 L 327.192 227.389 L 327.730 227.063 L 328.267 226.735 L 328.805 226.406 L 329.342 226.074 L 329.880 225.741 L 330.417 225.405 L 330.955 225.068 L 331.493 224.728 L 332.030 224.387 L 332.568 224.043 L 333.105 223.697 L 333.643 223.349 L 334.180 222.999 L 334.718 222.647 L 335.255 222.292 L 335.793 221.935 L 336.330 221.576 L 336.868 221.214 L 337.405 220.850 L 337.943 220.483 L 338.481 220.114 L 339.018 219.742 L 339.556 219.368 L 340.093 218.991 L 340.631 218.611 L 341.168 218.229 L 341.706 217.843 L 342.243 217.455 L 342.781 217.064 L 343.318 216.671 L 343.856 216.274 L 344.393 215.874 L 344.931 215.471 L 345.469 215.065 L 346.006 214.656 L 346.544 214.244 L 347.081 213.828 L 347.619 213.410 L 348.156 212.987 L 348.694 212.561 L 349.231 212.132 L 349.769 211.699 L 350.306 211.263 L 350.844 210.823 L 351.381 210.379 L 351.919 209.931 L 352.457 209.479 L 352.994 209.024 L 353.532 208.564 L 354.069 208.100 L 354.607 207.633 L 355.144 207.160 L 355.682 206.684 L 356.219 206.203 L 356.757 205.717 L 357.294 205.227 L 357.832 204.733 L 358.369 204.233 L 358.907 203.729 L 359.445 203.220 L 359.982 202.706 L 360.520 202.186 L 361.057 201.662 L 361.595 201.132 L 362.132 200.597 L 362.670 200.056 L 363.207 199.509 L 363.745 198.957 L 364.282 198.399 L 364.820 197.835 L 365.357 197.265 L 365.895 196.689 L 366.433 196.106 L 366.970 195.517 L 367.508 194.921 L 368.045 194.319 L 368.583 193.709 L 369.120 193.093 L 369.658 192.469 L 370.195 191.838 L 370.733 191.200 L 371.270 190.554 L 371.808 189.900 L 372.345 189.238 L 372.883 188.568 L 373.421 187.890 L 373.958 187.203 L 374.496 186.508 L 375.033 185.803 L 375.571 185.090 L 376.108 184.367 L 376.646 183.635 L 377.183 182.893 L 377.721 182.141 L 378.258 181.378 L 378.796 180.606 L 379.333 179.822 L 379.871 179.028 L 380.409 178.223 L 380.946 177.406 L 381.484 176.577 L 382.021 175.736 L 382.559 174.883 L 383.096 174.018 L 383.634 173.139 L 384.171 172.247 L 384.709 171.341 L 385.246 170.422 L 385.784 169.488 L 386.321 168.539 L 386.859 167.575 L 387.397 166.596 L 387.934 165.601 L 388.472 164.589 L 389.009 163.561 L 389.547 162.515 L 390.084 161.451 L 390.622 160.369 L 391.159 159.269 L 391.697 158.149 L 392.234 157.009 L 392.772 155.849 L 393.309 154.667 L 393.847 153.464 L 394.385 152.238 L 394.922 150.990 L 395.460 149.717 L 395.997 148.421 L 396.535 147.098 L 397.072 145.750 L 397.610 144.375 L 398.147 142.972 L 398.685 141.541 L 399.222 140.080 L 399.760 138.588 L 400.297 137.064 L 400.835 135.508 L 401.373 133.918 L 401.910 132.293 L 402.448 130.632 L 402.985 128.933 L 403.523 127.195 L 404.060 125.416 L 404.598 123.596 L 405.135 121.733 L 405.673 119.824 L 406.210 117.868 L 406.748 115.864 L 407.285 113.809 L 407.823 111.702 L 408.361 109.540 L 408.898 107.321 L 409.436 105.042 L 409.973 102.702 L 410.511 100.297 L 411.048 97.825 L 411.586 95.282 L 412.123 92.666 L 412.661 89.973 L 413.198 87.200 L 413.736 84.343 L 414.273 81.397 L 414.811 78.359 L 415.349 75.225 L 415.886 71.988 L 416.424 68.645 L 416.961 65.188 L 417.499 61.614 L 418.036 57.915 L 418.574 54.084 L 419.111 50.114 L 419.649 45.998 L 420.186 41.726 L 420.724 37.290 L 421.261 32.680 L 421.799 27.885 L 422.337 22.894 L 422.874 17.694 L 423.412 12.271 L 423.949 6.610 L 424.487 0.697 L 425.024 -5.489 L 425.562 -11.964 L 426.099 -18.752 L 426.637 -25.875 L 427.174 -33.359 L 427.712 -41.232 L 428.249 -49.526 L 428.787 -58.277 L 429.325 -67.523 L 429.862 -77.308 L 430.400 -87.680 L 430.937 -98.696 L 431.475 -110.417 L 432.012 -122.913 L 432.550 -136.265 L 433.087 -150.565 L 433.625 -165.917 L 434.162 -182.443 L 434.700 -200.283 L 435.237 -219.603 L 435.775 -240.594 L 436.313 -263.484 L 436.850 -288.545 L 437.388 -316.101 L 437.925 -346.546 L 438.463 -380.361 L 439.000 -418.140 L 439.538 -460.625 L 440.075 -508.756 L 440.613 -563.741 L 441.150 -627.158 L 441.688 -701.113 L 442.225 -788.473 L 442.763 -893.250 L 443.301 -1021.236 L 443.838 -1181.111 L 444.376 -1386.497 L 444.913 -1660.066 L 445.451 -2042.546 L 445.988 -2615.168 L 446.526 -3566.672 L 447.063 -5459.119 L 447.601 -11053.808 L 448.138 -518787.617" stroke="#0969da" fill="none" stroke-width="2.3" clip-path="url(#tan-overview-clip)"></path></svg>
+<figcaption>Tangent is continuous at every interior point of this branch. Its sensitivity increases toward either endpoint.</figcaption>
+</figure>
+<h3>Well-posedness and conditioning</h3>
+<p><a href="20260911-class01.html#problems">A well-posed problem</a> has a solution, has a unique solution, and depends continuously on its input. On the open interval <span class="math" data-tex="(-\pi/2,\pi/2)">(-\pi/2,\pi/2)</span>, tangent is continuous. However, in this case it is <strong>ill-conditioned</strong>, because the inputs are close to the asymptote at <span class="math" data-tex="\pi/2">\pi/2</span> and small input changes are strongly amplified.</p>
+<p><strong>Continuity does not impose a small amplification factor.</strong> It is therefore possible for a problem to be mathematically well-posed at a given input and still be numerically sensitive there.</p>
+<p>Representation error connects this issue to floating-point arithmetic. If the intended input <span class="math" data-tex="b">b</span> is unavailable and the computer substitutes a nearby representable value <span class="math" data-tex="b^*">b^*</span>, even a perfectly accurate evaluation of <span class="math" data-tex="\tan(b^*)">\tan(b^*)</span> may be far from the desired <span class="math" data-tex="\tan(b)">\tan(b)</span>.</p>
+<div class="interactive" id="tangent-demo">
+<p class="panel-caption">Interactive illustration</p>
+<h3>Input sensitivity</h3>
+<p class="instructions">The second input is <span class="math" data-tex="b^*=b-\delta b">b^*=b-\delta b</span>. Move the slider toward the pole or enter an input directly. Watch the numerical amplification, not only the rescaled graph.</p>
+<div class="controls">
+<div class="control"><label for="tan-b">Input <span class="math" data-tex="b">b</span>, in radians</label><input id="tan-b" max="1.5707963267948" min="0" step="0.00001" style="" type="number" value="1.57079"></div>
+<div class="control"><label for="tan-delta">Input difference <span class="math" data-tex="\delta b">\delta b</span></label><input id="tan-delta" max="0.1" min="0.00000001" step="0.00001" style="" type="number" value="0.00001"></div>
+<div class="control full-mobile"><label for="tan-proximity">Proximity to <span class="math" data-tex="\pi/2">\pi/2</span>, logarithmic scale</label><input id="tan-proximity" max="7" min="-0.195" step="0.001" style="" type="range" value="5.198"></div>
+</div>
+<div class="presets"><button data-tan-b="0.5" type="button"><span class="math" data-tex="b=0.5">b=0.5</span></button><button data-tan-b="1.55" type="button"><span class="math" data-tex="b=1.55">b=1.55</span></button><button data-tan-b="1.57079" type="button">Worked example</button></div>
+<div aria-live="polite" class="result-grid">
+<div class="result"><div class="result-label"><span class="math" data-tex="x=\tan(b)">x=\tan(b)</span></div><div class="result-value" id="tan-x"><span class="math" data-tex="158057.91342">158057.91342</span></div><div class="small" id="tan-distance">Distance to <span class="math" data-tex="\pi/2">\pi/2</span>: <span class="math" data-tex="6.3267949\times10^{-6}">6.3267949\times10^{-6}</span></div></div>
+<div class="result"><div class="result-label"><span class="math" data-tex="x^*=\tan(b^*)">x^*=\tan(b^*)</span></div><div class="result-value" id="tan-xs"><span class="math" data-tex="61249.008531">61249.008531</span></div><div class="small" id="tan-bs"><span class="math" data-tex="b^*=1.57078">b^*=1.57078</span></div></div>
+<div class="result"><div class="result-label">Output difference <span class="math" data-tex="\delta x">\delta x</span></div><div class="result-value" id="tan-dx"><span class="math" data-tex="96808.904886">96808.904886</span></div></div>
+<div class="result"><div class="result-label"><strong>Condition number</strong> · <span class="math" data-tex="\delta x/\delta b">\delta x/\delta b</span></div><div class="result-value" id="tan-gain"><span class="math" data-tex="9.680890489\times10^{9}">9.680890489\times10^{9}</span></div></div>
+</div>
+<div class="plot-panel"><div class="legend"><span><i class="hollow"></i><span class="math" data-tex="b^*">b^*</span> and <span class="math" data-tex="\tan(b^*)">\tan(b^*)</span></span><span><i class="dot"></i><span class="math" data-tex="b">b</span> and <span class="math" data-tex="\tan(b)">\tan(b)</span></span><span><i class="dashed"></i>Pole, when in view</span></div><svg aria-labelledby="tan-plot-title" class="plot" id="tan-plot" role="img" viewBox="0 0 520 520"><title id="tan-plot-title">Local tangent graph showing the input and output differences</title><defs><clipPath id="tan-local-clip"><rect x="88" y="32" width="404" height="404"></rect></clipPath></defs><line x1="88" y1="32" x2="88" y2="436" stroke="#eaeef2"></line><line x1="88" y1="436" x2="492" y2="436" stroke="#eaeef2"></line><line x1="189" y1="32" x2="189" y2="436" stroke="#eaeef2"></line><line x1="88" y1="335" x2="492" y2="335" stroke="#eaeef2"></line><line x1="290" y1="32" x2="290" y2="436" stroke="#eaeef2"></line><line x1="88" y1="234" x2="492" y2="234" stroke="#eaeef2"></line><line x1="391" y1="32" x2="391" y2="436" stroke="#eaeef2"></line><line x1="88" y1="133" x2="492" y2="133" stroke="#eaeef2"></line><line x1="492" y1="32" x2="492" y2="436" stroke="#eaeef2"></line><line x1="88" y1="32" x2="492" y2="32" stroke="#eaeef2"></line><line x1="88" y1="436" x2="492" y2="436" stroke="#8c959f"></line><line x1="88" y1="32" x2="88" y2="436" stroke="#8c959f"></line><line x1="463.2351122658813" y1="32" x2="463.2351122658813" y2="436" stroke="#59636e" stroke-dasharray="5 5"></line><path d="M 88.0000 420.7048 L 88.8080 420.4469 L 89.6160 420.1880 L 90.4240 419.9279 L 91.2320 419.6666 L 92.0400 419.4042 L 92.8480 419.1407 L 93.6560 418.8761 L 94.4640 418.6102 L 95.2720 418.3432 L 96.0800 418.0750 L 96.8880 417.8057 L 97.6960 417.5351 L 98.5040 417.2634 L 99.3120 416.9904 L 100.1200 416.7163 L 100.9280 416.4409 L 101.7360 416.1643 L 102.5440 415.8864 L 103.3520 415.6073 L 104.1600 415.3269 L 104.9680 415.0453 L 105.7760 414.7624 L 106.5840 414.4782 L 107.3920 414.1927 L 108.2000 413.9060 L 109.0080 413.6179 L 109.8160 413.3285 L 110.6240 413.0377 L 111.4320 412.7457 L 112.2400 412.4523 L 113.0480 412.1575 L 113.8560 411.8614 L 114.6640 411.5639 L 115.4720 411.2650 L 116.2800 410.9647 L 117.0880 410.6631 L 117.8960 410.3600 L 118.7040 410.0555 L 119.5120 409.7495 L 120.3200 409.4422 L 121.1280 409.1333 L 121.9360 408.8230 L 122.7440 408.5113 L 123.5520 408.1980 L 124.3600 407.8833 L 125.1680 407.5670 L 125.9760 407.2493 L 126.7840 406.9300 L 127.5920 406.6091 L 128.4000 406.2868 L 129.2080 405.9628 L 130.0160 405.6373 L 130.8240 405.3102 L 131.6320 404.9816 L 132.4400 404.6513 L 133.2480 404.3194 L 134.0560 403.9858 L 134.8640 403.6507 L 135.6720 403.3138 L 136.4800 402.9753 L 137.2880 402.6351 L 138.0960 402.2933 L 138.9040 401.9497 L 139.7120 401.6044 L 140.5200 401.2574 L 141.3280 400.9087 L 142.1360 400.5582 L 142.9440 400.2059 L 143.7520 399.8518 L 144.5600 399.4960 L 145.3680 399.1383 L 146.1760 398.7788 L 146.9840 398.4175 L 147.7920 398.0543 L 148.6000 397.6893 L 149.4080 397.3223 L 150.2160 396.9535 L 151.0240 396.5828 L 151.8320 396.2101 L 152.6400 395.8356 L 153.4480 395.4590 L 154.2560 395.0805 L 155.0640 394.7000 L 155.8720 394.3175 L 156.6800 393.9330 L 157.4880 393.5465 L 158.2960 393.1579 L 159.1040 392.7672 L 159.9120 392.3745 L 160.7200 391.9796 L 161.5280 391.5827 L 162.3360 391.1836 L 163.1440 390.7824 L 163.9520 390.3790 L 164.7600 389.9734 L 165.5680 389.5656 L 166.3760 389.1556 L 167.1840 388.7433 L 167.9920 388.3288 L 168.8000 387.9121 L 169.6080 387.4930 L 170.4160 387.0716 L 171.2240 386.6479 L 172.0320 386.2218 L 172.8400 385.7934 L 173.6480 385.3626 L 174.4560 384.9293 L 175.2640 384.4937 L 176.0720 384.0555 L 176.8800 383.6150 L 177.6880 383.1719 L 178.4960 382.7263 L 179.3040 382.2781 L 180.1120 381.8274 L 180.9200 381.3742 L 181.7280 380.9183 L 182.5360 380.4598 L 183.3440 379.9986 L 184.1520 379.5348 L 184.9600 379.0683 L 185.7680 378.5991 L 186.5760 378.1271 L 187.3840 377.6524 L 188.1920 377.1748 L 189.0000 376.6945 L 189.8080 376.2113 L 190.6160 375.7253 L 191.4240 375.2364 L 192.2320 374.7445 L 193.0400 374.2497 L 193.8480 373.7520 L 194.6560 373.2512 L 195.4640 372.7474 L 196.2720 372.2406 L 197.0800 371.7307 L 197.8880 371.2177 L 198.6960 370.7016 L 199.5040 370.1823 L 200.3120 369.6598 L 201.1200 369.1341 L 201.9280 368.6051 L 202.7360 368.0729 L 203.5440 367.5373 L 204.3520 366.9984 L 205.1600 366.4561 L 205.9680 365.9104 L 206.7760 365.3613 L 207.5840 364.8087 L 208.3920 364.2526 L 209.2000 363.6930 L 210.0080 363.1298 L 210.8160 362.5630 L 211.6240 361.9925 L 212.4320 361.4184 L 213.2400 360.8406 L 214.0480 360.2590 L 214.8560 359.6736 L 215.6640 359.0844 L 216.4720 358.4914 L 217.2800 357.8944 L 218.0880 357.2935 L 218.8960 356.6887 L 219.7040 356.0798 L 220.5120 355.4669 L 221.3200 354.8499 L 222.1280 354.2287 L 222.9360 353.6034 L 223.7440 352.9738 L 224.5520 352.3400 L 225.3600 351.7019 L 226.1680 351.0594 L 226.9760 350.4126 L 227.7840 349.7613 L 228.5920 349.1055 L 229.4000 348.4452 L 230.2080 347.7803 L 231.0160 347.1108 L 231.8240 346.4366 L 232.6320 345.7576 L 233.4400 345.0739 L 234.2480 344.3854 L 235.0560 343.6920 L 235.8640 342.9937 L 236.6720 342.2904 L 237.4800 341.5820 L 238.2880 340.8686 L 239.0960 340.1500 L 239.9040 339.4262 L 240.7120 338.6972 L 241.5200 337.9629 L 242.3280 337.2231 L 243.1360 336.4780 L 243.9440 335.7274 L 244.7520 334.9712 L 245.5600 334.2094 L 246.3680 333.4419 L 247.1760 332.6687 L 247.9840 331.8896 L 248.7920 331.1047 L 249.6000 330.3139 L 250.4080 329.5171 L 251.2160 328.7141 L 252.0240 327.9051 L 252.8320 327.0898 L 253.6400 326.2683 L 254.4480 325.4403 L 255.2560 324.6060 L 256.0640 323.7651 L 256.8720 322.9177 L 257.6800 322.0636 L 258.4880 321.2027 L 259.2960 320.3351 L 260.1040 319.4605 L 260.9120 318.5790 L 261.7200 317.6903 L 262.5280 316.7946 L 263.3360 315.8915 L 264.1440 314.9812 L 264.9520 314.0634 L 265.7600 313.1381 L 266.5680 312.2053 L 267.3760 311.2647 L 268.1840 310.3163 L 268.9920 309.3600 L 269.8000 308.3958 L 270.6080 307.4234 L 271.4160 306.4429 L 272.2240 305.4541 L 273.0320 304.4569 L 273.8400 303.4511 L 274.6480 302.4368 L 275.4560 301.4137 L 276.2640 300.3818 L 277.0720 299.3409 L 277.8800 298.2909 L 278.6880 297.2318 L 279.4960 296.1633 L 280.3040 295.0854 L 281.1120 293.9979 L 281.9200 292.9007 L 282.7280 291.7938 L 283.5360 290.6768 L 284.3440 289.5498 L 285.1520 288.4125 L 285.9600 287.2649 L 286.7680 286.1068 L 287.5760 284.9380 L 288.3840 283.7584 L 289.1920 282.5678 L 290.0000 281.3662 L 290.8080 280.1533 L 291.6160 278.9289 L 292.4240 277.6930 L 293.2320 276.4454 L 294.0400 275.1858 L 294.8480 273.9141 L 295.6560 272.6302 L 296.4640 271.3338 L 297.2720 270.0248 L 298.0800 268.7030 L 298.8880 267.3682 L 299.6960 266.0202 L 300.5040 264.6588 L 301.3120 263.2839 L 302.1200 261.8951 L 302.9280 260.4923 L 303.7360 259.0754 L 304.5440 257.6440 L 305.3520 256.1979 L 306.1600 254.7370 L 306.9680 253.2610 L 307.7760 251.7696 L 308.5840 250.2626 L 309.3920 248.7399 L 310.2000 247.2010 L 311.0080 245.6458 L 311.8160 244.0740 L 312.6240 242.4853 L 313.4320 240.8795 L 314.2400 239.2563 L 315.0480 237.6154 L 315.8560 235.9564 L 316.6640 234.2792 L 317.4720 232.5834 L 318.2800 230.8687 L 319.0880 229.1348 L 319.8960 227.3813 L 320.7040 225.6080 L 321.5120 223.8144 L 322.3200 222.0002 L 323.1280 220.1652 L 323.9360 218.3088 L 324.7440 216.4308 L 325.5520 214.5307 L 326.3600 212.6082 L 327.1680 210.6629 L 327.9760 208.6943 L 328.7840 206.7021 L 329.5920 204.6858 L 330.4000 202.6449 L 331.2080 200.5791 L 332.0160 198.4878 L 332.8240 196.3706 L 333.6320 194.2270 L 334.4400 192.0565 L 335.2480 189.8587 L 336.0560 187.6328 L 336.8640 185.3786 L 337.6720 183.0953 L 338.4800 180.7824 L 339.2880 178.4394 L 340.0960 176.0656 L 340.9040 173.6605 L 341.7120 171.2234 L 342.5200 168.7536 L 343.3280 166.2506 L 344.1360 163.7136 L 344.9440 161.1420 L 345.7520 158.5350 L 346.5600 155.8919 L 347.3680 153.2119 L 348.1760 150.4943 L 348.9840 147.7382 L 349.7920 144.9429 L 350.6000 142.1074 L 351.4080 139.2310 L 352.2160 136.3128 L 353.0240 133.3517 L 353.8320 130.3469 L 354.6400 127.2974 L 355.4480 124.2021 L 356.2560 121.0601 L 357.0640 117.8703 L 357.8720 114.6316 L 358.6800 111.3428 L 359.4880 108.0028 L 360.2960 104.6103 L 361.1040 101.1642 L 361.9120 97.6631 L 362.7200 94.1057 L 363.5280 90.4906 L 364.3360 86.8165 L 365.1440 83.0819 L 365.9520 79.2852 L 366.7600 75.4249 L 367.5680 71.4995 L 368.3760 67.5071 L 369.1840 63.4461 L 369.9920 59.3148 L 370.8000 55.1113 L 371.6080 50.8336 L 372.4160 46.4797 L 373.2240 42.0478 L 374.0320 37.5355 L 374.8400 32.9407 L 375.6480 28.2612 L 376.4560 23.4945 L 377.2640 18.6383 L 378.0720 13.6898 L 378.8800 8.6466 L 379.6880 3.5058 L 380.4960 -1.7353 L 381.3040 -7.0799 L 382.1120 -12.5309 L 382.9200 -18.0916 L 383.7280 -23.7653 L 384.5360 -29.5555 L 385.3440 -35.4659 L 386.1520 -41.5001 L 386.9600 -47.6622 L 387.7680 -53.9563 L 388.5760 -60.3866 L 389.3840 -66.9576 L 390.1920 -73.6739 L 391.0000 -80.5406 L 391.8080 -87.5625 L 392.6160 -94.7452 L 393.4240 -102.0941 L 394.2320 -109.6152 L 395.0400 -117.3144 L 395.8480 -125.1983 L 396.6560 -133.2736 L 397.4640 -141.5472 L 398.2720 -150.0267 L 399.0800 -158.7198 L 399.8880 -167.6346 L 400.6960 -176.7798 L 401.5040 -186.1644 L 402.3120 -195.7979 L 403.1200 -205.6904 L 403.9280 -215.8524 L 404.7360 -226.2952 L 405.5440 -237.0304 L 406.3520 -248.0707 L 407.1600 -259.4291 L 407.9680 -271.1196 L 408.7760 -283.1570 L 409.5840 -295.5570 L 410.3920 -308.3362 L 411.2000 -321.5123 L 412.0080 -335.1040 L 412.8160 -349.1314 L 413.6240 -363.6157 L 414.4320 -378.5795 L 415.2400 -394.0473 L 416.0480 -410.0447 L 416.8560 -426.5996 L 417.6640 -443.7414 L 418.4720 -461.5022 L 419.2800 -479.9159 L 420.0880 -499.0193 L 420.8960 -518.8518 L 421.7040 -539.4560 L 422.5120 -560.8778 L 423.3200 -583.1669 L 424.1280 -606.3770 L 424.9360 -630.5665 L 425.7440 -655.7986 L 426.5520 -682.1423 L 427.3600 -709.6726 L 428.1680 -738.4717 L 428.9760 -768.6291 L 429.7840 -800.2435 L 430.5920 -833.4229 L 431.4000 -868.2866 L 432.2080 -904.9660 L 433.0160 -943.6070 L 433.8240 -984.3711 L 434.6320 -1027.4383 L 435.4400 -1073.0093 L 436.2480 -1121.3092 L 437.0560 -1172.5906 L 437.8640 -1227.1383 L 438.6720 -1285.2747 L 439.4800 -1347.3659 L 440.2880 -1413.8298 L 441.0960 -1485.1451 L 441.9040 -1561.8631 L 442.7120 -1644.6219 L 443.5200 -1734.1643 L 444.3280 -1831.3598 L 445.1360 -1937.2336 L 445.9440 -2053.0022 L 446.7520 -2180.1207 L 447.5600 -2320.3443 L 448.3680 -2475.8097 L 449.1760 -2649.1447 L 449.9840 -2843.6184 L 450.7920 -3063.3485 L 451.6000 -3313.5969 L 452.4080 -3601.1961 L 453.2160 -3935.1827 L 454.0240 -4327.7640 L 454.8320 -4795.8426 L 455.6400 -5363.5134 L 456.4480 -6066.3457 L 457.2560 -6959.1354 L 458.0640 -8130.9267 L 458.8720 -9736.7235 L 459.6800 -12072.4459 L 460.4880 -15782.1666 L 461.2960 -22583.4610 L 462.1040 -39101.6440 L 462.9120 -138233.1667" fill="none" stroke="#0969da" stroke-width="2.2" clip-path="url(#tan-local-clip)"></path><line x1="182.55319149041753" y1="380.45" x2="354.4680851072764" y2="380.45" stroke="#59636e" stroke-dasharray="4 3"></line><line x1="354.4680851072764" y1="380.45" x2="354.4680851072764" y2="127.94999999999993" stroke="#59636e" stroke-dasharray="4 3"></line><circle cx="182.55319149041753" cy="380.45" r="5" fill="white" stroke="#59636e" stroke-width="1.8"></circle><circle cx="354.4680851072764" cy="127.94999999999993" r="5" fill="#0969da" stroke="#0969da" stroke-width="1.8"></circle></svg><p class="small" style="margin:8px 6px 0">Local view. Both axes rescale with the inputs; the curve is clipped at the plot boundary.</p></div>
+<p class="status" id="tan-status">Input difference: <span class="math" data-tex="\delta b=0.00001">\delta b=0.00001</span>; output difference: <span class="math" data-tex="\delta x=96808.9049">\delta x=96808.9049</span>. Condition number: <span class="math" data-tex="\delta x/\delta b=9.6808905\times10^{9}">\delta x/\delta b=9.6808905\times10^{9}</span>.</p>
+<p class="small">This illustration varies the inputs without imposing the three-digit toy arithmetic. Tangent values and plotting coordinates use the browser’s floating-point arithmetic.</p>
+</div>
+</section>
+<section id="near-singularity">
+<h2>4. Ill-conditioned linear system</h2>
+<p>The same sensitivity can occur in a linear solve. Now consider a <strong>different matrix</strong> from the small-pivot example:</p>
+<div class="math display" data-tex="A=\begin{bmatrix}1&amp;1\\1&amp;1.0001\end{bmatrix}.">A=\begin{bmatrix}1&amp;1\\1&amp;1.0001\end{bmatrix}.</div>
+<p>Keep <span class="math" data-tex="A">A</span> fixed and regard the right-hand side <span class="math" data-tex="b">b</span> as the input. The output is the solution <span class="math" data-tex="x">x</span>.</p>
+<h3>First case</h3>
+<div class="math display" data-tex="\begin{bmatrix}1&amp;1\\1&amp;1.0001\end{bmatrix}
+\begin{bmatrix}x_1\\x_2\end{bmatrix}
+=\begin{bmatrix}2\\2\end{bmatrix}.">\begin{bmatrix}1&amp;1\\1&amp;1.0001\end{bmatrix}
+\begin{bmatrix}x_1\\x_2\end{bmatrix}
+=\begin{bmatrix}2\\2\end{bmatrix}.</div>
+<p>Subtracting the first row from the second gives</p>
+<div class="math display" data-tex="\begin{bmatrix}1&amp;1\\0&amp;0.0001\end{bmatrix}
+\begin{bmatrix}x_1\\x_2\end{bmatrix}
+=\begin{bmatrix}2\\0\end{bmatrix},
+\qquad x=\begin{bmatrix}2\\0\end{bmatrix}.">\begin{bmatrix}1&amp;1\\0&amp;0.0001\end{bmatrix}
+\begin{bmatrix}x_1\\x_2\end{bmatrix}
+=\begin{bmatrix}2\\0\end{bmatrix},
+\qquad x=\begin{bmatrix}2\\0\end{bmatrix}.</div>
+<h3>Second case</h3>
+<p>Change only the second component of <span class="math" data-tex="b">b</span>, from <span class="math" data-tex="2">2</span> to <span class="math" data-tex="2.0001">2.0001</span>:</p>
+<div class="math display" data-tex="\begin{bmatrix}1&amp;1\\1&amp;1.0001\end{bmatrix}
+\begin{bmatrix}x_1^*\\x_2^*\end{bmatrix}
+=\begin{bmatrix}2\\2.0001\end{bmatrix}.">\begin{bmatrix}1&amp;1\\1&amp;1.0001\end{bmatrix}
+\begin{bmatrix}x_1^*\\x_2^*\end{bmatrix}
+=\begin{bmatrix}2\\2.0001\end{bmatrix}.</div>
+<p>The same elimination now gives</p>
+<div class="math display" data-tex="\begin{bmatrix}1&amp;1\\0&amp;0.0001\end{bmatrix}
+\begin{bmatrix}x_1^*\\x_2^*\end{bmatrix}
+=\begin{bmatrix}2\\0.0001\end{bmatrix},
+\qquad x^*=\begin{bmatrix}1\\1\end{bmatrix}.">\begin{bmatrix}1&amp;1\\0&amp;0.0001\end{bmatrix}
+\begin{bmatrix}x_1^*\\x_2^*\end{bmatrix}
+=\begin{bmatrix}2\\0.0001\end{bmatrix},
+\qquad x^*=\begin{bmatrix}1\\1\end{bmatrix}.</div>
+<p>The input perturbation and the change in the solution are</p>
+<div class="math display" data-tex="b^*-b=\begin{bmatrix}0\\0.0001\end{bmatrix},
+\qquad
+x^*-x=\begin{bmatrix}-1\\1\end{bmatrix}.">b^*-b=\begin{bmatrix}0\\0.0001\end{bmatrix},
+\qquad
+x^*-x=\begin{bmatrix}-1\\1\end{bmatrix}.</div>
+<p><strong>These are different exact solutions of two nearby problems.</strong> No rounding error is needed to produce the large change. Pivoting cannot remove sensitivity that belongs to the input-output relationship itself.</p>
+<h3>Near linear dependence</h3>
+<p>The columns <span class="math" data-tex="(1,1)^T">(1,1)^T</span> and <span class="math" data-tex="(1,1.0001)^T">(1,1.0001)^T</span> are <a href="https://en.wikipedia.org/wiki/Linear_independence" target="_blank" rel="noopener noreferrer">linearly independent</a>, but close to being identical. The rows are also nearly dependent. The matrix is invertible, yet it is close to a singular matrix.</p>
+<p>In the tangent example, proximity to an asymptote creates large sensitivity. Here, the analogous structural issue is <strong>proximity to linear dependence</strong>.</p>
+<div class="interactive" id="matrix-demo">
+<p class="panel-caption">Worked-example comparison</p>
+<h3>Input perturbation</h3>
+<p class="instructions">The matrix stays fixed. Select one of the two right-hand sides to compare the corresponding exact solutions.</p>
+<div aria-label="Right-hand side used in the worked example" class="presets" role="group">
+<button aria-pressed="false" data-matrix-case="original" type="button"><span class="math" data-tex="b=(2,2)^T">b=(2,2)^T</span></button>
+<button aria-pressed="true" data-matrix-case="perturbed" type="button"><span class="math" data-tex="b^*=(2,2.0001)^T">b^*=(2,2.0001)^T</span></button>
+</div>
+<div aria-live="polite" class="result-grid">
+<div class="result"><div class="result-label">Selected right-hand side</div><div class="result-value" id="matrix-b"><span class="math" data-tex="(2,\;2.0001)^T">(2,\;2.0001)^T</span></div></div>
+<div class="result"><div class="result-label">Exact solution <span class="math" data-tex="(x_1,x_2)">(x_1,x_2)</span></div><div class="result-value" id="matrix-x"><span class="math" data-tex="(1,\;1)">(1,\;1)</span></div></div>
+</div>
+<p class="status" id="matrix-status">Subtracting the first equation from the second gives <span class="math" data-tex="0.0001x_2=0.0001">0.0001x_2=0.0001</span>.</p>
+<div class="plot-panel"><div class="legend">
+<span><i></i>First equation</span><span><i class="blue dashed"></i>Second equation</span>
+<span><i class="hollow"></i>Original solution</span><span><i class="dot"></i>Selected solution</span></div>
+<svg aria-labelledby="matrix-plot-title" class="plot" id="matrix-plot" role="img" viewBox="0 0 818 330"><title id="matrix-plot-title">Nearly parallel equation lines and the movement of their intersection</title><defs><clipPath id="matrix-local-clip"><rect x="88" y="32" width="702" height="244"></rect></clipPath></defs><line x1="88" y1="32" x2="88" y2="276" stroke="#eaeef2"></line><line x1="88" y1="276" x2="790" y2="276" stroke="#eaeef2"></line><line x1="263.5" y1="32" x2="263.5" y2="276" stroke="#eaeef2"></line><line x1="88" y1="215" x2="790" y2="215" stroke="#eaeef2"></line><line x1="439" y1="32" x2="439" y2="276" stroke="#eaeef2"></line><line x1="88" y1="154" x2="790" y2="154" stroke="#eaeef2"></line><line x1="614.5" y1="32" x2="614.5" y2="276" stroke="#eaeef2"></line><line x1="88" y1="93" x2="790" y2="93" stroke="#eaeef2"></line><line x1="790" y1="32" x2="790" y2="276" stroke="#eaeef2"></line><line x1="88" y1="32" x2="790" y2="32" stroke="#eaeef2"></line><line x1="88" y1="276" x2="790" y2="276" stroke="#8c959f"></line><line x1="88" y1="32" x2="88" y2="276" stroke="#8c959f"></line><g clip-path="url(#matrix-local-clip)"><line x1="88" y1="32" x2="790" y2="276" stroke="#59636e" stroke-width="2.6"></line><line x1="88" y1="32.01219878012196" x2="790" y2="275.98780121987795" stroke="#0969da" stroke-width="1.9" stroke-dasharray="8 5"></line></g><circle cx="709" cy="247.84615384615384" r="5.5" fill="white" stroke="#59636e" stroke-width="1.8"></circle><circle cx="439.00000000000006" cy="153.99999999999997" r="5.5" fill="#0969da" stroke="#0969da" stroke-width="1.8"></circle><text x="698" y="268.8461538461538" text-anchor="end" class="point-label">Original</text><text x="450.00000000000006" y="137.99999999999997" text-anchor="start" class="point-label">Current intersection</text></svg>
+<p class="small" style="margin:8px 6px 0">The two equation lines almost overlap at this scale, but their intersection changes from <span class="math" data-tex="(2,0)">(2,0)</span> to <span class="math" data-tex="(1,1)">(1,1)</span>.</p></div>
+</div>
+</section>
+<section id="invertibility">
+<h2>5. Equivalent conditions for invertibility</h2>
+<p>Let <span class="math" data-tex="A\in\mathbb{R}^{n\times n}">A\in\mathbb{R}^{n\times n}</span>. The following statements are equivalent in exact mathematics:</p>
+<ol class="equivalences">
+<li><span class="math" data-tex="A^{-1}">A^{-1}</span> exists.</li>
+<li>There is no nonzero vector <span class="math" data-tex="x">x</span> such that <span class="math" data-tex="Ax=0">Ax=0</span>.</li>
+<li>The columns of <span class="math" data-tex="A">A</span> are <a href="https://en.wikipedia.org/wiki/Linear_independence" target="_blank" rel="noopener noreferrer">linearly independent</a>.</li>
+<li>The rows of <span class="math" data-tex="A">A</span> are <a href="https://en.wikipedia.org/wiki/Linear_independence" target="_blank" rel="noopener noreferrer">linearly independent</a>.</li>
+<li><span class="math" data-tex="\det(A)\ne0">\det(A)\ne0</span>.</li>
+<li>For every right-hand side <span class="math" data-tex="b\in\mathbb{R}^n">b\in\mathbb{R}^n</span>, there is exactly one vector <span class="math" data-tex="x">x</span> satisfying <span class="math" data-tex="Ax=b">Ax=b</span>.</li>
+</ol>
+<p>These statements answer an existence-and-uniqueness question. They do not say that the solution is insensitive to perturbations. For the nearly dependent example,</p>
+<div class="math display" data-tex="\det\begin{bmatrix}1&amp;1\\1&amp;1.0001\end{bmatrix}=0.0001\ne0,">\det\begin{bmatrix}1&amp;1\\1&amp;1.0001\end{bmatrix}=0.0001\ne0,</div>
+<p>yet the two nearby right-hand sides have markedly different solutions.</p>
+<p>These are equivalent statements in exact mathematics. <strong>Finite-precision calculations used to check them need not agree.</strong> Existence and uniqueness alone do not establish that the numerical solution is reliable.</p></section>
+<section id="error-types">
+<h2>6. Sources of numerical error</h2>
+<p>Numerical reliability can be lost in three ways:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Source</th><th>What changes?</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td><strong>Representation error</strong></td><td>The intended input is replaced by an available floating-point value.</td><td>Using a nearby <span class="math" data-tex="b^*">b^*</span> instead of <span class="math" data-tex="b">b</span>.</td></tr>
+<tr><td><strong>Rounding and cancellation during an algorithm</strong></td><td>Intermediate operations lose information, sometimes in an order-dependent way.</td><td>The small-pivot solve returns <span class="math" data-tex="(0,1)^T">(0,1)^T</span> at <span class="math" data-tex="p=3">p=3</span>; row interchange returns <span class="math" data-tex="(1,1)^T">(1,1)^T</span>.</td></tr>
+<tr><td><strong>Ill-conditioning of the problem</strong></td><td>A small change in the input produces a large change in the exact output.</td><td>Tangent near <span class="math" data-tex="\pi/2">\pi/2</span>, or the nearly dependent matrix with perturbed <span class="math" data-tex="b">b</span>.</td></tr>
+</tbody></table></div>
+<p><strong>Algorithmic stability and problem conditioning are different questions.</strong> The first asks how a computational procedure handles numerical errors; the second asks how sensitive the mathematical answer is to the data. Representation error can supply the perturbation, and an ill-conditioned problem can then amplify it.</p>
+<p>The practical contrast is:</p>
+<div class="math display" data-tex="\begin{array}{ll}
+\text{Small-pivot example:}&amp;\text{same problem, different operation order},\\
+\text{Nearly dependent example:}&amp;\text{nearby inputs, different exact solutions}.
+\end{array}">\begin{array}{ll}
+\text{Small-pivot example:}&amp;\text{same problem, different operation order},\\
+\text{Nearly dependent example:}&amp;\text{nearby inputs, different exact solutions}.
+\end{array}</div>
+<p>More appropriate operation ordering can improve the first case. It cannot make the two exact solutions in the second case equal. Likewise, a program finishing without an exception does not establish that its numerical result is trustworthy.</p>
+</section>
+<section id="homework">
+<h2>7. Homework and next class</h2>
+<h3>Harmonic series</h3>
+<p>Investigate which of the three stopping mechanisms occurs first for a specified floating-point system, particularly single precision. Combine a computational experiment with a back-of-the-envelope estimate of the required number of steps. A smaller toy system can make the mechanisms easier to inspect.</p>
+<p>Explain the numerical cause, rather than only reporting a final sum. The order-of-summation experiments in Class 2 provide related tests.</p>
+<h3>AI-assisted computation</h3>
+<p>Complete the problem set with an AI coding tool and bring the resulting notebook or code to the next class. Test implementations, expose incorrect numerical behavior, and explain why a proposed solution fails. Review a volunteer’s notebook together in class.</p>
+
+<h3>Next topics</h3>
+<p>Next: linear systems, possibly followed by eigenvalues and eigenvectors because of their relevance to network science. The broader progression connects linear solves, nonlinear equations, and root finding:</p>
+<div class="math display" data-tex="Ax=b\quad\longrightarrow\quad f(x)=b\quad\longrightarrow\quad f(x)-b=0.">Ax=b\quad\longrightarrow\quad f(x)=b\quad\longrightarrow\quad f(x)-b=0.</div>
+<h3>Final project</h3><p>Choose a computational problem aligned with your ongoing research, analyze what can go wrong numerically, and improve the implementation.</p>
+<h3>Reading</h3>
+<p>Michael T. Heath, <em>Scientific Computing: An Introductory Survey</em>. <a href="https://heath.cs.illinois.edu/scicomp/" rel="noopener noreferrer" target="_blank">Book website</a> · <a href="https://heath.cs.illinois.edu/scicomp/notes/index.html" rel="noopener noreferrer" target="_blank">Lecture slides</a>.</p>
+</section>
+<footer>PHYS5211 · Class 3 · September 17, 2026</footer>
+</main>
+
+<script id="notes-interactions">
+/* Interactive illustrations for PHYS5211, September 17, 2026. */
+(() => {
+  'use strict';
+
+  /** Return the greatest common divisor of two nonnegative integers. */
+  function gcd(a, b) {
+    a = a < 0n ? -a : a;
+    b = b < 0n ? -b : b;
+    while (b !== 0n) [a, b] = [b, a % b];
+    return a;
+  }
+  function pow10(k) {
+    if (!Number.isInteger(k) || k < 0 || k > 600) throw new RangeError('Invalid decimal exponent.');
+    return 10n ** BigInt(k);
+  }
+
+  /** Immutable rational value for exact decimal input and rounding operations. */
+  class Q {
+    constructor(n, d = 1n) {
+      if (d === 0n) throw new RangeError('Division by zero.');
+      if (d < 0n) { n = -n; d = -d; }
+      const g = gcd(n, d);
+      this.n = n / g;
+      this.d = d / g;
+    }
+    static parse(text) {
+      const s = String(text).trim();
+      if (s.length > 200) throw new RangeError('Input is too long.');
+      const match = s.match(/^([+-]?)(\d*)(?:\.(\d*))?(?:e([+-]?\d+))?$/i);
+      if (!match || !(match[2] || match[3])) throw new TypeError('Enter a decimal number.');
+      const digits = (match[2] || '') + (match[3] || '');
+      const exponent = Number(match[4] || 0) - (match[3] || '').length;
+      if (!Number.isInteger(exponent) || Math.abs(exponent) > 500) throw new RangeError('Input exponent is too large.');
+      const n = BigInt(digits) * (match[1] === '-' ? -1n : 1n);
+      return exponent >= 0 ? new Q(n * pow10(exponent)) : new Q(n, pow10(-exponent));
+    }
+    add(other) { return new Q(this.n * other.d + other.n * this.d, this.d * other.d); }
+    sub(other) { return new Q(this.n * other.d - other.n * this.d, this.d * other.d); }
+    mul(other) { return new Q(this.n * other.n, this.d * other.d); }
+    div(other) { return new Q(this.n * other.d, this.d * other.n); }
+    neg() { return new Q(-this.n, this.d); }
+    abs() { return this.n < 0n ? this.neg() : this; }
+    number() { return Number(this.n) / Number(this.d); }
+  }
+  const ONE = new Q(1n), TWO = new Q(2n);
+
+  /** Round an exact value to p significant decimal digits, with ties to even. */
+  function roundSig(value, p) {
+    if (!Number.isInteger(p) || p < 1 || p > 30) throw new RangeError('Invalid precision.');
+    if (value.n === 0n) return new Q(0n);
+    const negative = value.n < 0n;
+    const a = negative ? -value.n : value.n;
+    const d = value.d;
+    let exponent = a.toString().length - d.toString().length;
+    if ((exponent >= 0 && a < d * pow10(exponent)) ||
+        (exponent < 0 && a * pow10(-exponent) < d)) exponent--;
+    const shift = p - 1 - exponent;
+    const numerator = shift >= 0 ? a * pow10(shift) : a;
+    const denominator = shift >= 0 ? d : d * pow10(-shift);
+    let integer = numerator / denominator;
+    const twiceRemainder = 2n * (numerator % denominator);
+    if (twiceRemainder > denominator || (twiceRemainder === denominator && integer % 2n !== 0n)) integer++;
+    if (negative) integer = -integer;
+    return shift >= 0 ? new Q(integer, pow10(shift)) : new Q(integer * pow10(-shift));
+  }
+
+  /** Solve the small-pivot example, rounding every elementary operation. */
+  function gaussian(epsilon, p, interchange) {
+    const r = value => p === null ? value : roundSig(value, p);
+    const a11 = r(interchange ? ONE : epsilon);
+    const a12 = r(ONE);
+    const a21 = r(interchange ? epsilon : ONE);
+    const a22 = r(ONE);
+    const b1 = r(interchange ? TWO : ONE);
+    const b2 = r(interchange ? ONE : TWO);
+    const multiplier = r(a21.div(a11));
+    const productA = r(multiplier.mul(a12));
+    const productB = r(multiplier.mul(b1));
+    const u22 = r(a22.sub(productA));
+    const c2 = r(b2.sub(productB));
+    const x2 = r(c2.div(u22));
+    const topProduct = r(a12.mul(x2));
+    const numerator = r(b1.sub(topProduct));
+    const x1 = r(numerator.div(a11));
+    return {x1, x2, multiplier, productA, productB, u22, c2, numerator};
+  }
+
+  const byId = id => document.getElementById(id);
+  function setText(id, text) { byId(id).textContent = text; }
+  function fmt(x, digits = 9) {
+    if (!Number.isFinite(x)) return String(x);
+    if (Object.is(x, -0) || x === 0) return '0';
+    if (Math.abs(x) >= 1e7 || Math.abs(x) < 1e-5) return x.toExponential(digits - 1).replace(/\.?(0+)(?=e)/, '').replace('e+', 'e');
+    return String(Number(x.toPrecision(digits)));
+  }
+  function fmtQ(q, digits = 10) { return fmt(q.number(), digits); }
+  /** Preserve small decimal perturbations when displaying the input vector. */
+  function decimalQ(q) {
+    let d=q.d, twos=0, fives=0;
+    while(d%2n===0n){d/=2n;twos++;}
+    while(d%5n===0n){d/=5n;fives++;}
+    if(d!==1n) return fmtQ(q,14);
+    const places=Math.max(twos,fives);
+    const scaled=(q.n<0n?-q.n:q.n)*2n**BigInt(places-twos)*5n**BigInt(places-fives);
+    let digits=scaled.toString().padStart(places+1,'0');
+    let out=places ? digits.slice(0,-places)+'.'+digits.slice(-places) : digits;
+    if(places) out=out.replace(/0+$/,'').replace(/\.$/,'');
+    return (q.n<0n?'-':'')+out;
+  }
+  function sigQ(q, p) { return q.n === 0n ? '0' : q.number().toPrecision(p).replace('e+', 'e'); }
+  function pair(q1, q2) { return '(' + fmtQ(q1) + ', ' + fmtQ(q2) + ')'; }
+  function escapeXML(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c])); }
+
+
+  const mathCache = new Map();
+
+  /** Convert a decimal display string to TeX without losing significant zeroes. */
+  function numberTex(value) {
+    const string = String(value);
+    const match = string.match(/^([+-]?[\d.]+)e([+-]?\d+)$/i);
+    return match ? `${match[1]}\\times10^{${Number(match[2])}}` : string;
+  }
+
+  /** Render LaTeX on demand; the HTML file stores no generated math markup. */
+  function mathMarkup(tex, display = false) {
+    const key = `${display}:${tex}`;
+    if (!mathCache.has(key)) {
+      if (mathCache.size > 1200) mathCache.clear();
+      mathCache.set(key, katex.renderToString(tex, {displayMode: display, throwOnError: true, trust: false}));
+    }
+    return mathCache.get(key);
+  }
+  function mathHTML(tex, display = false) {
+    return `<span class="math${display ? ' display' : ''}" data-tex="${escapeXML(tex)}">${mathMarkup(tex, display)}</span>`;
+  }
+  function setMath(id, tex) { byId(id).innerHTML = mathHTML(tex); }
+
+  // Measure the typeset baseline so graph labels keep their original anchors.
+  const labelCache = new Map();
+  const labelMeasure = document.createElement('div');
+  labelMeasure.className = 'math-label';
+  labelMeasure.setAttribute('aria-hidden', 'true');
+  labelMeasure.style.cssText = 'position:absolute;left:-10000px;top:0;visibility:hidden;display:inline-block;white-space:nowrap;line-height:normal;';
+  document.body.append(labelMeasure);
+  function mathLabel(x, y, tex, anchor = 'middle', size = 13) {
+    const key = `${size}:${tex}`;
+    if (!labelCache.has(key)) {
+      if (labelCache.size > 1200) labelCache.clear();
+      const markup = mathMarkup(tex);
+      labelMeasure.style.fontSize = `${size}px`;
+      labelMeasure.innerHTML = markup + '<span data-baseline style="display:inline-block;width:0;height:0;vertical-align:baseline"></span>';
+      const rect = labelMeasure.getBoundingClientRect();
+      const baseline = labelMeasure.querySelector('[data-baseline]').getBoundingClientRect().top - rect.top;
+      labelCache.set(key, {markup, width: rect.width, height: rect.height, baseline});
+    }
+    const {markup, width, height, baseline} = labelCache.get(key);
+    const offset = anchor === 'end' ? width : anchor === 'middle' ? width / 2 : 0;
+    return `<foreignObject class="math-label" x="${x-offset}" y="${y-baseline}" width="${Math.ceil(width)+2}" height="${Math.ceil(height)+2}" data-tex="${escapeXML(tex)}"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${size}px;line-height:normal;white-space:nowrap;display:inline-block">${markup}</div></foreignObject>`;
+  }
+
+  let pivotMode = 'rounded';
+
+  /** Compare only the fixed example in exact and three-digit arithmetic. */
+
+  function updatePivot() {
+    const rounded = pivotMode === 'rounded';
+    const p = rounded ? 3 : null;
+    const epsilon = Q.parse('0.0001');
+    const no = gaussian(epsilon, p, false);
+    const yes = gaussian(epsilon, p, true);
+    const display = q => numberTex(rounded ? sigQ(q, 3) : decimalQ(q));
+    const answer = q => !rounded && q.d === 9999n ? `\\frac{${q.n}}{9999}` : display(q);
+    setMath('pivot-no-result', `\\left(${answer(no.x1)},\\;${answer(no.x2)}\\right)`);
+    setMath('pivot-yes-result', `\\left(${answer(yes.x1)},\\;${answer(yes.x2)}\\right)`);
+    const rows = [
+      ['First-equation multiplier', 'multiplier'],
+      ['Remaining coefficient of ' + mathHTML('x_2'), 'u22'],
+      ['Remaining right-hand side', 'c2'],
+      [mathHTML('x_2'), 'x2'],
+      ['Difference used to recover ' + mathHTML('x_1'), 'numerator'],
+      [mathHTML('x_1'), 'x1']
+    ];
+    byId('pivot-trace').innerHTML = rows.map(([label, key]) => {
+      const value = q => ['x1', 'x2'].includes(key) ? answer(q) : display(q);
+      return '<tr><td>' + label + '</td><td>' + mathHTML(value(no[key])) + '</td><td>' + mathHTML(value(yes[key])) + '</td></tr>';
+    }).join('');
+    setText('pivot-caption', rounded ? 'Values after rounding to three significant digits' : 'Exact calculation; nonterminating intermediate decimals are shown approximately');
+    byId('pivot-status').innerHTML = rounded
+      ? 'Rounding gives different answers, although the original equations are the same.'
+      : 'Both equation orders give ' + mathHTML('x_1=\\frac{10000}{9999}') + ' and ' + mathHTML('x_2=\\frac{9998}{9999}') + '.';
+    document.querySelectorAll('[data-pivot-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.pivotMode === pivotMode)));
+  }
+
+  const BLUE = '#0969da', GRAY = '#59636e', GRID = '#eaeef2', BLACK = '#1f2328';
+  function line(x1, y1, x2, y2, stroke = GRAY, extra = '') {
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${stroke}" ${extra}/>`;
+  }
+  function text(x, y, label, anchor = 'middle', extra = '') {
+    return `<text x="${x}" y="${y}" text-anchor="${anchor}" ${extra}>${escapeXML(label)}</text>`;
+  }
+  function circle(x, y, fill, stroke = fill, radius = 5) {
+    return `<circle cx="${x}" cy="${y}" r="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="1.8"/>`;
+  }
+
+  /** Construct axes for a single plot, returning its scaling functions. */
+
+  function axes(id, xmin, xmax, ymin, ymax, width, height, xlabel, ylabel, xformat = v => fmt(v, 5), square = false) {
+    const left = width < 520 ? 76 : 88, right = width < 520 ? 18 : 28, top = 32;
+    const bottom = square ? left + right - top : 54;
+    const w = width - left - right, h = height - top - bottom;
+    const sx = x => left + (x - xmin) / (xmax - xmin) * w;
+    const sy = y => top + h - (y - ymin) / (ymax - ymin) * h;
+    let markup = `<defs><clipPath id="${id}-clip"><rect x="${left}" y="${top}" width="${w}" height="${h}"/></clipPath></defs>`;
+    const ticks = width < 520 ? 2 : 4;
+    for (let i = 0; i <= ticks; i++) {
+      const x = xmin + i * (xmax - xmin) / ticks;
+      const y = ymin + i * (ymax - ymin) / ticks;
+      markup += line(sx(x), top, sx(x), top + h, GRID);
+      markup += line(left, sy(y), left + w, sy(y), GRID);
+      markup += mathLabel(sx(x), top + h + 23, numberTex(xformat(x)), i === 0 ? 'start' : i === ticks ? 'end' : 'middle', 11.5);
+      markup += mathLabel(left - 9, sy(y) + 4, numberTex(fmt(y, square ? 3 : 5)), 'end', 11.5);
+    }
+    markup += line(left, top+h, left+w, top+h, '#8c959f');
+    markup += line(left, top, left, top+h, '#8c959f');
+    markup += mathLabel(left+w/2, height-13, xlabel, 'middle', 14);
+    markup += mathLabel(left, 17, ylabel, 'start', 14);
+    return {markup, sx, sy, left, top, w, h};
+  }
+
+
+  function drawTangentOverview() {
+    const width = Math.max(260, Math.round(byId('tangent-overview').getBoundingClientRect().width));
+    const height = width;
+    byId('tangent-overview').setAttribute('viewBox', `0 0 ${width} ${height}`);
+    const margin = width < 400 ? 30 : 42;
+    const left = margin, right = margin, top = margin, bottom = margin;
+    const xmin = -1.82, xmax = 1.82, ymin = -4.2, ymax = 4.2;
+    const sx = x => left + (x-xmin)/(xmax-xmin)*(width-left-right);
+    const sy = y => top+(ymax-y)/(ymax-ymin)*(height-top-bottom);
+    let s = '<title id="tangent-overview-title">The central branch of tangent, with vertical asymptotes at minus pi over two and pi over two</title>';
+    s += `<defs><clipPath id="tan-overview-clip"><rect x="${left}" y="${top}" width="${width-left-right}" height="${height-top-bottom}"/></clipPath></defs>`;
+    s += line(left,sy(0),width-right,sy(0),'#8c959f');
+    s += line(sx(0),top,sx(0),height-bottom,'#8c959f');
+    for (const x of [-Math.PI/2, Math.PI/2]) s += line(sx(x),top,sx(x),height-bottom,GRAY,'stroke-dasharray="5 5"');
+    let d = '';
+    for (let i=0; i<=700; i++) {
+      const x = -Math.PI/2 + 0.0001 + i*(Math.PI-0.0002)/700;
+      d += (i?' L ':'M ')+sx(x).toFixed(3)+' '+sy(Math.tan(x)).toFixed(3);
+    }
+    s += `<path d="${d}" stroke="${BLUE}" fill="none" stroke-width="2.3" clip-path="url(#tan-overview-clip)"/>`;
+    s += mathLabel(sx(-Math.PI/2)-5,sy(0)+25,'-\\pi/2','end',14);
+    s += mathLabel(sx(Math.PI/2)+5,sy(0)+25,'\\pi/2','start',14);
+    s += mathLabel(sx(0)-9,sy(0)+19,'0','end',13);
+    s += mathLabel(width-right+13,sy(0)+5,'b','start',16);
+    s += mathLabel(sx(0)+13,top+4,'\\tan(b)','start',16);
+    byId('tangent-overview').innerHTML = s;
+  }
+
+  function drawTangent(b, bs, delta, x, xs) {
+    const pole = Math.PI/2;
+    const xmin = bs - 0.55*delta;
+    const xmax = b + 0.80*delta;
+    const dy = x-xs;
+    const ymin = xs - 0.22*dy;
+    const ymax = x + 0.38*dy;
+    const digits = Math.min(12,Math.max(2,Math.ceil(-Math.log10(xmax-xmin))+2));
+    const width = Math.max(260,Math.round(byId('tan-plot').getBoundingClientRect().width)), height = width;
+    byId('tan-plot').setAttribute('viewBox',`0 0 ${width} ${height}`);
+    const a = axes('tan-local',xmin,xmax,ymin,ymax,width,height,'\\text{Input }b\\text{, radians}','\\text{Output }\\tan(b)',v => v.toFixed(digits),true);
+    let s = '<title id="tan-plot-title">Local tangent graph showing the input and output differences</title>' + a.markup;
+    if (pole>xmin && pole<xmax) {
+      s += line(a.sx(pole),a.top,a.sx(pole),a.top+a.h,GRAY,'stroke-dasharray="5 5"');
+      s += mathLabel(a.sx(pole)-5,a.top+16,'\\pi/2','end',13);
+    }
+    let d = '';
+    let count = 0;
+    for (let i=0; i<=500; i++) {
+      const u = xmin + (xmax-xmin)*i/500;
+      if (u <= -pole || u >= pole) continue;
+      const v = Math.tan(u);
+      if (!Number.isFinite(v)) continue;
+      d += (count++?' L ':'M ')+a.sx(u).toFixed(4)+' '+a.sy(v).toFixed(4);
+    }
+    s += `<path d="${d}" fill="none" stroke="${BLUE}" stroke-width="2.2" clip-path="url(#tan-local-clip)"/>`;
+    s += line(a.sx(bs),a.sy(xs),a.sx(b),a.sy(xs),GRAY,'stroke-dasharray="4 3"');
+    s += line(a.sx(b),a.sy(xs),a.sx(b),a.sy(x),GRAY,'stroke-dasharray="4 3"');
+    s += circle(a.sx(bs),a.sy(xs),'white',GRAY);
+    s += circle(a.sx(b),a.sy(x),BLUE);
+    s += mathLabel(a.sx(bs)-9,a.sy(xs)-10,'b^*','end',14);
+    s += mathLabel(a.sx(b)-9,a.sy(x)-10,'b','end',14);
+    s += mathLabel((a.sx(bs)+a.sx(b))/2,a.sy(xs)+21,'\\delta b','middle',14);
+    s += mathLabel(a.sx(b)+10,(a.sy(xs)+a.sy(x))/2,'\\delta x','start',14);
+    byId('tan-plot').innerHTML = s;
+  }
+
+  function updateTangent(fromSlider = false) {
+    if (fromSlider) {
+      const z = Number(byId('tan-proximity').value);
+      byId('tan-b').value = String(Math.PI/2 - 10**(-z));
+    }
+    const b = Number(byId('tan-b').value), delta = Number(byId('tan-delta').value);
+    const bs = b-delta;
+    const status = byId('tan-status');
+    if (byId('tan-b').value === '' || byId('tan-delta').value === '' || !Number.isFinite(b) || !Number.isFinite(delta) || b<0 || b>=Math.PI/2 || delta<1e-8 || delta>0.1 || bs<=-Math.PI/2) {
+      status.classList.add('error');
+      status.innerHTML = 'Enter ' + mathHTML('0\\le b<\\pi/2') + ' and ' + mathHTML('10^{-8}\\le\\delta b\\le0.1') + '. The previous valid result remains displayed.';
+      return;
+    }
+    status.classList.remove('error');
+    if (!fromSlider) byId('tan-proximity').value = String(-Math.log10(Math.PI/2-b));
+    const x = Math.tan(b), xs = Math.tan(bs), dx = Math.abs(x-xs), gain = dx/delta;
+    setMath('tan-x',numberTex(fmt(x,11))); setMath('tan-xs',numberTex(fmt(xs,11)));
+    setMath('tan-bs','b^*='+numberTex(fmt(bs,13)));
+    byId('tan-distance').innerHTML = 'Distance to ' + mathHTML('\\pi/2') + ': ' + mathHTML(numberTex(fmt(Math.PI/2-b,8)));
+    setMath('tan-dx',numberTex(fmt(dx,11))); setMath('tan-gain',numberTex(fmt(gain,10)));
+    status.innerHTML = 'Input difference: ' + mathHTML('\\delta b='+numberTex(fmt(delta,8))) + '; output difference: ' + mathHTML('\\delta x='+numberTex(fmt(dx,9))) + '. Condition number: ' + mathHTML('\\delta x/\\delta b='+numberTex(fmt(gain,8))) + '.';
+    drawTangent(b,bs,delta,x,xs);
+  }
+
+  function drawMatrix(eps, delta, x1, x2) {
+    const lo = Math.min(0,2,x1,x2), hi = Math.max(0,2,x1,x2);
+    const pad = Math.max(0.3,(hi-lo)*0.15);
+    const min = lo-pad, max = hi+pad;
+    const width = Math.max(310,Math.round(byId('matrix-plot').getBoundingClientRect().width)), height = width < 520 ? 290 : 330;
+    byId('matrix-plot').setAttribute('viewBox',`0 0 ${width} ${height}`);
+    const a = axes('matrix-local',min,max,min,max,width,height,'x_1','x_2');
+    let s = '<title id="matrix-plot-title">Nearly parallel equation lines and the movement of their intersection</title>' + a.markup;
+    s += `<g clip-path="url(#matrix-local-clip)">`;
+    s += line(a.sx(min),a.sy(2-min),a.sx(max),a.sy(2-max),GRAY,'stroke-width="2.6"');
+    s += line(a.sx(min),a.sy((2+delta-min)/(1+eps)),a.sx(max),a.sy((2+delta-max)/(1+eps)),BLUE,'stroke-width="1.9" stroke-dasharray="8 5"');
+    s += '</g>';
+    s += circle(a.sx(2),a.sy(0),'white',GRAY,5.5);
+    if (delta===0) {
+      s += circle(a.sx(x1),a.sy(x2),BLUE,BLUE,3.2);
+      s += text(a.sx(x1)-12,a.sy(x2)+22,'Original solution','end','class="point-label"');
+    } else {
+      s += circle(a.sx(x1),a.sy(x2),BLUE,BLUE,5.5);
+      s += text(a.sx(2)-11,a.sy(0)+21,'Original','end','class="point-label"');
+      const xAnchor = x1 > min+0.67*(max-min) ? 'end':'start';
+      const offset = xAnchor==='end' ? -11 : 11;
+      const dyLabel = xAnchor==='end' ? 22 : -16;
+      s += text(a.sx(x1)+offset,a.sy(x2)+dyLabel,width < 520 ? 'Current' : 'Current intersection',xAnchor,'class="point-label"');
+    }
+    byId('matrix-plot').innerHTML = s;
+  }
+
+  let matrixCase = 'perturbed';
+
+  /** Display the two exact input-output pairs from the worked example. */
+  function updateMatrix() {
+    const perturbed = matrixCase === 'perturbed';
+    setMath('matrix-b', perturbed ? '(2,\\;2.0001)^T' : '(2,\\;2)^T');
+    setMath('matrix-x', perturbed ? '(1,\\;1)' : '(2,\\;0)');
+    byId('matrix-status').innerHTML = 'Subtracting the first equation from the second gives ' + mathHTML('0.0001x_2='+(perturbed ? '0.0001' : '0')) + '.';
+    document.querySelectorAll('[data-matrix-case]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.matrixCase === matrixCase)));
+    drawMatrix(0.0001, perturbed ? 0.0001 : 0, perturbed ? 1 : 2, perturbed ? 1 : 0);
+  }
+
+  async function initialize() {
+    document.querySelectorAll('.math[data-tex]').forEach(element => {
+      if (!element.querySelector('.katex')) {
+        element.innerHTML = mathMarkup(element.dataset.tex, element.classList.contains('display'));
+      }
+    });
+    await document.fonts.ready;
+    updatePivot(); drawTangentOverview(); updateTangent(); updateMatrix();
+    document.querySelectorAll('[data-pivot-mode]').forEach(button => button.addEventListener('click', () => {
+      pivotMode = button.dataset.pivotMode;
+      updatePivot();
+    }));
+    byId('tan-b').addEventListener('input',() => updateTangent());
+    byId('tan-delta').addEventListener('input',() => updateTangent());
+    byId('tan-proximity').addEventListener('input',() => updateTangent(true));
+    document.querySelectorAll('[data-tan-b]').forEach(button => button.addEventListener('click',() => {
+      byId('tan-b').value = button.dataset.tanB;
+      byId('tan-delta').value = '0.00001';
+      updateTangent();
+    }));
+    document.querySelectorAll('[data-matrix-case]').forEach(button => button.addEventListener('click', () => {
+      matrixCase = button.dataset.matrixCase;
+      updateMatrix();
+    }));
+    byId('print-note').addEventListener('click', () => window.print());
+    let redraw = 0;
+    window.addEventListener('resize',() => {
+      cancelAnimationFrame(redraw);
+      redraw=requestAnimationFrame(() => {drawTangentOverview();updateTangent();updateMatrix();});
+    });
+    document.documentElement.dataset.notesReady = 'true';
+    document.fonts.ready.then(() => {
+      labelCache.clear();
+      drawTangentOverview(); updateTangent(); updateMatrix();
+    });
+    let detailStates = [];
+    window.addEventListener('beforeprint',() => {
+      detailStates = Array.from(document.querySelectorAll('details')).map(el => [el,el.open]);
+      detailStates.forEach(([el]) => {el.open=true;});
+    });
+    window.addEventListener('afterprint',() => detailStates.forEach(([el,open]) => {el.open=open;}));
+  }
+
+  /* Expose only the deterministic arithmetic core for reproducibility checks. */
+  window.PHYS5211Math = Object.freeze({Q, roundSig, gaussian});
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!window.katex) { reportMathError(new Error('KaTeX did not load.')); return; }
+    initialize().catch(reportMathError);
+  }, {once: true});
+
+  function reportMathError(error) {
+  document.documentElement.dataset.notesReady = 'error';
+  const message = document.createElement('p');
+  message.className = 'small error';
+  message.setAttribute('role', 'alert');
+  message.textContent = 'KaTeX could not initialize. Check your internet connection and reload to display equations and use the interactive controls.';
+  document.querySelector('header').append(message);
+  console.error('KaTeX initialization failed:', error);
+}
+})();
+
+</script></body></html>
