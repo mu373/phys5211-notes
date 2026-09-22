@@ -4,4 +4,4 @@ Notes for [PHYS5211](https://msantillana.github.io/Northeastern_PHYS_5211/), Fal
 
 
 ## License
-[CC-BY-4.0](https://github.com/mu373/phy5211-notes/blob/main/LICENSE)
+[CC-BY-4.0](https://github.com/mu373/phys5211-notes/blob/main/LICENSE)
