@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>PHYS5211, Class 4: Gaussian elimination and LU factorization</title>
+<meta content="September 22, 2026 notes on machine precision, exponent range, floating-point experiments, harmonic-series stagnation, Gaussian elimination, LU factorization, triangular systems, differential operators, and row and column interchanges." name="description"/>
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet"/><style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{margin:0;background:#fff;color:#1f2328;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;word-wrap:break-word}
+main{max-width:980px;margin:0 auto;padding:45px 45px 72px}
+h1,h2,h3,h4{margin-top:24px;margin-bottom:16px;font-weight:600;line-height:1.25;letter-spacing:0}
+h1{font-size:2em;padding-bottom:.3em;border-bottom:1px solid #d1d9e0;margin-top:16px}
+h2{font-size:1.5em;padding-bottom:.3em;border-bottom:1px solid #d1d9e0;margin-top:36px}
+h3{font-size:1.25em}h4{font-size:1em}p{margin:0 0 16px}strong{font-weight:650}
+a{color:#0969da;text-decoration:none}a:hover{text-decoration:underline;text-underline-offset:3px}
+header{margin-bottom:24px}.meta{color:#59636e;font-size:14px;margin:0}.course-name{color:#59636e;margin-bottom:6px;font-size:16px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:16px}.print{font-size:13px;white-space:nowrap}
+.contents{padding-left:2em;margin:16px 0 24px}.contents li{margin:4px 0}li+li{margin-top:.25em}ul,ol{padding-left:2em;margin:0 0 16px}
+button,input,select{font:inherit;color:inherit}button{background:#f6f8fa;border:1px solid #d1d9e0;padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:500}
+button:hover{background:#eef1f4;border-color:#b7c0c9}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid #0969da;outline-offset:3px}
+input,select{background:#fff;border:1px solid #b7c0c9;border-radius:6px;padding:7px 9px;min-height:38px}
+input[type=number]{width:100%;min-width:0}input[type=range]{width:100%;padding:0;min-height:24px;accent-color:#0969da}
+button,input,select{font-size:14px}code{font:85% ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;padding:.2em .4em;background:#eff1f3;border-radius:6px}
+.small{font-size:13px;color:#59636e}
+.math{font-size:1.04em}.math.display{overflow-x:auto;overflow-y:hidden;padding:7px 0;margin:16px 0;text-align:center}
+mjx-container[jax="SVG"]{direction:ltr}mjx-container[jax="SVG"]>svg{overflow:visible;min-width:0;max-width:none}mjx-container[jax="SVG"][display="true"]{display:block;text-align:center;margin:.2em 0}
+.math.display mjx-container{min-width:min-content}.math:not(.display){white-space:nowrap}.math svg{color:inherit}
+.table-wrap{overflow-x:auto;margin:16px 0}table{width:100%;border-collapse:collapse;text-align:left;font-size:14px}th,td{border:1px solid #d1d9e0;padding:8px 13px;vertical-align:top}th{font-weight:600}tr{background:#fff}tbody tr:nth-child(2n){background:#f6f8fa}caption{text-align:left;font-size:13px;color:#59636e;margin-bottom:8px}
+.formula-block{border:1px solid #d1d9e0;border-radius:7px;padding:12px 16px;margin:18px 0;background:#fff}.formula-block p:last-child{margin-bottom:0}
+.figure{margin:22px 0;text-align:center}.figure>svg{display:block;margin:0 auto;max-width:100%;height:auto}.figure figcaption{font-size:13px;color:#59636e;margin-top:10px}
+.interactive{border:1px solid #b6d5f7;border-radius:10px;background:#f8fbff;padding:18px 22px 22px;margin:24px 0;min-width:0}
+.interactive h3{margin-top:3px}.interactive .instructions{font-size:14px;color:#424a53;margin:4px 0 18px}.panel-caption{font-size:12px;color:#59636e;margin:0 0 8px}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:3px 0 15px}.controls.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.control label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}.control output{font-variant-numeric:tabular-nums}.control select{width:100%}
+.slider-labels{display:flex;justify-content:space-between;font-size:12px;color:#59636e;margin:0 0 4px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}.presets button{font-size:12px;background:#fff}
+.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.result{background:#fff;border:1px solid #d1d9e0;border-radius:7px;padding:12px 14px;min-width:0}.result-label{font-size:12px;color:#59636e;margin-bottom:5px}.result-value{font:16px ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.result .small{margin-top:5px}.status{font-size:14px;min-height:21px;margin:10px 0;color:#424a53}.error{color:#b42318}
+.trace td:not(:first-child){font-family:ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;white-space:nowrap}.trace th{white-space:nowrap}.trace{font-size:13px}
+.plot-panel{background:#fff;border:1px solid #d1d9e0;border-radius:7px;padding:12px;margin:15px 0}
+.plot{display:block;width:100%;height:auto}.plot text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;fill:#59636e;font-size:12px}.plot .axis-label{fill:#1f2328;font-size:14px}.plot .point-label{fill:#1f2328;font-size:12px}
+.legend{display:flex;gap:12px 20px;flex-wrap:wrap;font-size:12px;color:#59636e;margin:0 0 8px}.legend span{display:flex;align-items:center;gap:6px}.legend i{display:inline-block;width:22px;height:0;border-top:2px solid #59636e}.legend i.blue{border-color:#0969da}.legend i.dashed{border-top-style:dashed}.legend i.dot{height:9px;width:9px;border:none;border-radius:50%;background:#0969da}.legend i.hollow{height:9px;width:9px;border:1.5px solid #59636e;border-radius:50%;background:white}
+.math-note{font-size:14px;color:#424a53;margin:14px 0 18px}.math-note strong{font-weight:600}.math-note .math{font-size:1em}
+details{margin:20px 0;padding:14px 17px;border:1px solid #d1d9e0;border-radius:7px;background:#f6f8fa}summary{cursor:pointer;font-size:15px;font-weight:600;color:#0550ae}summary::marker{color:#0969da}details[open]>summary{margin-bottom:16px}details p:last-child{margin-bottom:0}
+.equivalences li{margin-bottom:11px}.equivalences .math.display{margin:7px 0}.reference-list{font-size:13px}.reference-list td:first-child{width:58px;white-space:nowrap}
+footer{border-top:1px solid #d1d9e0;margin-top:34px;padding-top:15px;font-size:13px;color:#59636e}.skip{position:absolute;left:10px;top:-50px}.skip:focus{top:8px}[hidden]{display:none!important}
+@media(max-width:767px){main{padding:24px 18px 48px}h1{font-size:1.8em}h2{font-size:1.45em}.controls,.controls.two{grid-template-columns:1fr 1fr;gap:12px}.control.full-mobile{grid-column:1/-1}.interactive{padding:14px 12px 18px}.result-grid{grid-template-columns:1fr}.topline{align-items:flex-start}.plot-panel{padding:8px 4px}th,td{padding:7px 10px}.math{font-size:1em}.plot text{font-size:13px}.plot .point-label{font-size:13px}.trace{font-size:12px}.reference-list{font-size:12px}}
+@media(max-width:380px){.controls,.controls.two{grid-template-columns:1fr}.control.full-mobile{grid-column:auto}.topline{gap:8px}.print{padding:5px 8px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{@page{margin:18mm}body{font-size:10.5pt;line-height:1.5}main{margin:0;padding:0;max-width:none}.print,.contents,.skip,.no-print,.controls,.presets,.panel-caption{display:none!important}h1{font-size:22pt}h2{font-size:17pt;margin-top:25px}h3{font-size:13pt}h1,h2,h3,h4{break-after:avoid}tr,.figure,.math.display,.formula-block,.result,.plot-panel{break-inside:avoid}th,td{font-size:10pt;padding:7px}.interactive{padding:12px;background:#fff}.math.display{overflow:visible}.result-grid{grid-template-columns:1fr 1fr}a{color:#222}.plot-panel{max-width:650px;margin-inline:auto}details{background:#fff}.small{font-size:9pt}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+
+
+
+
+.presets button[aria-pressed="true"]{color:#0550ae;border-color:#0969da;background:#ddf4ff;font-weight:600}
+
+
+
+/* Equations remain unboxed; only the interactive controls use panels. */
+#tangent-overview,#tan-plot{display:block;width:100%;max-width:520px;height:auto;aspect-ratio:1/1;margin-inline:auto}
+.result-value{font-family:inherit;line-height:1.7}
+.result-value .math{font-size:1em}
+.result-label .math,.control label .math,.instructions .math,.status .math,.legend .math{font-size:1em}
+.trace td:not(:first-child){font-family:inherit}
+.math-label{overflow:visible;color:#1f2328}
+/* Keep MathJax's semantic MathML available to screen readers without duplicate visual formulas. */
+mjx-assistive-mml{position:absolute!important;top:0;left:0;clip:rect(1px,1px,1px,1px);clip-path:inset(50%);padding:1px 0 0 0!important;border:0!important;display:block!important;width:1px!important;height:1px!important;overflow:hidden!important;user-select:none}
+@media print{#tangent-overview,#tan-plot{max-width:115mm}}
+
+.eq{overflow-x:auto;overflow-y:hidden;padding:7px 0;margin:16px 0;text-align:center;max-width:100%}
+.eq mjx-container[jax="SVG"][display="true"]{margin:.25em 0!important;min-width:min-content}
+.eq mjx-container svg{max-width:none}
+.matrix-row{display:flex;justify-content:center;gap:12px 28px;flex-wrap:wrap;margin:12px 0}
+.matrix-row .eq{margin:0;max-width:100%}
+pre{padding:16px;overflow:auto;font:13px/1.55 ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;background:#f6f8fa;border-radius:6px;margin:16px 0}
+pre code{padding:0;background:none;border:0;font:inherit;border-radius:0;white-space:pre}
+details pre{background:#fff;border:1px solid #d1d9e0}
+.step-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}
+button:disabled{opacity:.45;cursor:default}
+.numeric-table td:last-child{font-size:13px;line-height:1.65;white-space:nowrap}
+.numeric-table td:first-child{width:45%}
+
+@media(max-width:767px){.eq{font-size:.96em}.controls{grid-template-columns:1fr}.numeric-table td:first-child{width:45%}.matrix-row{gap:8px 20px}.topline{gap:10px}.eq mjx-container{max-width:none}h1{font-size:1.8em}pre{font-size:12px}}
+@media print{.eq{overflow:visible;break-inside:avoid}pre{white-space:pre-wrap;break-inside:auto}pre code{white-space:pre-wrap}.matrix-row{gap:15px}.no-print{display:none!important}}
+
+pre[class*="language-"]{margin:16px 0;padding:16px;overflow:auto;border:1px solid #d1d9e0;border-radius:6px;background:#f6f8fa;text-shadow:none}
+code[class*="language-"],pre[class*="language-"]{font-family:ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;font-size:13px;line-height:1.55;text-shadow:none}
+pre[class*="language-"] code{padding:0;background:none;border:0;border-radius:0;white-space:pre}
+details pre[class*="language-"]{background:#fff}
+</style>
+<script defer="True" src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script><script defer="True" src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script><script id="mathjax-config">
+window.MathJax = {
+  tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']], processEscapes: true},
+  svg: {fontCache: 'global'},
+  options: {enableMenu: false, skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+  startup: {
+    ready: () => {
+      MathJax.startup.defaultReady();
+      MathJax.startup.promise.then(() => { document.documentElement.dataset.mathReady = 'true'; });
+    }
+  }
+};
+</script>
+<script defer="" id="mathjax-script" onerror="const s=document.getElementById('math-status');if(s){s.hidden=false;s.textContent='MathJax could not load from the CDN. Open this file with an internet connection to render the equations.';}" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to notes</a>
+<main id="main">
+<header>
+<p class="course-name">Introduction to Scientific Computing in the Era of AI</p>
+<div class="topline"><p class="meta">PHYS5211 · Class 4 · September 22, 2026</p><button class="print" id="print-note" type="button">Print / PDF</button></div>
+<h1>Gaussian elimination and LU factorization</h1>
+<nav aria-label="Contents"><ol class="contents">
+<li><a href="#floating-point">Assignment 1: floating-point experiments</a></li>
+<li><a href="#harmonic">Harmonic series</a></li>
+<li><a href="#elimination">Gaussian elimination</a></li>
+<li><a href="#lu">Elimination matrices and LU factorization</a></li>
+<li><a href="#triangular">Triangular systems and factor reuse</a></li>
+<li><a href="#operators">Differential operators</a></li>
+<li><a href="#pivoting">Pivoting</a></li>
+</ol></nav>
+<p class="small">Related notes: <a href="../20260911-class01.html">Class 1</a> · <a href="../20260915-class02.html">Class 2</a></p>
+<p class="small" hidden="" id="math-status" role="status"></p>
+<noscript><p class="math-note">JavaScript is needed for equation rendering, syntax highlighting, and the interactive examples.</p></noscript>
+</header>
+<section id="floating-point">
+<h2>1. Assignment 1: floating-point experiments</h2>
+<p><strong>Precision and range are different limitations.</strong> Precision determines the gaps between nearby representable numbers. The exponent range determines how large or small their magnitudes can be. A small number may be representable on its own but disappear when added to a much larger number.</p>
+<h3 id="machine-precision">Machine precision</h3>
+<p>Let \(\widehat{x}=\operatorname{fl}(x)\) be the stored approximation to a nonzero real number \(x\). In the normal range, the representation error is bounded by</p>
+<div class="eq" id="machine-precision-bound">\[|x-\widehat{x}|\le\varepsilon_{\mathrm{machine}}|x|.\]</div>
+<p>If \(\Delta x=\widehat{x}-x\), this is \(|\Delta x|\le\varepsilon_{\mathrm{machine}}|x|\). It is an <strong>upper bound, not an equality</strong>. The product \(\varepsilon_{\mathrm{machine}}|x|\) gives the scale of absolute resolution, rather than the exact distance to a neighboring value.</p>
+<p>As the magnitude grows from \(100\) to \(10{,}000\), the absolute gaps also grow. An increment that changes a small accumulator may therefore leave a larger one unchanged. Precision is a <em>relative</em> limitation, not a fixed number of decimal places.</p>
+<p>This matters when following a system over time: a small perturbation may be lost in one update, and small differences can affect later values. Weather forecasting and SIR calculations motivate checking this sensitivity rather than assuming that double precision removes the issue.</p>
+<p class="math-note"><strong>Convention.</strong> As in <a href="../20260915-class02.html#error">Class 2</a>, \(\varepsilon_{\mathrm{machine}}=2^{1-p}\) denotes the spacing immediately above 1. The experiments below use round-to-nearest, ties-to-even, with subnormal numbers supported.</p>
+<h3 id="bit-fields">Bits and exponents</h3>
+<p class="math-note"><strong>Encoding clarification.</strong> The number of bits in the exponent field is different from the exponent appearing in \(2^e\). The following distinction connects the storage format to the numerical range.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Quantity</th><th>Single precision: 32 bits</th><th>Double precision: 64 bits</th></tr></thead>
+<tbody>
+<tr><td>Sign field</td><td>1 bit</td><td>1 bit</td></tr>
+<tr><td>Exponent field</td><td><strong>8 bits</strong></td><td><strong>11 bits</strong></td></tr>
+<tr><td>Fraction field</td><td>23 bits</td><td>52 bits</td></tr>
+<tr><td>Normal significand precision \(p\)</td><td>24 bits</td><td>53 bits</td></tr>
+<tr><td>Exponent bias</td><td>127</td><td>1,023</td></tr>
+<tr><td>Actual exponent \(e\), for normal numbers</td><td>\(-126\le e\le127\)</td><td>\(-1022\le e\le1023\)</td></tr>
+</tbody></table></div>
+<p>For a normal number, the leading 1 is implicit: 23 stored fraction bits give 24 significant binary digits. If \(E\) is the unsigned integer stored in the exponent field, then</p>
+<div class="eq" id="exponent-encoding">\[x=\pm(1.d_1\ldots d_{p-1})_2\,2^e,
+\qquad e=E-\mathrm{bias}.\]</div>
+<p>In single precision, 8 exponent bits provide \(2^8=256\) patterns. The normal values use \(E=1,\ldots,254\), so subtracting 127 gives the actual range above. The all-zero pattern is reserved for zeros and subnormals; the all-one pattern is reserved for infinities and NaNs.</p>
+<h3>1(a). Halving an increment</h3>
+<p>Start with \(a=1\) and repeatedly halve \(u\) until the rounded sum no longer changes:</p>
+<div class="eq">\[u\leftarrow\tfrac12u,\qquad b=\operatorname{fl}(1+u),\qquad\text{stop when }b=1.\]</div>
+<div class="table-wrap"><table>
+<thead><tr><th>Quantity</th><th>Single precision</th><th>Double precision</th></tr></thead><tbody>
+<tr><td>Spacing above 1, \(\varepsilon_{\mathrm{machine}}\)</td><td>\(2^{-23}\approx1.19\times10^{-7}\)</td><td>\(2^{-52}\approx2.22\times10^{-16}\)</td></tr>
+<tr><td>Final increment \(u\)</td><td>\(2^{-24}\approx5.96\times10^{-8}\)</td><td>\(2^{-53}\approx1.11\times10^{-16}\)</td></tr>
+<tr><td>Number of halvings</td><td>24</td><td>53</td></tr>
+</tbody></table></div>
+<p><strong>The final \(u\) is not the smallest positive representable number.</strong> It is too small to change this particular accumulator.</p>
+<p class="math-note"><strong>Rounding clarification.</strong> The loop returns half the spacing above 1. At this halfway point, ties-to-even rounds the sum back to 1. This explains the difference between the two rows of numerical values.</p>
+<details class="no-print" id="spacing-check"><summary>Numerical check: local spacing</summary>
+<div class="interactive no-print" id="spacing-demo">
+<h3>Local spacing</h3>
+<p class="instructions">Choose a value and inspect its stored representation and immediate neighbors. The increment is rounded to the selected format before addition.</p>
+<div class="controls">
+<div class="control"><label for="spacing-format">Format</label><select id="spacing-format"><option value="32">Single precision</option><option value="64">Double precision</option></select></div>
+<div class="control"><label for="spacing-x">Input value \(x\)</label><input id="spacing-x" step="any" type="number" value="100"/></div>
+<div class="control"><label for="spacing-fraction">Increment before rounding</label><select id="spacing-fraction"><option value="0.25">One-quarter of the upper gap</option><option value="0.5">Half of the upper gap</option><option value="1">One full upper gap</option></select></div>
+</div>
+<div class="presets"><button data-spacing="1" type="button">1</button><button data-spacing="100" type="button">100</button><button data-spacing="10000" type="button">10,000</button><button data-spacing="1e-38" type="button">\(10^{-38}\)</button></div>
+<p aria-live="polite" class="status" id="spacing-status"></p>
+<div class="table-wrap"><table class="numeric-table"><thead><tr><th>Quantity</th><th>Value</th></tr></thead><tbody id="spacing-results"></tbody></table></div>
+<p class="small">The last preset is subnormal in single precision but normal in double precision.</p>
+</div>
+</details>
+<h3>1(b). Repeated doubling</h3>
+<p>Starting from 1, repeatedly multiply by 2 until the result becomes <code>Inf</code>. This probes the upper exponent limit.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Quantity</th><th>Single precision</th><th>Double precision</th></tr></thead><tbody>
+<tr><td>Doublings until <code>Inf</code></td><td>128</td><td>1,024</td></tr>
+<tr><td>Last finite iterate</td><td>\(2^{127}\approx1.70\times10^{38}\)</td><td>\(2^{1023}\approx8.99\times10^{307}\)</td></tr>
+</tbody></table></div>
+<p>These are the largest finite <em>powers of two</em> reached by the loop, not the formats’ largest finite numbers. The next doubling overflows.</p>
+<h3>1(c). Repeated multiplication by 0.1</h3>
+<p>Repeatedly apply \(a\leftarrow0.1a\) until the stored value becomes zero. The calculation can go below the smallest positive <em>normal</em> number because of <strong>subnormal representation</strong>: the leading significand bit becomes 0 while the exponent stays fixed at its minimum normal value.</p>
+<div class="eq">\[\begin{aligned}
+\text{Normal:}&amp;\quad (1.d_1\ldots d_{p-1})_2\,2^e,\\
+\text{Subnormal:}&amp;\quad (0.d_1\ldots d_{p-1})_2\,2^{e_{\min}}.
+\end{aligned}\]</div>
+<div class="table-wrap"><table>
+<thead><tr><th>Quantity</th><th>Single precision</th><th>Double precision</th></tr></thead><tbody>
+<tr><td>Smallest positive normal</td><td>\(2^{-126}\approx1.18\times10^{-38}\)</td><td>\(2^{-1022}\approx2.23\times10^{-308}\)</td></tr>
+<tr><td>Smallest positive subnormal</td><td>\(2^{-149}\approx1.40\times10^{-45}\)</td><td>\(2^{-1074}\approx4.94\times10^{-324}\)</td></tr>
+<tr><td>Multiplications until zero</td><td>46</td><td>324</td></tr>
+</tbody></table></div>
+<p>The extra range does not come from smaller exponent values. It comes from using progressively fewer significant bits as the leading nonzero bit moves right. <strong>Fixing the exponent preserves a unique representation; what deteriorates is relative precision.</strong></p>
+<details id="python-q1"><summary>Python: Questions 1(a), 1(b), and 1(c)</summary>
+<p>Each subquestion is implemented as a separate function taking a floating-point type.</p>
+<pre class="language-python"><code class="language-python">import numpy as np
+
+def problem_1a(dtype):
+    a = dtype(1)
+    u = dtype(1)
+    steps = 0
+
+    while a + u != a:
+        u = dtype(0.5) * u
+        steps += 1
+
+    return u, steps
+</code></pre>
+<pre class="language-python"><code class="language-python">def problem_1b(dtype):
+    a = dtype(1)
+    steps = 0
+
+    with np.errstate(over="ignore"):
+        while a != np.inf:
+            last_finite = a
+            a = dtype(2) * a
+            steps += 1
+
+    return last_finite, steps
+</code></pre>
+<pre class="language-python"><code class="language-python">def problem_1c(dtype):
+    a = dtype(1)
+    steps = 0
+
+    with np.errstate(under="ignore"):
+        while a != 0:
+            last_positive = a
+            a = dtype(0.1) * a
+            steps += 1
+
+    return last_positive, steps
+</code></pre>
+<p>Call each function with <code>np.float32</code> and <code>np.float64</code>. Casting the constants explicitly keeps the arithmetic in the intended format.</p>
+</details>
+</section>
+<section id="harmonic">
+<h2>2. Harmonic series</h2>
+<p>The harmonic series diverges mathematically, but a direct floating-point summation can eventually stop changing:</p>
+<div class="eq">\[H_n=\sum_{i=1}^{n}\frac1i,\qquad
+\widehat H_n=\operatorname{fl}\!\left(\widehat H_{n-1}+\operatorname{fl}(1/n)\right).\]</div>
+<h3>Three failure mechanisms</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Mechanism</th><th>What happens?</th></tr></thead><tbody>
+<tr><td>Stagnation</td><td>The next term is too small relative to the current sum, so \(\widehat H_n=\widehat H_{n-1}\).</td></tr>
+<tr><td>Term underflow</td><td>The term \(1/n\) itself becomes too small to represent and rounds to zero.</td></tr>
+<tr><td>Sum overflow</td><td>The accumulated value exceeds the finite range.</td></tr>
+</tbody></table></div>
+<p>These are distinct possibilities, as in <a href="../20260915-class02.html#harmonic">Class 2</a>. The question is <strong>which happens first, and at what scale?</strong></p>
+<h3>Stopping estimate</h3>
+<p>First estimate the size of the partial sum. Then compare the next term with the precision available at that magnitude. A rough scale comparison is</p>
+<div class="eq">\[\frac1n\sim\varepsilon_{\mathrm{machine}}\,|\widehat H_n|.\]</div>
+<p>A sum of order \(10\) in single precision suggests increments of about \(10^{-6}\), hence a stopping index of order \(10^6\). This is an order-of-magnitude estimate, not an exact rounding threshold.</p>
+<p>In single precision, the direct loop stops changing at about <strong>\(n=2.1\times10^6\)</strong>. Stagnation occurs first: the term is still far larger than the smallest positive representable number, while the sum is nowhere near overflow.</p>
+<p><strong>Estimation task.</strong> For both single and double precision, estimate when each of the three mechanisms would occur and how large the partial sum would be. Explain the reasoning before running a potentially long calculation. The goal is not merely to repeat a stopping index returned by a program or an AI assistant.</p>
+<details id="python-q2"><summary>Python: the single-precision loop</summary>
+<p>This direct loop keeps both the reciprocal and the accumulator in the selected floating-point format. The index itself is a Python integer.</p>
+<pre class="language-python"><code class="language-python">import numpy as np
+
+def problem_2d(dtype):
+    total = dtype(0)
+    n = 1
+
+    while True:
+        term = dtype(1) / dtype(n)
+        new_total = total + term
+
+        if new_total == total:
+            break
+
+        total = new_total
+        n += 1
+
+    return total, n
+
+# n is the first lost index, not the last contributing index.
+total, n = problem_2d(np.float32)
+print(float(total), n)
+</code></pre>
+<p>Run this experiment in single precision. Estimate the double-precision stopping scale before attempting a long loop. Changing the summation order changes the experiment.</p>
+</details>
+</section>
+<section id="elimination">
+<h2>3. Gaussian elimination</h2>
+<p>Consider the \(3\times3\) linear system</p>
+<div class="eq">\[A\mathbf x=\mathbf b,\qquad
+A=\begin{pmatrix}2&amp;1&amp;1\\4&amp;1&amp;0\\-2&amp;2&amp;1\end{pmatrix},\quad
+\mathbf x=\begin{pmatrix}x_1\\x_2\\x_3\end{pmatrix},\quad
+\mathbf b=\begin{pmatrix}1\\-2\\7\end{pmatrix}.\]</div>
+<p>The goal is to introduce zeros below the diagonal until the coefficient matrix is <strong>upper triangular</strong>. Each operation replaces one equation by that equation minus a multiple of another. Applied to the entire equation, this preserves the solution set.</p>
+<h3>First column</h3>
+<p>Use the first entry, \(a_{11}=2\), as the pivot. The elimination multipliers are</p>
+<div class="eq">\[\ell_{21}=\frac42=2,\qquad\ell_{31}=\frac{-2}{2}=-1.\]</div>
+<p>Subtract these multiples of row 1:</p>
+<div class="eq">\[R_2\leftarrow R_2-2R_1,\qquad R_3\leftarrow R_3-(-1)R_1=R_3+R_1.\]</div>
+<p>Keeping the right-hand side as an additional column gives the augmented matrix:</p>
+<div class="eq">\[\left[\begin{array}{rrr|r}2&amp;1&amp;1&amp;1\\4&amp;1&amp;0&amp;-2\\-2&amp;2&amp;1&amp;7\end{array}\right]
+\longrightarrow
+\left[\begin{array}{rrr|r}2&amp;1&amp;1&amp;1\\0&amp;-1&amp;-2&amp;-4\\0&amp;3&amp;2&amp;8\end{array}\right].\]</div>
+<p>For example, the transformed right-hand-side entries are \(-2-2(1)=-4\) and \(7-(-1)(1)=8\). The same row operations must act on both sides.</p>
+<h3>Second column</h3>
+<p>Now work with the updated rows. The second pivot is \(-1\), and the multiplier is \(\ell_{32}=3/(-1)=-3\). Thus</p>
+<div class="eq">\[\widetilde R_3\leftarrow\widetilde R_3-(-3)\widetilde R_2
+=\widetilde R_3+3\widetilde R_2.\]</div>
+<div class="eq">\[\left[\begin{array}{rrr|r}2&amp;1&amp;1&amp;1\\0&amp;-1&amp;-2&amp;-4\\0&amp;3&amp;2&amp;8\end{array}\right]
+\longrightarrow
+\left[\begin{array}{rrr|r}2&amp;1&amp;1&amp;1\\0&amp;-1&amp;-2&amp;-4\\0&amp;0&amp;-4&amp;-4\end{array}\right]
+=[\,U\mid\mathbf y\,].\]</div>
+<p>The final entry in the coefficient matrix is \(2+3(-2)=-4\), and the final right-hand-side entry is \(8+3(-4)=-4\).</p>
+<div class="interactive no-print" id="elimination-demo">
+<h3>Row operations</h3>
+<p class="instructions">Follow the individual row operations, including their effect on the right-hand side. Each multiplier is recorded for the later construction of \(L\).</p>
+<div class="step-actions"><button id="step-prev" type="button">Previous</button><span class="small" id="step-count"></span><button id="step-next" type="button">Next</button><button id="step-reset" type="button">Reset</button></div>
+<div class="eq" id="step-operation"></div><p aria-live="polite" class="status" id="step-description"></p>
+<div class="eq" id="step-matrix"></div>
+<div class="eq" id="step-multipliers"></div>
+</div>
+<h3>Back substitution</h3>
+<p>The equivalent system \(U\mathbf x=\mathbf y\) is</p>
+<div class="eq">\[\begin{aligned}
+2x_1+x_2+x_3&amp;=1,\\
+-x_2-2x_3&amp;=-4,\\
+-4x_3&amp;=-4.
+\end{aligned}\]</div>
+<p>Start at the bottom and substitute upward:</p>
+<div class="eq">\[x_3=\frac{-4}{-4}=1,\qquad
+x_2=\frac{-4+2x_3}{-1}=2,\qquad
+x_1=\frac{1-x_2-x_3}{2}=-1.\]</div>
+<p>The result also satisfies the original system:</p>
+<div class="eq">\[A\begin{pmatrix}-1\\2\\1\end{pmatrix}
+=\begin{pmatrix}-2+2+1\\-4+2\\2+4+1\end{pmatrix}
+=\begin{pmatrix}1\\-2\\7\end{pmatrix}=\mathbf b.\]</div>
+<p class="math-note"><strong>Notation.</strong> The unknown remains \(\mathbf x\). The vector \(\mathbf y=(1,-4,-4)^T\) is the transformed right-hand side.</p>
+</section>
+<section id="lu">
+<h2>4. Elimination matrices and LU factorization</h2>
+<p>A row operation can be expressed as <strong>left multiplication by an elementary matrix</strong>. This separates the operations on \(A\) from the particular choice of \(\mathbf b\).</p>
+<h3>Elementary matrices</h3>
+<p>Subtracting \(\ell_{ij}R_j\) from \(R_i\) puts \(-\ell_{ij}\) in position \((i,j)\) of the corresponding elementary matrix. The three operations give</p>
+<div class="eq" id="elementary-21">\[E_{21}=\begin{pmatrix}1&amp;0&amp;0\\{\color{#0969da}{-\ell_{21}}}&amp;1&amp;0\\0&amp;0&amp;1\end{pmatrix}=\begin{pmatrix}1&amp;0&amp;0\\{\color{#0969da}{-2}}&amp;1&amp;0\\0&amp;0&amp;1\end{pmatrix}.\]</div><div class="eq" id="elementary-31">\[E_{31}=\begin{pmatrix}1&amp;0&amp;0\\0&amp;1&amp;0\\{\color{#9A3412}{-\ell_{31}}}&amp;0&amp;1\end{pmatrix}=\begin{pmatrix}1&amp;0&amp;0\\0&amp;1&amp;0\\{\color{#9A3412}{1}}&amp;0&amp;1\end{pmatrix}.\]</div><div class="eq" id="elementary-32">\[E_{32}=\begin{pmatrix}1&amp;0&amp;0\\0&amp;1&amp;0\\0&amp;{\color{#8250df}{-\ell_{32}}}&amp;1\end{pmatrix}=\begin{pmatrix}1&amp;0&amp;0\\0&amp;1&amp;0\\0&amp;{\color{#8250df}{3}}&amp;1\end{pmatrix}.\]</div>
+<p>The highlighted entries identify the three multipliers. Their colors match the corresponding entries in \(L\) below. <strong>The elementary matrix contains \(-\ell_{ij}\), while \(L\) stores \(\ell_{ij}\).</strong></p>
+<p>For instance, row 2 of \(E_{21}A\) is \(-2R_1+R_2\); the other rows are unchanged.</p>
+<p class="math-note"><strong>Sign check.</strong> For \(R_3\leftarrow R_3-(-1)R_1\), the \((3,1)\) entry of \(E_{31}\) must be \(+1\).</p>
+<p>The first operation appears nearest to \(A\), and each later operation multiplies from the left:</p>
+<div class="eq">\[U=E_{32}E_{31}E_{21}A.\]</div><div class="eq" id="elimination-product">\[\begin{aligned}U&amp;=\underbrace{\begin{pmatrix}1&amp;0&amp;0\\0&amp;1&amp;0\\0&amp;{\color{#8250df}{3}}&amp;1\end{pmatrix}}_{E_{32}}\,\underbrace{\begin{pmatrix}1&amp;0&amp;0\\0&amp;1&amp;0\\{\color{#9A3412}{1}}&amp;0&amp;1\end{pmatrix}}_{E_{31}}\,\underbrace{\begin{pmatrix}1&amp;0&amp;0\\{\color{#0969da}{-2}}&amp;1&amp;0\\0&amp;0&amp;1\end{pmatrix}}_{E_{21}}\,\underbrace{\begin{pmatrix}2&amp;1&amp;1\\4&amp;1&amp;0\\-2&amp;2&amp;1\end{pmatrix}}_{A}\\[6pt]&amp;=\begin{pmatrix}2&amp;1&amp;1\\0&amp;-1&amp;-2\\0&amp;0&amp;-4\end{pmatrix}.\end{aligned}\]</div>
+<p>Denote the product of the elimination matrices by \(L^{-1}\):</p>
+<div class="eq" id="inverse-lower-factor">\[L^{-1}=E_{32}E_{31}E_{21}
+=\begin{pmatrix}1&amp;0&amp;0\\-2&amp;1&amp;0\\-5&amp;3&amp;1\end{pmatrix},
+\qquad L^{-1}A=U.\]</div>
+<h3>The lower triangular factor</h3>
+<p>Here \(L\) is the inverse of that product. Multiplying \(L^{-1}A=U\) on the left by \(L\) gives the factorization</p>
+<div class="eq">\[A=LU.\]</div>
+<p>For this example, the original elimination multipliers appear directly below the diagonal of \(L\):</p>
+<div class="eq" id="lower-factor">\[L=\begin{pmatrix}1&amp;0&amp;0\\{\color{#0969da}{\ell_{21}}}&amp;1&amp;0\\{\color{#9A3412}{\ell_{31}}}&amp;{\color{#8250df}{\ell_{32}}}&amp;1\end{pmatrix}=\begin{pmatrix}1&amp;0&amp;0\\{\color{#0969da}{2}}&amp;1&amp;0\\{\color{#9A3412}{-1}}&amp;{\color{#8250df}{-3}}&amp;1\end{pmatrix}.\]</div><div class="eq">\[U=\begin{pmatrix}2&amp;1&amp;1\\0&amp;-1&amp;-2\\0&amp;0&amp;-4\end{pmatrix}.\]</div>
+<p>Thus the elimination process produces both factors: \(U\) is the resulting upper triangular matrix, and \(L\) stores the multipliers used to obtain it. There is no need to form the elementary matrices or invert their product in an implementation.</p>
+<div class="eq">\[\begin{pmatrix}1&amp;0&amp;0\\{\color{#0969da}{2}}&amp;1&amp;0\\{\color{#9A3412}{-1}}&amp;{\color{#8250df}{-3}}&amp;1\end{pmatrix}\begin{pmatrix}2&amp;1&amp;1\\0&amp;-1&amp;-2\\0&amp;0&amp;-4\end{pmatrix}=\begin{pmatrix}2&amp;1&amp;1\\4&amp;1&amp;0\\-2&amp;2&amp;1\end{pmatrix}=A.\]</div>
+<p class="math-note"><strong>Algebraic distinction.</strong> \(L\) is not obtained by simply changing the signs of all entries below the diagonal in \(L^{-1}\). Here \((L^{-1})_{31}=-5\), whereas \(L_{31}=-1\). It is the <em>individual elimination multipliers</em> that populate \(L\).</p>
+</section>
+<section id="triangular">
+<h2>5. Triangular systems and factor reuse</h2>
+<p>Substitute \(A=LU\) into the original problem:</p>
+<div class="eq">\[A\mathbf x=\mathbf b
+\quad\Longleftrightarrow\quad
+L(U\mathbf x)=\mathbf b.\]</div>
+<p>Introduce \(\mathbf y=U\mathbf x\). Solving the system becomes three stages:</p>
+<ol>
+<li>Construct the factorization \(A=LU\).</li>
+<li>Solve \(L\mathbf y=\mathbf b\) by <strong>forward substitution</strong>.</li>
+<li>Solve \(U\mathbf x=\mathbf y\) by <strong>back substitution</strong>.</li>
+</ol>
+<h3>Forward substitution</h3>
+<p>For this example, solve</p>
+<div class="eq">\[\begin{pmatrix}1&amp;0&amp;0\\2&amp;1&amp;0\\-1&amp;-3&amp;1\end{pmatrix}
+\begin{pmatrix}y_1\\y_2\\y_3\end{pmatrix}
+=\begin{pmatrix}1\\-2\\7\end{pmatrix}.\]</div>
+<p>Start with the first row, which contains only \(y_1\), and work downward:</p>
+<div class="eq">\[\begin{aligned}
+y_1&amp;=1,\\
+y_2&amp;=-2-2y_1=-4,\\
+y_3&amp;=7+y_1+3y_2=-4.
+\end{aligned}\]</div>
+<p>This produces exactly the vector obtained by applying the row operations to the original right-hand side:</p>
+<div class="eq">\[\mathbf y=L^{-1}\mathbf b
+=\begin{pmatrix}1\\-4\\-4\end{pmatrix}.\]</div>
+<p>Back substitution then gives the same \(\mathbf x=(-1,2,1)^T\) as before. <strong>Triangular does not mean diagonal:</strong> already-computed variables are substituted into each remaining equation.</p>
+<h3>Augmented elimination and factorization</h3>
+<p>For a single right-hand side, augmented elimination already transforms \(\mathbf b\) along with \(A\).</p>
+<p>This is the same transformation represented in two ways. Updating the augmented column during elimination directly computes \(\mathbf y\); the separate system \(L\mathbf y=\mathbf b\) expresses that transformation using the stored factor \(L\).</p>
+<p>The advantage of retaining \(L\) and \(U\) appears when <strong>the same \(A\) is used with different right-hand sides</strong>. The multipliers were chosen from \(A\), not from \(\mathbf b\). Once the factors are available, a new vector \(\mathbf d\) requires only</p>
+<div class="eq">\[L\mathbf y_{\mathbf d}=\mathbf d,\qquad
+U\mathbf x_{\mathbf d}=\mathbf y_{\mathbf d}.\]</div>
+<p>There is no need to repeat the elimination of \(A\). The main advantage of the factorization is reuse across multiple right-hand sides.</p>
+<div class="interactive no-print" id="reuse-demo">
+<h3>LU solver</h3>
+<p class="instructions">Change \(\mathbf b\) and choose <strong>Solve</strong>. The coefficient matrix and its factors remain fixed; each new right-hand side needs only forward and back substitution.</p>
+<div class="eq">\[A\mathbf x=\mathbf b,\qquad A=LU.\]</div><div class="eq" id="rhs-system">\[\underbrace{\begin{pmatrix}2&amp;1&amp;1\\4&amp;1&amp;0\\-2&amp;2&amp;1\end{pmatrix}}_{A}\begin{pmatrix}x_1\\x_2\\x_3\end{pmatrix}=\begin{pmatrix}1\\-2\\7\end{pmatrix}.\]</div><div class="matrix-row" id="rhs-factors"><div class="eq">\[L=\begin{pmatrix}1&amp;0&amp;0\\{\color{#0969da}{2}}&amp;1&amp;0\\{\color{#9A3412}{-1}}&amp;{\color{#8250df}{-3}}&amp;1\end{pmatrix},\]</div><div class="eq">\[U=\begin{pmatrix}2&amp;1&amp;1\\0&amp;-1&amp;-2\\0&amp;0&amp;-4\end{pmatrix}.\]</div></div><form id="rhs-form">
+<div class="controls">
+<div class="control"><label for="rhs-1">\(b_1\)</label><input id="rhs-1" required="" step="any" type="number" value="1"/></div>
+<div class="control"><label for="rhs-2">\(b_2\)</label><input id="rhs-2" required="" step="any" type="number" value="-2"/></div>
+<div class="control"><label for="rhs-3">\(b_3\)</label><input id="rhs-3" required="" step="any" type="number" value="7"/></div>
+</div>
+<div class="presets"><button type="submit">Solve</button><button id="rhs-example" type="button">Example above</button><button id="rhs-ones" type="button">\(\mathbf b=(4,5,1)^T\)</button><button id="rhs-zero" type="button">\(\mathbf b=(0,0,0)^T\)</button></div>
+</form>
+<p aria-live="polite" class="status" id="rhs-status"></p>
+<div class="eq" id="rhs-y"></div><div class="eq" id="rhs-x"></div>
+<p aria-live="polite" class="small" id="rhs-residual"></p>
+<p class="small">Here \(\lVert A\mathbf x-\mathbf b\rVert_\infty=\max_i |(A\mathbf x-\mathbf b)_i|\) is the largest absolute residual among the equations.</p>
+</div>
+</section>
+<section id="operators">
+<h2>6. Differential operators</h2>
+<p>The same linear-algebra viewpoint extends to differential equations. A matrix maps vectors to vectors, while a differential operator maps functions to functions. The analogous equation is</p>
+<div class="eq">\[Au=F.\]</div>
+<p>Here \(A\) is an <strong>operator acting on a function</strong>, not the unknown function itself. For example, the second-derivative operator acts as</p>
+<div class="eq">\[A=\frac{d^2}{dt^2},\qquad (Au)(t)=u''(t).\]</div>
+<h3>Newton’s second law</h3>
+<p>For a prescribed force as a function of time and constant mass, Newton’s law can be written as</p>
+<div class="eq">\[F(t)=m\,u''(t),\qquad
+A=m\frac{d^2}{dt^2},\qquad Au=F.\]</div>
+<p>The position \(u(t)\) is the unknown function. The motivation for reusing a matrix factorization is then the same as before: keep the operator fixed and solve for different forcings on the right-hand side.</p>
+<p class="math-note"><strong>Mathematical clarification.</strong> A unique solution also requires suitable initial or boundary conditions. A numerical matrix formulation requires a finite representation of the function and operator; factor reuse assumes that the resulting matrix stays unchanged.</p>
+<h3>Functional analysis</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Finite-dimensional linear algebra</th><th>Function-space viewpoint</th></tr></thead><tbody>
+<tr><td>Vector \(\mathbf x\)</td><td>Function \(u\)</td></tr>
+<tr><td>Matrix \(A\)</td><td>Linear operator \(A\)</td></tr>
+<tr><td>\(A\mathbf x=\mathbf b\)</td><td>\(Au=F\)</td></tr>
+<tr><td>Inner product of two vectors: a scalar</td><td>Inner product of two functions: a scalar</td></tr></tbody></table></div>
+<p>In this sense, functional analysis generalizes linear algebra from finite-dimensional vectors and matrices to function spaces and linear operators. An operator produces a function; a functional produces a scalar. For example, fixing one argument of a real inner product gives a functional \(u\mapsto\langle v,u\rangle\).</p>
+<p>Schrödinger’s equation is another example of this operator viewpoint. The analogy here concerns <em>linear</em> differential operators.</p>
+</section>
+<section id="pivoting">
+<h2>7. Pivoting</h2>
+<p>Elimination can encounter a zero pivot even when the original matrix is invertible. Consider</p>
+<div class="eq">\[A_0=\begin{pmatrix}0&amp;1\\1&amp;0\end{pmatrix},\qquad
+A_0\begin{pmatrix}x_1\\x_2\end{pmatrix}=\begin{pmatrix}b_1\\b_2\end{pmatrix}.\]</div>
+<p>The first multiplier \(a_{21}/a_{11}\) is undefined. Yet the equations simply say \(x_2=b_1\) and \(x_1=b_2\), so the solution exists and is unique. The problem is the <strong>elimination order</strong>, not the solvability of the system.</p>
+<h3>Row interchange</h3>
+<p>Exchange the two equations, including their right-hand sides:</p>
+<div class="eq">\[
+\left[\begin{array}{cc|c}0&amp;1&amp;b_1\\1&amp;0&amp;b_2\end{array}\right]
+\xrightarrow{R_1\leftrightarrow R_2}
+\left[\begin{array}{cc|c}1&amp;0&amp;b_2\\0&amp;1&amp;b_1\end{array}\right].
+\]</div>
+<p>The zero pivot is removed. The unknowns remain in their original order:</p>
+<div class="eq">\[\begin{pmatrix}1&amp;0\\0&amp;1\end{pmatrix}
+\begin{pmatrix}x_1\\x_2\end{pmatrix}
+=\begin{pmatrix}b_2\\b_1\end{pmatrix}.\]</div>
+<h3>Column interchange</h3>
+<p>Alternatively, start again from the original system and exchange its two coefficient columns:</p>
+<div class="eq">\[
+\left[\begin{array}{cc|c}0&amp;1&amp;b_1\\1&amp;0&amp;b_2\end{array}\right]
+\xrightarrow{C_1\leftrightarrow C_2}
+\left[\begin{array}{cc|c}1&amp;0&amp;b_1\\0&amp;1&amp;b_2\end{array}\right].
+\]</div>
+<p>The right-hand side stays fixed, but the unknowns must follow their columns:</p>
+<div class="eq">\[\begin{pmatrix}1&amp;0\\0&amp;1\end{pmatrix}
+\begin{pmatrix}x_2\\x_1\end{pmatrix}
+=\begin{pmatrix}b_1\\b_2\end{pmatrix}.\]</div>
+<p><strong>Rows reorder equations; columns reorder unknowns.</strong> Both interchanges preserve the original solution when this bookkeeping is respected.</p>
+</section>
+<footer>PHYS5211 · Class 4 · September 22, 2026</footer>
+</main>
+<script id="notes-interactions">
+/* PHYS5211, Class 4. All examples are local to this document. */
+(() => {
+  'use strict';
+  const byId = id => document.getElementById(id);
+  let mathQueue = Promise.resolve();
+
+  // Serialize content replacement and typesetting to keep dynamic formulas current.
+  function updateTypeset(node, writeContent) {
+    if (!window.MathJax || !window.MathJax.typesetPromise) {
+      writeContent();
+      return;
+    }
+    mathQueue = mathQueue.then(async () => {
+      await window.MathJax.startup.promise;
+      window.MathJax.typesetClear([node]);
+      writeContent();
+      await window.MathJax.typesetPromise([node]);
+    }).catch(() => { writeContent(); });
+  }
+
+  function setMathText(id, text) {
+    updateTypeset(byId(id), () => { byId(id).textContent = text; });
+  }
+
+  function setMath(id, tex) {
+    setMathText(id, tex ? '\\[' + tex + '\\]' : '');
+  }
+
+  function matrixTex(rows, augmented = false) {
+    const cols = augmented ? 'rrr|r' : 'r'.repeat(rows[0].length);
+    return '\\left[\\begin{array}{' + cols + '}' +
+      rows.map(row => row.map(texNumber).join('&')).join('\\\\') +
+      '\\end{array}\\right]';
+  }
+  function texNumber(x) {
+    if (Object.is(x, -0) || x === 0) return '0';
+    const text = Number(x.toPrecision(10)).toString();
+    if (text.includes('e')) {
+      const [m, e] = text.split('e');
+      return m + '\\times10^{' + Number(e) + '}';
+    }
+    return text;
+  }
+  function vectorTex(v) { return matrixTex(v.map(x => [x])); }
+  function displayNumber(x) {
+    if (Object.is(x, -0) || x === 0) return '0';
+    if (!Number.isFinite(x)) return String(x);
+    // Seventeen significant digits distinguish adjacent binary64 values.
+    return x.toPrecision(17).replace(/(\.\d*?[1-9])0+(e|$)/, '$1$2')
+      .replace(/\.0+(e|$)/, '$1');
+  }
+
+  function displayNumberTex(x) {
+    const text = displayNumber(x);
+    if (!text.includes('e')) return text;
+    const [mantissa, exponent] = text.split('e');
+    return mantissa + '\\times10^{' + Number(exponent) + '}';
+  }
+
+  // Positive-value nextafter operations, using the monotone IEEE bit order.
+  const buffer = new ArrayBuffer(8);
+  const bits = new DataView(buffer);
+  function nextFloat(x, direction, precision) {
+    if (precision === 32) {
+      bits.setFloat32(0, x, false);
+      const raw = bits.getUint32(0, false);
+      bits.setUint32(0, raw + direction, false);
+      return bits.getFloat32(0, false);
+    }
+    bits.setFloat64(0, x, false);
+    const raw = bits.getBigUint64(0, false);
+    bits.setBigUint64(0, raw + BigInt(direction), false);
+    return bits.getFloat64(0, false);
+  }
+
+  function updateSpacing() {
+    const precision = Number(byId('spacing-format').value);
+    const text = byId('spacing-x').value.trim();
+    const input = Number(text);
+    const cast = precision === 32 ? Math.fround : x => x;
+    const x = cast(input);
+    const status = byId('spacing-status');
+    const table = byId('spacing-results');
+    status.classList.remove('error');
+    if (!text || !Number.isFinite(input) || !Number.isFinite(x) || !(x > 0)) {
+      setMathText('spacing-status', 'Enter a positive value that stays finite and nonzero in this format.');
+      status.classList.add('error');
+      updateTypeset(table, () => { table.replaceChildren(); });
+      return;
+    }
+    const prev = nextFloat(x, -1, precision);
+    const next = nextFloat(x, 1, precision);
+    if (!Number.isFinite(next)) {
+      setMathText('spacing-status', 'This value is at the upper finite boundary. Choose a smaller value to compare finite neighbors.');
+      status.classList.add('error');
+      updateTypeset(table, () => { table.replaceChildren(); });
+      return;
+    }
+    const gap = next - x;
+    const fraction = Number(byId('spacing-fraction').value);
+    const delta = cast(fraction * gap);
+    const sum = cast(x + delta);
+    const normalMin = 2 ** (precision === 32 ? -126 : -1022);
+    const regime = x < normalMin ? 'subnormal' : 'normal';
+    const rows = [
+      ['Previous representable value', prev],
+      ['Stored \\(x\\) (' + regime + ')', x],
+      ['Next representable value', next],
+      ['Gap below \\(x\\)', x - prev],
+      ['Gap above \\(x\\)', gap],
+      ['Stored increment \\(\\delta\\)', delta],
+      ['Rounded sum \\(\\operatorname{fl}(x+\\delta)\\)', sum],
+    ];
+    const tableRows = rows.map(([label, value]) => {
+      const tr = document.createElement('tr');
+      const key = document.createElement('td');
+      const val = document.createElement('td');
+      key.textContent = label;
+      val.textContent = '\\(' + displayNumberTex(value) + '\\)';
+      tr.append(key, val);
+      return tr;
+    });
+    updateTypeset(table, () => { table.replaceChildren(...tableRows); });
+    let message;
+    if (delta === 0) {
+      message = 'The increment itself rounds to zero in this format, so the stored sum is unchanged.';
+    } else if (sum === x) {
+      message = fraction === 0.5
+        ? 'The increment is representable. This halfway addition rounds back to \\(x\\) under ties-to-even.'
+        : 'The increment is representable, but adding it leaves the stored sum unchanged.';
+    } else {
+      message = fraction === 0.5
+        ? 'This halfway addition rounds to the next value under ties-to-even.'
+        : 'The addition reaches the next representable value.';
+    }
+    setMathText('spacing-status', message);
+  }
+  ['spacing-format', 'spacing-x', 'spacing-fraction'].forEach(id => {
+    byId(id).addEventListener('input', updateSpacing);
+  });
+  document.querySelectorAll('[data-spacing]').forEach(button => {
+    button.addEventListener('click', () => {
+      byId('spacing-x').value = button.dataset.spacing;
+      updateSpacing();
+    });
+  });
+  updateSpacing();
+
+  const steps = [
+    {
+      matrix: [[2, 1, 1, 1], [4, 1, 0, -2], [-2, 2, 1, 7]],
+      operation: '',
+      description: 'Initial augmented matrix. No row operations have been applied.',
+      multipliers: ''
+    },
+    {
+      matrix: [[2, 1, 1, 1], [0, -1, -2, -4], [-2, 2, 1, 7]],
+      operation: 'R_2\\leftarrow R_2-2R_1',
+      description: 'The first entry of row 2 becomes \\(0\\), and the right-hand-side entry becomes \\(-4\\).',
+      multipliers: '{\\color{#0969da}{\\ell_{21}=2}}'
+    },
+    {
+      matrix: [[2, 1, 1, 1], [0, -1, -2, -4], [0, 3, 2, 8]],
+      operation: 'R_3\\leftarrow R_3-(-1)R_1=R_3+R_1',
+      description: 'The first-column elimination is complete.',
+      multipliers: '{\\color{#0969da}{\\ell_{21}=2}},\\qquad {\\color{#9A3412}{\\ell_{31}=-1}}'
+    },
+    {
+      matrix: [[2, 1, 1, 1], [0, -1, -2, -4], [0, 0, -4, -4]],
+      operation: '\\widetilde R_3\\leftarrow\\widetilde R_3-(-3)\\widetilde R_2=\\widetilde R_3+3\\widetilde R_2',
+      description: 'Using the updated second row gives the upper triangular augmented matrix \\([\\,U\\mid\\mathbf y\\,]\\).',
+      multipliers: '{\\color{#0969da}{\\ell_{21}=2}},\\qquad {\\color{#9A3412}{\\ell_{31}=-1}},\\qquad {\\color{#8250df}{\\ell_{32}=-3}}'
+    }
+  ];
+  let step = 0;
+  function renderStep() {
+    const current = steps[step];
+    byId('step-operation').hidden = !current.operation;
+    byId('step-multipliers').hidden = !current.multipliers;
+    setMath('step-operation', current.operation);
+    setMathText('step-description', current.description);
+    setMath('step-multipliers', current.multipliers);
+    byId('step-count').textContent = step === 0 ? 'Initial system' : 'Operation ' + step + ' of 3';
+    byId('step-prev').disabled = step === 0;
+    byId('step-next').disabled = step === 3;
+    setMath('step-matrix', matrixTex(steps[step].matrix, true));
+  }
+  byId('step-prev').addEventListener('click', () => { step = Math.max(0, step - 1); renderStep(); });
+  byId('step-next').addEventListener('click', () => { step = Math.min(3, step + 1); renderStep(); });
+  byId('step-reset').addEventListener('click', () => { step = 0; renderStep(); });
+  renderStep();
+
+  // These factors are constructed once; changing b never refactors A.
+  const A = [[2, 1, 1], [4, 1, 0], [-2, 2, 1]];
+  const L = [[1, 0, 0], [2, 1, 0], [-1, -3, 1]];
+  const U = [[2, 1, 1], [0, -1, -2], [0, 0, -4]];
+  function showOriginalSystem(b = null) {
+    const unknowns = '\\begin{pmatrix}x_1\\\\x_2\\\\x_3\\end{pmatrix}';
+    const right = b === null
+      ? '\\begin{pmatrix}b_1\\\\b_2\\\\b_3\\end{pmatrix}'
+      : vectorTex(b);
+    setMath('rhs-system', '\\underbrace{' + matrixTex(A) + '}_{A}' + unknowns + '=' + right + '.');
+  }
+  function solveRightHandSide() {
+    const fields = [byId('rhs-1'), byId('rhs-2'), byId('rhs-3')];
+    const b = fields.map(field => Number(field.value));
+    const status = byId('rhs-status');
+    if (fields.some(field => !field.value.trim()) || b.some(x => !Number.isFinite(x) || Math.abs(x) > 1e12)) {
+      setMathText('rhs-status', 'Enter three finite values with absolute value at most \\(10^{12}\\).');
+      status.classList.add('error');
+      setMathText('rhs-residual', '');
+      showOriginalSystem();
+      setMath('rhs-y', '');
+      setMath('rhs-x', '');
+      delete byId('reuse-demo').dataset.y;
+      delete byId('reuse-demo').dataset.x;
+      delete byId('reuse-demo').dataset.residual;
+      return;
+    }
+    status.classList.remove('error');
+    const y = [0, 0, 0];
+    for (let i = 0; i < 3; i++) {
+      let value = b[i];
+      for (let j = 0; j < i; j++) value -= L[i][j] * y[j];
+      y[i] = value / L[i][i];
+    }
+    const x = [0, 0, 0];
+    for (let i = 2; i >= 0; i--) {
+      let value = y[i];
+      for (let j = i + 1; j < 3; j++) value -= U[i][j] * x[j];
+      x[i] = value / U[i][i];
+    }
+    const residual = Math.max(...A.map((row, i) => Math.abs(row.reduce((sum, a, j) => sum + a * x[j], 0) - b[i])));
+    setMathText('rhs-status', 'Same \\(L\\) and \\(U\\). Forward substitution computes \\(\\mathbf y\\); back substitution computes \\(\\mathbf x\\).');
+    showOriginalSystem(b);
+    setMath('rhs-y', 'L\\mathbf y=\\mathbf b\\quad\\Longrightarrow\\quad\\mathbf y=' + vectorTex(y));
+    setMath('rhs-x', 'U\\mathbf x=\\mathbf y\\quad\\Longrightarrow\\quad\\mathbf x=' + vectorTex(x));
+    setMathText('rhs-residual',
+      'Maximum absolute residual: \\(\\lVert A\\mathbf x-\\mathbf b\\rVert_{\\infty}=' +
+      displayNumberTex(residual) + '\\). ' +
+      'Displayed components use up to 10 significant digits; the residual uses the unrounded binary64 results.');
+    // Plain data attributes support reproducible checks without parsing rendered math.
+    byId('reuse-demo').dataset.y = JSON.stringify(y);
+    byId('reuse-demo').dataset.x = JSON.stringify(x);
+    byId('reuse-demo').dataset.residual = String(residual);
+  }
+  byId('rhs-form').addEventListener('submit', event => { event.preventDefault(); solveRightHandSide(); });
+  function useRightHandSide(b) {
+    b.forEach((x, i) => { byId('rhs-' + (i + 1)).value = String(x); });
+    solveRightHandSide();
+  }
+  byId('rhs-example').addEventListener('click', () => useRightHandSide([1, -2, 7]));
+  byId('rhs-ones').addEventListener('click', () => useRightHandSide([4, 5, 1]));
+  byId('rhs-zero').addEventListener('click', () => useRightHandSide([0, 0, 0]));
+  solveRightHandSide();
+
+  // Open optional explanatory sections for printing.
+  let closedDetails = [];
+  function openDetailsForPrint() {
+    closedDetails = Array.from(document.querySelectorAll('details:not([open])'));
+    closedDetails.forEach(node => { node.open = true; });
+  }
+  function restoreDetails() {
+    closedDetails.forEach(node => { node.open = false; });
+    closedDetails = [];
+  }
+  window.addEventListener('beforeprint', openDetailsForPrint);
+  window.addEventListener('afterprint', restoreDetails);
+  byId('print-note').addEventListener('click', () => window.print());
+})();
+
+</script>
+</body>
+</html>
