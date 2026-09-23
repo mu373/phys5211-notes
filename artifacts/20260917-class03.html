@@ -91,7 +91,7 @@ footer{border-top:1px solid #d1d9e0;margin-top:34px;padding-top:15px;font-size:1
 \ne
 \operatorname{fl}\!\left(a+\operatorname{fl}(b+c)\right)</div>
 <p>can occur even though the two expressions are equal in exact arithmetic. Cancellation can remove significant information, and a small increment can disappear when added to a much larger number.</p>
-<p>The quadratic formula and the summation examples in <a href="20260915-class02.html">Class 2</a> show why <strong>algebraically equivalent procedures can give different numerical results</strong>. The same issue appears when solving linear systems.</p>
+<p>The quadratic formula and the summation examples in <a href="20260915-class02">Class 2</a> show why <strong>algebraically equivalent procedures can give different numerical results</strong>. The same issue appears when solving linear systems.</p>
 <div id="harmonic">
 <h3>Harmonic series</h3>
 <p>If an infinite series converges, its terms must tend to zero. The converse is false. The harmonic series is the basic counterexample:</p>
@@ -251,7 +251,7 @@ x^*=\tan(b^*)&amp;\approx 61249.0085313,\\
 <figcaption>Tangent is continuous at every interior point of this branch. Its sensitivity increases toward either endpoint.</figcaption>
 </figure>
 <h3>Well-posedness and conditioning</h3>
-<p><a href="20260911-class01.html#problems">A well-posed problem</a> has a solution, has a unique solution, and depends continuously on its input. On the open interval <span class="math" data-tex="(-\pi/2,\pi/2)">(-\pi/2,\pi/2)</span>, tangent is continuous. However, in this case it is <strong>ill-conditioned</strong>, because the inputs are close to the asymptote at <span class="math" data-tex="\pi/2">\pi/2</span> and small input changes are strongly amplified.</p>
+<p><a href="20260911-class01#problems">A well-posed problem</a> has a solution, has a unique solution, and depends continuously on its input. On the open interval <span class="math" data-tex="(-\pi/2,\pi/2)">(-\pi/2,\pi/2)</span>, tangent is continuous. However, in this case it is <strong>ill-conditioned</strong>, because the inputs are close to the asymptote at <span class="math" data-tex="\pi/2">\pi/2</span> and small input changes are strongly amplified.</p>
 <p><strong>Continuity does not impose a small amplification factor.</strong> It is therefore possible for a problem to be mathematically well-posed at a given input and still be numerically sensitive there.</p>
 <p>Representation error connects this issue to floating-point arithmetic. If the intended input <span class="math" data-tex="b">b</span> is unavailable and the computer substitutes a nearby representable value <span class="math" data-tex="b^*">b^*</span>, even a perfectly accurate evaluation of <span class="math" data-tex="\tan(b^*)">\tan(b^*)</span> may be far from the desired <span class="math" data-tex="\tan(b)">\tan(b)</span>.</p>
 <div class="interactive" id="tangent-demo">
