@@ -124,7 +124,7 @@ window.MathJax = {
 <li><a href="#operators">Differential operators</a></li>
 <li><a href="#pivoting">Pivoting</a></li>
 </ol></nav>
-<p class="small">Related notes: <a href="../20260911-class01">Class 1</a> · <a href="../20260915-class02">Class 2</a></p>
+<p class="small">Related notes: <a href="/20260911-class01/">Class 1</a> · <a href="/20260915-class02/">Class 2</a></p>
 <p class="small" hidden="" id="math-status" role="status"></p>
 <noscript><p class="math-note">JavaScript is needed for equation rendering, syntax highlighting, and the interactive examples.</p></noscript>
 </header>
@@ -137,7 +137,7 @@ window.MathJax = {
 <p>If \(\Delta x=\widehat{x}-x\), this is \(|\Delta x|\le\varepsilon_{\mathrm{machine}}|x|\). It is an <strong>upper bound, not an equality</strong>. The product \(\varepsilon_{\mathrm{machine}}|x|\) gives the scale of absolute resolution, rather than the exact distance to a neighboring value.</p>
 <p>As the magnitude grows from \(100\) to \(10{,}000\), the absolute gaps also grow. An increment that changes a small accumulator may therefore leave a larger one unchanged. Precision is a <em>relative</em> limitation, not a fixed number of decimal places.</p>
 <p>This matters when following a system over time: a small perturbation may be lost in one update, and small differences can affect later values. Weather forecasting and SIR calculations motivate checking this sensitivity rather than assuming that double precision removes the issue.</p>
-<p class="math-note"><strong>Convention.</strong> As in <a href="../20260915-class02#error">Class 2</a>, \(\varepsilon_{\mathrm{machine}}=2^{1-p}\) denotes the spacing immediately above 1. The experiments below use round-to-nearest, ties-to-even, with subnormal numbers supported.</p>
+<p class="math-note"><strong>Convention.</strong> As in <a href="/20260915-class02/#error">Class 2</a>, \(\varepsilon_{\mathrm{machine}}=2^{1-p}\) denotes the spacing immediately above 1. The experiments below use round-to-nearest, ties-to-even, with subnormal numbers supported.</p>
 <h3 id="bit-fields">Bits and exponents</h3>
 <p class="math-note"><strong>Encoding clarification.</strong> The number of bits in the exponent field is different from the exponent appearing in \(2^e\). The following distinction connects the storage format to the numerical range.</p>
 <div class="table-wrap"><table>
@@ -255,7 +255,7 @@ def problem_1a(dtype):
 <tr><td>Term underflow</td><td>The term \(1/n\) itself becomes too small to represent and rounds to zero.</td></tr>
 <tr><td>Sum overflow</td><td>The accumulated value exceeds the finite range.</td></tr>
 </tbody></table></div>
-<p>These are distinct possibilities, as in <a href="../20260915-class02#harmonic">Class 2</a>. The question is <strong>which happens first, and at what scale?</strong></p>
+<p>These are distinct possibilities, as in <a href="/20260915-class02/#harmonic">Class 2</a>. The question is <strong>which happens first, and at what scale?</strong></p>
 <h3>Stopping estimate</h3>
 <p>First estimate the size of the partial sum. Then compare the next term with the precision available at that magnitude. A rough scale comparison is</p>
 <div class="eq">\[\frac1n\sim\varepsilon_{\mathrm{machine}}\,|\widehat H_n|.\]</div>
