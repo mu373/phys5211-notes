@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>PHYS5211, Class 6: Linear systems and least squares</title>
+<meta content="September 29, 2026 notes on linear equations, LU operation counts, zero pivots and floating-point errors, finite differences, repeated PDE solves, least-squares problems, and multivariate linear regression. Interactive grid-to-matrix mapping, tridiagonal elimination, linked least-squares plots, and normal-equation column products." name="description"/>
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{margin:0;background:#fff;color:#1f2328;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;word-wrap:break-word}
+main{max-width:980px;margin:0 auto;padding:45px 45px 72px}
+h1,h2,h3,h4{margin-top:24px;margin-bottom:16px;font-weight:600;line-height:1.25}
+h1{font-size:2em;padding-bottom:.3em;border-bottom:1px solid #d1d9e0;margin-top:16px}
+h2{font-size:1.5em;padding-bottom:.3em;border-bottom:1px solid #d1d9e0;margin-top:38px}
+h3{font-size:1.25em;margin-top:27px}h4{font-size:1em}
+p{margin:0 0 16px}strong{font-weight:650}
+a{color:#0969da;text-decoration:none}a:hover{text-decoration:underline;text-underline-offset:3px}
+header{margin-bottom:24px}.meta{color:#59636e;font-size:14px;margin:0}.course-name{color:#59636e;margin-bottom:6px;font-size:16px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:16px}.print{font-size:13px;white-space:nowrap}
+.contents{padding-left:2em;margin:16px 0 24px}.contents li{margin:4px 0}li+li{margin-top:.25em}ul,ol{padding-left:2em;margin:0 0 16px}
+.small{font-size:13px;color:#59636e}.math-note{font-size:14px;color:#424a53;margin:14px 0 18px}.math-note strong{font-weight:600}
+.scope{font-size:13px;color:#59636e;margin:0 0 16px}
+.eq{overflow-x:auto;overflow-y:hidden;padding:7px 0;margin:16px 0;text-align:center;max-width:100%}
+.eq mjx-container[jax="SVG"][display="true"]{display:block;margin:.25em 0!important;min-width:min-content;text-align:center}
+mjx-container[jax="SVG"]{direction:ltr}mjx-container[jax="SVG"]>svg{overflow:visible;max-width:none;min-width:0}
+mjx-assistive-mml{position:absolute!important;top:0;left:0;clip:rect(1px,1px,1px,1px);clip-path:inset(50%);padding:1px 0 0 0!important;border:0!important;display:block!important;width:1px!important;height:1px!important;overflow:hidden!important;user-select:none}
+.table-wrap{overflow-x:auto;margin:16px 0}table{width:100%;border-collapse:collapse;text-align:left;font-size:14px}
+th,td{border:1px solid #d1d9e0;padding:9px 13px;vertical-align:top}th{font-weight:600}tr{background:#fff}tbody tr:nth-child(2n){background:#f6f8fa}
+caption{text-align:left;font-size:13px;color:#59636e;margin-bottom:8px}.data-table{max-width:520px}.data-table th,.data-table td{text-align:center}
+details{margin:20px 0;padding:14px 17px;border:1px solid #d1d9e0;border-radius:7px;background:#f6f8fa}
+summary{cursor:pointer;font-size:15px;font-weight:600;color:#0550ae}summary::marker{color:#0969da}details[open]>summary{margin-bottom:16px}details p:last-child{margin-bottom:0}
+button,input{font:inherit;color:inherit;font-size:14px}
+button{background:#f6f8fa;border:1px solid #d1d9e0;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:500}
+button:hover{background:#eef1f4;border-color:#b7c0c9}button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid #0969da;outline-offset:3px}
+input{background:#fff;border:1px solid #b7c0c9;border-radius:6px;padding:7px 9px;min-height:38px}
+input[type=number]{width:100%;min-width:0}input[type=range]{width:100%;padding:0;min-height:24px;accent-color:#0969da}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:3px 0 15px}.control label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}
+.slope-controls{display:grid;grid-template-columns:minmax(130px,1fr) minmax(180px,3fr);gap:20px;align-items:end;margin:18px 0}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}.presets button{background:#fff;font-size:13px}
+.result-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}
+.result{background:#fff;border:1px solid #d1d9e0;border-radius:7px;padding:12px 14px;min-width:0}.result-label{font-size:13px;color:#59636e;margin-bottom:5px}.result-value{font-size:17px;line-height:1.5;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.status{font-size:14px;min-height:22px;margin:12px 0;color:#424a53}.error{color:#b42318}
+.plot-panel{background:#fff;border:1px solid #d1d9e0;border-radius:7px;padding:14px;margin:16px 0}
+.plot{display:block;width:100%;height:auto}.plot text{font-family:inherit;font-size:13px;fill:#59636e}.plot .tick{font-variant-numeric:tabular-nums}
+.plot-heading{font-size:14px;margin:0 0 8px}.legend{display:flex;gap:12px 20px;flex-wrap:wrap;font-size:12px;color:#59636e;margin:0 0 6px}.legend span{display:flex;align-items:center;gap:6px}.legend i{display:inline-block;width:22px;height:0;border-top:2px solid #0969da}.legend i.dot{height:8px;width:8px;border:none;border-radius:50%;background:#1f2328}.legend i.dashed{border-color:#89929b;border-top-style:dashed}
+code{font:85% ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;padding:.2em .4em;background:#eff1f3;border-radius:5px}
+pre,pre[class*="language-"]{margin:16px 0;padding:16px;overflow:auto;border:1px solid #d1d9e0;border-radius:6px;background:#fff;text-shadow:none}
+pre code,code[class*="language-"],pre[class*="language-"]{font-family:ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace;font-size:13px;line-height:1.55;text-shadow:none}
+pre code{padding:0;background:none;border:0;border-radius:0;white-space:pre}
+footer{border-top:1px solid #d1d9e0;margin-top:34px;padding-top:15px;font-size:13px;color:#59636e}.footer-row{display:flex;justify-content:space-between;gap:20px}
+.skip{position:absolute;left:10px;top:-50px}.skip:focus{top:8px}[hidden]{display:none!important}
+@media(max-width:767px){main{padding:24px 18px 48px}h1{font-size:1.8em}h2{font-size:1.45em}.topline{align-items:flex-start}.eq{font-size:.96em}th,td{padding:8px 10px}details{padding:13px}.controls{gap:10px}.result-grid{grid-template-columns:1fr}.result{padding:10px 12px}.slope-controls{grid-template-columns:1fr;gap:10px}.plot-panel{padding:10px 5px}pre code,code[class*="language-"],pre[class*="language-"]{font-size:12px}.footer-row{flex-direction:column;gap:8px}}
+@media(max-width:380px){.controls{grid-template-columns:1fr}.topline{gap:8px}.print{padding:5px 8px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{@page{margin:18mm}body{font-size:10.5pt;line-height:1.5}main{margin:0;padding:0;max-width:none}.print,.contents,.skip,.no-print,.controls,.presets{display:none!important}h1{font-size:22pt}h2{font-size:17pt;margin-top:26px}h3{font-size:13pt}h1,h2,h3,h4{break-after:avoid}.eq,tr,.plot-panel{break-inside:avoid}.eq{overflow:visible}th,td{font-size:10pt;padding:7px}a{color:#222}details{background:#fff;break-inside:auto}summary{color:#222}.small,.scope{font-size:9pt}pre,pre code{white-space:pre-wrap}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+.model-figure{margin:24px auto;max-width:680px;text-align:center}
+.model-figure .model-plot{display:block;width:100%;height:auto;margin:0 auto}
+.model-plot .axis{stroke:#8c959f;stroke-width:1}
+.model-plot .model-line{stroke:#0969da;stroke-width:2.5;fill:none}
+.model-plot .model-point{fill:#0969da;stroke:#fff;stroke-width:1.5}
+.model-plot .axis-label{fill:#1f2328;font-size:16px;font-style:italic}
+.model-plot .curve-label{fill:#0969da;font-size:16px;font-style:italic}
+.model-plot .point-label{fill:#1f2328;font-size:14px}
+.rectangular-system{margin:24px 0}
+.model-figure figcaption{font-size:13px;color:#59636e;text-align:left;line-height:1.6;margin-top:10px}
+@media print{.model-figure{break-inside:avoid;max-width:150mm}}
+</style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']], processEscapes: true},
+  svg: {fontCache: 'global'},
+  options: {enableMenu: false, skipHtmlTags: ['script','noscript','style','textarea','pre','code']},
+  startup: {ready: () => {
+    MathJax.startup.defaultReady();
+    MathJax.startup.promise.then(() => {document.documentElement.dataset.mathReady = 'true';});
+  }}
+};
+</script>
+<script defer="" id="mathjax-script" onerror="document.getElementById('math-status').hidden=false;" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg-full.js"></script>
+<script defer="" src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script defer="" src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+<style id="visual-styles">/* Visual companions use the same typography and restrained panels as the notes. */
+.visual{border:1px solid #d1d9e0;border-radius:9px;background:#f8fafc;margin:26px 0;padding:20px;min-width:0}
+.visual>h4{margin:0 0 10px;font-size:17px}.visual-intro{font-size:14px;color:#424a53;line-height:1.65;margin:0 0 18px}.visual-caption{font-size:13px;line-height:1.65;color:#59636e;margin:14px 0 0}.visual-caption:empty{display:none}
+.visual .eq{margin:12px 0;font-size:.98em}.visual .eq[hidden]{display:none}.diagram-scroll{max-width:100%;overflow-x:auto;padding:6px 2px 10px;scrollbar-width:thin}.diagram-scroll:focus-visible{outline:2px solid #0969da;outline-offset:3px}
+.grid-nodes{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:relative;gap:4px;margin:22px 0 12px}.grid-nodes:before{content:"";position:absolute;height:1px;background:#a9b3be;left:7%;right:7%;top:46px}
+.grid-node{position:relative;text-align:center;z-index:1;min-width:0}.grid-x{font-size:12px;color:#59636e;margin-bottom:7px;height:20px}.grid-u{font-size:15px;margin-top:7px;white-space:nowrap}.grid-node .grid-dot{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;padding:0;margin:0 auto;background:#fff;border:1px solid #89929b;font-size:14px;min-height:38px;font-variant-numeric:tabular-nums}.grid-node .boundary{border-style:dashed;background:#f0f3f6}.grid-node .grid-dot:hover{border-color:#0969da}.grid-node.role-left .grid-dot{background:#fff1d5;color:#824b00;border-color:#9a5700}.grid-node.role-center .grid-dot{background:#ddf0ff;color:#0550ae;border:2px solid #0969da;font-weight:700}.grid-node.role-right .grid-dot{background:#dbf4ed;color:#126e60;border-color:#13786d}
+.role-key{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 18px;font-size:12px;margin:14px 0}.role-key>span{display:inline-flex;align-items:center;gap:6px}.role-key>span:before{content:"";width:9px;height:9px;border:1px solid currentColor;border-radius:2px;display:inline-block;background:transparent}.key-left{color:#824b00}.key-left:before{background:#fff1d5!important}.key-center{color:#0550ae}.key-center:before{background:#ddf0ff!important}.key-right{color:#126e60}.key-right:before{background:#dbf4ed!important}
+.matrix{--cell-w:42px;--cell-h:39px;display:inline-flex;flex-direction:column;padding:5px 9px;position:relative;vertical-align:middle;font-variant-numeric:tabular-nums;line-height:1.2;background:#fff}.matrix:before,.matrix:after{content:"";position:absolute;top:0;bottom:0;width:7px;border-top:1.5px solid #59636e;border-bottom:1.5px solid #59636e;pointer-events:none}.matrix:before{left:0;border-left:1.5px solid #59636e}.matrix:after{right:0;border-right:1.5px solid #59636e}.mat-row{display:grid;grid-template-columns:repeat(var(--cols,1),var(--cell-w));position:relative}.mat-cell{display:flex;justify-content:center;align-items:center;min-width:0;min-height:var(--cell-h);padding:3px 2px;font-size:17px;white-space:nowrap;border:1px solid transparent}.mat-cell.zero{color:#a9b1b9}.mat-cell.role-left{background:#fff1d5;color:#824b00}.mat-cell.role-center{background:#ddf0ff;color:#0550ae}.mat-cell.role-right{background:#dbf4ed;color:#126e60}.mat-cell.active-pivot{outline:2px solid #0969da;outline-offset:-3px;font-weight:650}.mat-cell.eliminated{border:1px dashed #9a5700;background:#fff8ed;color:#824b00}.mat-cell.selected-output{background:#ddf0ff;color:#0550ae}.mat-row.selected-row{background:#edf3f9}.matrix-label{font-size:14px;text-align:center;color:#424a53;margin:0 0 12px;line-height:1.6}.matrix-block{text-align:center;flex:none;min-width:0}.operator{font-size:22px;align-self:center;padding-top:28px;color:#424a53}.grid-system{display:flex;align-items:flex-start;justify-content:center;gap:14px;width:max-content;min-width:100%;padding:5px 0}.grid-rhs{--cell-w:151px}.grid-rhs .mat-cell{font-size:14px}.grid-rhs .boundary-term{font-weight:600;margin-left:3px}.boundary-term.alpha{color:#824b00}.boundary-term.beta{color:#126e60}.grid-system .vector:not(.grid-rhs){--cell-w:38px}.matrix var,.grid-u var,.grid-x var{font-family:Georgia,"Times New Roman",serif}.matrix sub,.grid-u sub,.grid-x sub{font-size:.7em}
+.fraction{display:inline-flex;flex-direction:column;text-align:center;font-size:.83em;vertical-align:middle;line-height:1.05;min-width:14px}.fraction .numerator{border-bottom:1px solid currentColor;padding:0 2px 2px}.fraction .denominator{padding:2px 2px 0}.fraction-sign{padding-right:1px}.matrix-card{text-align:center;background:#fff;border:1px solid #e0e6eb;border-radius:6px;padding:15px 12px;min-width:0}.lu-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0}.lu-pair .matrix{--cell-h:44px;--cell-w:44px}.step-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 18px}.step-count{font-size:13px;font-variant-numeric:tabular-nums;min-width:63px;text-align:center}.step-toolbar button{font-size:13px}.step-toolbar #lu-reset{margin-left:auto}.work-comparison{border-top:1px solid #d8e1e9;padding-top:16px;margin-top:20px}.work-comparison h4{font-size:15px;margin:0 0 8px}.work-comparison .visual-intro{margin-bottom:12px}.work-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;max-width:580px;margin:0 auto}.work-item{text-align:center}.work-item .matrix-label{margin-bottom:8px}.work-pattern{width:164px;max-width:100%;height:auto;display:block;margin:auto}.work-count{font-size:14px;line-height:1.5;margin:8px 0 0;font-variant-numeric:tabular-nums}
+.fit-plots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}.fit-plots .plot-panel{margin:0;padding:12px 9px;min-width:0}.fit-plots .legend{min-height:37px;align-content:flex-start;gap:5px 12px;font-size:11px}.fit-plots .plot-heading{font-size:14px;margin-bottom:8px}.fit-plots .plot text{font-size:12px}.fit-plots .visual-caption{font-size:12px;margin:4px 3px 0}.fit-plots .legend i{width:16px}.fit-plots .legend i.dot{width:7px;height:7px}.legend i.current-dot{border:0;border-radius:50%;width:8px;height:8px;background:#0969da}.legend i.minimum-dot{border:1.5px solid #13786d;border-radius:50%;width:9px;height:9px;background:#fff}.residual-band{display:flex;align-items:center;justify-content:center;gap:22px 38px;flex-wrap:wrap;padding:15px;background:#fff;border:1px solid #e0e6eb;border-radius:6px}.residual-vector{display:flex;align-items:center;gap:8px}.residual-vector .matrix{--cell-w:100px;--cell-h:28px}.residual-vector .mat-cell{font-size:15px}.residual-total p{margin:5px 0;font-size:15px}.residual-total output{font-variant-numeric:tabular-nums}.fit-visual .status{margin-top:5px;margin-bottom:10px}
+.space-time-figure{margin:25px 0}.space-time-figure .space-time-plot{display:block;width:100%;max-width:720px;height:auto;margin:auto}.space-time-figure figcaption{font-size:13px;color:#59636e;line-height:1.65;margin:10px auto 0;max-width:720px}.space-time-plot text{font-size:14px}.space-time-plot .profile-label{font-size:15px;fill:#0550ae}.space-time-plot .initial-label{fill:#126e60}.space-time-plot .pair-label{fill:#824b00}
+.normal-layout{display:grid;grid-template-columns:auto 25px auto;justify-content:center;align-items:center;gap:20px;margin:22px 0}.normal-inputs{display:flex;align-items:flex-start;gap:16px}.normal-inputs .matrix{--cell-w:43px;--cell-h:32px}.normal-inputs .matrix.vector{--cell-w:40px}.normal-inputs .mat-cell{font-size:17px}.normal-arrow{color:#89929b;font-size:25px;text-align:center}.normal-outputs{display:flex;gap:16px;justify-content:center;align-items:flex-start;flex-wrap:wrap;max-width:275px}.normal-outputs .matrix-label{font-size:13px}.product-matrix{--cell-w:43px;--cell-h:40px}.product-matrix .mat-cell{padding:2px}.product-matrix button{font-size:12px;padding:6px 2px;min-height:36px;width:100%;line-height:1.2;background:#fff;border-color:#d1d9e0}.product-matrix button[aria-pressed=true]{background:#ddf0ff;border:2px solid #0969da;color:#0550ae;font-weight:650}.normal-index-key{width:100%;margin:0;font-size:12px;text-align:center}.normal-expansion{font-size:.91em!important}.normal-product-demo .visual-caption{margin-top:8px}
+@media(max-width:767px){.visual{padding:15px 12px}.lu-pair{grid-template-columns:1fr}.lu-pair .matrix{--cell-w:44px}.normal-layout{grid-template-columns:1fr;gap:12px}.normal-inputs,.normal-outputs{justify-content:center}.normal-outputs{margin:auto;max-width:none}.normal-arrow{transform:rotate(90deg)}.fit-plots{grid-template-columns:1fr}.fit-plots .legend{min-height:20px;font-size:12px}.grid-node .grid-dot{width:32px;height:32px;min-height:32px;font-size:12px}.grid-nodes:before{top:43px}.grid-u{font-size:12px}.grid-x{font-size:11px}.grid-nodes{gap:0}.role-key{font-size:11px;gap:7px 10px}.grid-system .matrix{--cell-w:33px}.grid-system .grid-rhs{--cell-w:134px}.grid-system{gap:10px}.grid-system .mat-cell{font-size:15px}.grid-system .grid-rhs .mat-cell{font-size:13px}.step-toolbar #lu-reset{margin-left:0}.step-toolbar #lu-complete{font-size:12px}.work-count{font-size:12px}.work-pair{gap:12px}.work-comparison .visual-caption{font-size:12px}.normal-index-key{flex-basis:100%}}
+@media(max-width:380px){.visual{padding:14px 9px}.step-toolbar{gap:6px}.step-toolbar button{padding:6px 8px}.grid-u{font-size:11px}.grid-node .grid-dot{width:29px;height:29px;min-height:29px}.grid-nodes:before{top:41px}}
+@media print{.visual{padding:12px;background:#fff;border-color:#d1d9e0}.visual>h4{font-size:12pt}.visual-intro{font-size:10pt}.visual-caption{font-size:9pt}.matrix-card{padding:10px 8px}.lu-pair{grid-template-columns:1fr 1fr}.lu-pair .matrix{--cell-w:36px;--cell-h:37px}.fit-plots{grid-template-columns:1fr 1fr}.normal-layout{grid-template-columns:auto 25px auto}.normal-arrow{transform:none}.matrix-card,.grid-nodes,.grid-system,.lu-pair,.work-pair,.normal-layout,.space-time-figure,.residual-band{break-inside:avoid}.visual{break-inside:auto}.diagram-scroll{overflow:visible}.visual .eq{break-inside:avoid}.product-matrix button{border:0;background:transparent}.product-matrix button[aria-pressed=true]{border:1px solid #0969da}.grid-dot{pointer-events:none}.fit-plots .legend{min-height:28px}}
+.matrix-math{display:inline-block;white-space:nowrap}.matrix-math sup{font-size:.7em;vertical-align:super;line-height:0}.matrix-math sub{vertical-align:sub;line-height:0}
+@media(max-width:560px){.grid-system{display:grid;grid-template-columns:auto auto;justify-content:center;align-items:start;gap:18px 14px;width:auto;min-width:0}.grid-system>.matrix-block:first-child{grid-column:1;grid-row:1}.grid-system>.matrix-block:nth-child(2){grid-column:2;grid-row:1}.grid-system>.matrix-block:last-child{grid-column:1/-1;grid-row:2}.grid-system>.operator{grid-column:1/-1;grid-row:2;justify-self:center;align-self:center;transform:translateX(-102px);padding-top:27px;z-index:1}}
+</style></head>
+<body>
+<a class="skip" href="#main">Skip to notes</a>
+<main id="main">
+<header>
+<p class="course-name">Introduction to Scientific Computing in the Era of AI</p>
+<div class="topline"><p class="meta">PHYS5211 · Class 6 · September 29, 2026</p><button class="print" id="print-note" type="button">Print / PDF</button></div>
+<h1>Linear systems and least squares</h1>
+<p>Linear systems connect the numerical solution of differential equations with the fitting of data. Gaussian elimination supplies a common computational tool: first for values on a spatial grid, then for coefficients in a least-squares model. Following these two applications shows how the structure of a problem determines both the calculation and its cost.</p>
+<nav aria-label="Contents"><ol class="contents">
+<li><a href="#review">Linear systems and LU factorization</a></li>
+<li><a href="#finite-differences">Finite differences and tridiagonal systems</a></li>
+<li><a href="#pde-solves">Repeated linear solves for PDEs</a></li>
+<li><a href="#least-squares">Least-squares problems</a></li>
+<li><a href="#vector-form">Generalization of least squares in vector notation</a></li>
+<li><a href="#normal-equations">Multivariate linear regression</a></li>
+<li><a href="#discussion">Discussion</a></li>
+</ol></nav>
+<p class="small">Related notes: <a data-note="20260917-class03" href="20260917-class03.html">Class 3</a> · <a data-note="20260922-class04" href="20260922-class04.html">Class 4</a></p>
+<p class="small" hidden="" id="math-status" role="status">MathJax could not load from the CDN. Open this file with an internet connection to render the equations.</p>
+<noscript><p class="math-note">JavaScript is needed for equation rendering and the interactive numerical check.</p></noscript>
+</header>
+<!-- Source scope: Class 6 transcripts and supplied notes and boards. The review through the steady-state ODE follows the user-specified Class 5 boundary. Previously requested examples and operation-count expansions are retained. The PDE section follows the lecture at the level of derivative approximation and repeated spatial calculations; it specifies no complete update scheme or exact solve-count formula. -->
+<section id="review">
+<h2>1. Linear systems and LU factorization</h2>
+<p class="scope">Class 5 review</p><p>Both applications begin with the same task: determine a set of unknowns from a collection of linear equations. For a large system, Gaussian elimination organizes the calculation into repeatable row operations, making it possible to examine how much work is required and where numerical errors can enter.</p>
+<h3>Linear equations and matrix form</h3>
+<p>To express this task precisely, let \(x_1,\ldots,x_n\) be the unknowns and \(a_{ij}\) their coefficients. A system of \(n\) equations then has the form</p>
+<div class="eq">\[\begin{cases}
+a_{11}x_1+a_{12}x_2+\cdots+a_{1n}x_n=b_1,\\
+a_{21}x_1+a_{22}x_2+\cdots+a_{2n}x_n=b_2,\\
+\hspace{3.2em}\vdots\\
+a_{n1}x_1+a_{n2}x_2+\cdots+a_{nn}x_n=b_n.
+\end{cases}\]</div>
+<p>Collecting the coefficients into \(A\), the unknowns into \(\mathbf{x}\), and the right-hand sides into \(\mathbf{b}\) gives a compact representation of the same equations:</p>
+<div class="eq">\[\underbrace{\begin{pmatrix}
+a_{11}&amp;a_{12}&amp;\cdots&amp;a_{1n}\\
+a_{21}&amp;a_{22}&amp;\cdots&amp;a_{2n}\\
+\vdots&amp;\vdots&amp;\ddots&amp;\vdots\\
+a_{n1}&amp;a_{n2}&amp;\cdots&amp;a_{nn}
+\end{pmatrix}}_{A}
+\underbrace{\begin{pmatrix}x_1\\x_2\\\vdots\\x_n\end{pmatrix}}_{\mathbf{x}}
+=\underbrace{\begin{pmatrix}b_1\\b_2\\\vdots\\b_n\end{pmatrix}}_{\mathbf{b}},
+\qquad A\mathbf{x}=\mathbf{b}.\]</div>
+<p>For a square matrix, invertibility, a nonzero determinant, and linearly independent columns are <a data-note="20260917-class03" href="20260917-class03.html#invertibility">equivalent conditions (Class 3)</a>. Under these conditions, each right-hand side determines a unique solution, and the computational task is to find that solution efficiently.</p>
+<p>Gaussian elimination does this by subtracting multiples of each pivot row from the rows below it. With nonzero pivots in the chosen row order, the process produces an upper triangular matrix \(U\), while the elimination multipliers form a lower triangular matrix \(L\). The factorization \(A=LU\) turns the original problem into two triangular systems:</p>
+<div class="eq">\[A=LU,\qquad
+L\mathbf{z}=\mathbf{b},\qquad U\mathbf{x}=\mathbf{z}.\]</div>
+<p><strong>Forward substitution</strong> solves \(L\mathbf{z}=\mathbf{b}\) from the first row downward. Once \(\mathbf{z}\) is known, <strong>back substitution</strong> solves \(U\mathbf{x}=\mathbf{z}\) from the last row upward. The intermediate vector is denoted \(\mathbf{z}\) here so that \(\mathbf{y}\) can later represent observations. <a data-note="20260922-class04" href="20260922-class04.html#triangular">Class 4</a> works through these substitutions and the construction of the factors.</p>
+<h3 id="operation-counts">Operation counts</h3>
+<p>The factorization and the two substitutions have different costs because they update different parts of the system. For a dense \(n\times n\) matrix, elimination repeatedly modifies a remaining block, whereas each substitution works through one row at a time. Counting each multiplication, addition or subtraction, and division as one arithmetic operation gives the following estimates.</p>
+<h4>LU factorization</h4>
+<p>At elimination stage \(k\), the entries below the pivot first give \(n-k\) multipliers, \(\ell_{ik}=a_{ik}/a_{kk}\). Each multiplier is then used to update a row in the remaining \((n-k)\times(n-k)\) block:</p>
+<div class="eq">\[a_{ij}\leftarrow a_{ij}-\ell_{ik}a_{kj},
+\qquad i,j=k+1,\ldots,n.\]</div>
+<p>Updating one entry requires <strong>one multiplication and one subtraction</strong>, so this block costs \(2(n-k)^2\) operations. Summing over the successively smaller blocks gives</p>
+<div class="eq">\[\begin{aligned}
+2(n-1)^2+2(n-2)^2+\cdots+2
+&amp;=2\sum_{r=1}^{n-1}r^2\\
+&amp;=\frac{n(n-1)(2n-1)}{3}.
+\end{aligned}\]</div>
+<p>The multiplier divisions contribute another \(\sum_{r=1}^{n-1}r=n(n-1)/2\) operations. The block updates therefore supply the leading term in the total cost:</p>
+<div class="eq">\[C_{\mathrm{LU}}=\frac{2}{3}n^3+O(n^2).\]</div>
+<p>The cubic growth comes from updating a two-dimensional block at every stage of elimination. As \(n\) grows, this repeated work makes factorization the dominant part of a dense solve.</p>
+<h4>Forward and back substitution</h4>
+<p>Once the factors are available, the remaining work is simpler. In forward substitution, row \(i\) uses the \(i-1\) values already found. With the unit-diagonal \(L\) used here, the next value follows from</p>
+<div class="eq">\[z_i=b_i-\sum_{j=1}^{i-1}\ell_{ij}z_j.\]</div>
+<p>Each known contribution requires a multiplication and a subtraction. Across all rows, the number of contributions grows from zero to \(n-1\), giving</p>
+<div class="eq">\[C_{\mathrm{forward}}=2\sum_{i=1}^{n}(i-1)
+=n(n-1)\sim n^2.\]</div>
+<p>Back substitution applies the same idea in reverse. Row \(i\) uses the \(n-i\) values already found below it, followed by a division by \(u_{ii}\):</p>
+<div class="eq">\[x_i=\frac{z_i-\displaystyle\sum_{j=i+1}^{n}u_{ij}x_j}{u_{ii}},
+\qquad
+C_{\mathrm{back}}=\sum_{i=1}^{n}\bigl[2(n-i)+1\bigr]=n^2.\]</div>
+<p>Both sums grow quadratically because each row is processed once and contains at most \(n-1\) known contributions. This gives the following division of work:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Stage</th><th>Leading cost</th><th>Reuse</th></tr></thead>
+<tbody>
+<tr><td>LU factorization</td><td>\(\tfrac{2}{3}n^3\)</td><td>Once for a fixed \(A\)</td></tr>
+<tr><td>Forward substitution</td><td>\(n^2\)</td><td>For each right-hand side</td></tr>
+<tr><td>Back substitution</td><td>\(n^2\)</td><td>For each right-hand side</td></tr>
+</tbody></table></div>
+<p>For a new right-hand side, the stored \(L\) and \(U\) can be used again. The additional work is then the pair of triangular substitutions, about \(2n^2\) operations. This reuse becomes important whenever several problems share the same coefficient matrix.</p>
+<h3 id="zero-pivots">Zero pivots and floating-point errors</h3><p>The operations just counted also show where a solve can fail. Computing a multiplier requires division by a pivot, while updating a row involves products and subtractions whose values may be rounded. These give two distinct numerical concerns.</p>
+<h4 id="zero-pivot-example">Zero pivots</h4>
+<p>The division occurs at each elimination step \(k\). Its denominator is the <strong>pivot</strong>, \(a_{kk}^{(k)}\): the top-left entry of the remaining submatrix, used to eliminate the entries below it. The superscript \((k)\) indicates the values after the preceding row operations.</p>
+<p>To eliminate the entry in row \(i&gt;k\), divide that entry by the pivot and use the result as the row multiplier:</p>
+<div class="eq">\[\ell_{ik}=\frac{a_{ik}^{(k)}}{\underbrace{a_{kk}^{(k)}}_{\text{pivot}}},\qquad R_i\leftarrow R_i-\ell_{ik}R_k.\]</div>
+<p>A <strong>zero pivot</strong> occurs when \(a_{kk}^{(k)}=0\). <strong>A zero pivot makes this division impossible.</strong> Elimination deliberately creates zeros below the pivot; the difficulty here is that the divisor itself is zero, so this step stops even in exact arithmetic.</p>
+<p><strong>Example.</strong> The boxed entry is the first pivot in the system</p>
+<div class="eq">\[A=\begin{pmatrix}\boxed{0}&amp;1\\1&amp;1\end{pmatrix},\qquad
+\mathbf{b}=\begin{pmatrix}1\\2\end{pmatrix}.\]</div>
+<p>In this row order, the first multiplier would be \(\ell_{21}=1/0\). Exchanging the two equations places a 1 in the pivot position and gives</p>
+<div class="eq">\[\begin{pmatrix}1&amp;1\\0&amp;1\end{pmatrix}
+\begin{pmatrix}x_1\\x_2\end{pmatrix}
+=\begin{pmatrix}2\\1\end{pmatrix},
+\qquad x_2=1,\quad x_1=1.\]</div>
+<p>The exchanged system has the unique solution \((1,1)^T\), consistent with \(\det(A)=-1\). Here a row interchange makes the elimination possible while preserving the original equations. This is the role of <a data-note="20260922-class04" href="20260922-class04.html#pivoting">pivoting (Class 4)</a>.</p>
+<h4 id="floating-point-example">Floating-point errors</h4>
+<p>Even when all divisions can be carried out, the row updates may lose information through rounding. The <a data-note="20260917-class03" href="20260917-class03.html#elimination">small-pivot example from Class 3</a> shows how this affects the final answer:</p>
+<div class="eq">\[\begin{pmatrix}0.0001&amp;1\\1&amp;1\end{pmatrix}
+\begin{pmatrix}x_1\\x_2\end{pmatrix}
+=\begin{pmatrix}1\\2\end{pmatrix}.\]</div>
+<p>Using <strong>three significant decimal digits</strong> makes the effect visible. The first pivot gives the large multiplier \(\ell_{21}=10^4\). Eliminating \(x_1\) from the second row produces the exact values \(-9999\) and \(-9998\), which both round to the same stored number:</p>
+<div class="eq">\[\begin{aligned}
+u_{22}&amp;=\operatorname{fl}(1-10^4)=-1.00\times10^4,\\
+z_2&amp;=\operatorname{fl}(2-10^4)=-1.00\times10^4.
+\end{aligned}\]</div>
+<p>The stored second equation therefore gives \(\widehat{x}_2=1\). Substituting that value into the first equation gives</p>
+<div class="eq">\[\widehat{x}_2=\frac{-1.00\times10^4}{-1.00\times10^4}=1,
+\qquad
+\widehat{x}_1=\frac{1-\widehat{x}_2}{0.0001}=0.\]</div>
+<p>Comparison with the exact solution shows how much information has been lost in the first component:</p>
+<div class="eq">\[\mathbf{x}=\begin{pmatrix}10000/9999\\9998/9999\end{pmatrix}
+\approx\begin{pmatrix}1.00010001\\0.99989999\end{pmatrix},
+\qquad
+\widehat{\mathbf{x}}=\begin{pmatrix}0\\1\end{pmatrix}.\]</div>
+<p>The small difference between the second-row values is needed to recover \(x_1\). Once rounding has erased it, the subtraction \(1-\widehat{x}_2\) becomes zero and the computed first component is wrong. Thus the calculation can finish while producing a poor approximation. The row-interchange comparison in Class 3 shows how a different pivot choice improves this example.</p>
+<p id="conditioning">The sensitivity of the underlying problem is measured separately by its <a data-note="20260917-class03" href="20260917-class03.html#conditioning">condition number (Class 3)</a>: a large value indicates that small changes in \(A\) or \(\mathbf{b}\) can strongly affect the solution.</p>
+</section>
+<section id="finite-differences">
+<h2>2. Finite differences and tridiagonal systems</h2>
+<p class="scope">Class 5 review: ordinary differential equation</p>
+<p>With a method for solving \(A\mathbf{x}=\mathbf{b}\) in hand, the next question is where such a system arises. An ordinary differential equation provides one example: approximating a derivative by differences turns a relation between functions into linear equations for their values on a grid.</p>
+<h3>Steady-state problem</h3>
+<p>For a concrete case, take the one-dimensional steady-state heat equation. The unknown is the spatial profile \(u(x)\), with prescribed values at both endpoints:</p>
+<div class="eq">\[-\frac{d^2u}{dx^2}=f(x),\qquad 0\le x\le1,
+\qquad u(0)=\alpha,\quad u(1)=\beta.\]</div>
+<p>To represent this profile by finitely many values, divide the interval into \(m\) equal parts:</p>
+<div class="eq">\[x_j=jh,\qquad h=\frac1m,\qquad j=0,\ldots,m.\]</div>
+<p>The boundary conditions already supply the endpoint values. This leaves the \(m-1\) interior values \(u_j\approx u(x_j)\) to be found; write \(n=m-1\) for the number of unknowns.</p>
+<h3>Second difference</h3>
+<p>Equations for these interior values follow by approximating the second derivative. First use neighboring function values to estimate two slopes, then take their difference over the grid spacing:</p>
+<div class="eq">\[u''(x_j)\approx
+\frac{\dfrac{u_{j+1}-u_j}{h}-\dfrac{u_j-u_{j-1}}{h}}{h}
+=\frac{u_{j+1}-2u_j+u_{j-1}}{h^2}.\]</div>
+<p>Substituting this expression into \(-u''=f\) and multiplying by \(h^2\) gives one linear equation at each interior point:</p>
+<div class="eq">\[-u_{j-1}+2u_j-u_{j+1}=h^2f(x_j),
+\qquad j=1,\ldots,n.\]</div>
+<p>The coefficients \(-1,2,-1\) connect each interior value to its two neighbors. At the ends of the grid, the known values \(u_0=\alpha\) and \(u_m=\beta\) move to the right-hand side, so the first and last equations are</p>
+<div class="eq">\[2u_1-u_2=h^2f(x_1)+\alpha,\qquad
+-u_{n-1}+2u_n=h^2f(x_n)+\beta.\]</div>
+<p>Collecting these equations gives the full system for \(n\ge2\):</p>
+<div class="eq">\[\underbrace{\begin{pmatrix}
+2&amp;-1&amp;0&amp;\cdots&amp;0\\
+-1&amp;2&amp;-1&amp;\ddots&amp;\vdots\\
+0&amp;\ddots&amp;\ddots&amp;\ddots&amp;0\\
+\vdots&amp;\ddots&amp;-1&amp;2&amp;-1\\
+0&amp;\cdots&amp;0&amp;-1&amp;2
+\end{pmatrix}}_{A_n}
+\underbrace{\begin{pmatrix}u_1\\u_2\\\vdots\\u_{n-1}\\u_n\end{pmatrix}}_{\mathbf{u}}
+=
+\underbrace{h^2\begin{pmatrix}f(x_1)\\f(x_2)\\\vdots\\f(x_{n-1})\\f(x_n)\end{pmatrix}
++\alpha\mathbf{e}_1+\beta\mathbf{e}_n}_{\mathbf{b}}.\]</div>
+<p>The boundary-value problem has now become \(A_n\mathbf{u}=\mathbf{b}\). Because each equation couples only neighboring grid values, the nonzero coefficients lie on three diagonals. This structure changes the amount of work required by elimination.</p>
+<div aria-labelledby="grid-matrix-heading" class="visual" id="grid-matrix-demo">
+<h4 id="grid-matrix-heading">Grid points and matrix rows</h4>
+<p class="visual-intro">Take five interior unknowns, so \(h=1/6\). Select an interior grid point to follow its equation into the corresponding row of \(A_5\).</p>
+<div aria-label="Spatial grid" class="grid-nodes" id="grid-nodes"></div>
+<div class="role-key"><span class="key-left">Left neighbor: −1</span><span class="key-center">Selected point: 2</span><span class="key-right">Right neighbor: −1</span></div>
+<div class="equation-stack"><div class="eq" id="grid-local-equation"></div><div class="eq" hidden="" id="grid-boundary-equation"></div></div>
+<div aria-label="Selected row in the tridiagonal system" class="diagram-scroll" tabindex="0">
+<div class="grid-system">
+<div class="matrix-block"><p class="matrix-label">\(A_5\)</p><div aria-label="Five by five tridiagonal coefficient matrix" class="matrix" id="grid-coefficients"></div></div>
+<div class="matrix-block"><p class="matrix-label">\(\mathbf u\)</p><div aria-label="Five unknown interior values" class="matrix vector" id="grid-unknowns"></div></div>
+<div class="operator">=</div>
+<div class="matrix-block"><p class="matrix-label">\(\mathbf b\)</p><div aria-label="Right-hand side including the boundary values" class="matrix vector grid-rhs" id="grid-rhs"></div></div>
+</div>
+</div>
+<p aria-live="polite" class="visual-caption" id="grid-matrix-status"></p>
+</div>
+
+<h3 id="tridiagonal-cost">Tridiagonal structure and operation count</h3>
+<p>For this tridiagonal matrix, each pivot has just one nonzero entry immediately below it to eliminate. The first row operation therefore changes the next diagonal entry from 2 to \(3/2\):</p>
+<div class="eq">\[R_2\leftarrow R_2+\frac12R_1,\qquad
+2-\frac12=\frac32.\]</div>
+<p>That new diagonal entry becomes the next pivot. Using it to eliminate the following subdiagonal entry gives</p>
+<div class="eq">\[R_3\leftarrow R_3+\frac23R_2,\qquad
+2-\frac23=\frac43.\]</div>
+<p>These row operations construct the <strong>LU factorization</strong> of \(A_n\). The updated rows form \(U\), while \(L\) stores the multipliers used in \(R_{k+1}\leftarrow R_{k+1}-\ell_{k+1,k}R_k\). Thus the additions above correspond to \(\ell_{21}=-1/2\) and \(\ell_{32}=-2/3\).</p>
+<p>Continuing the same pattern to the last row gives \(A_n=LU\), with the completed factors</p>
+<div class="eq" id="tridiagonal-lu-factors">\[
+L=\begin{pmatrix}
+1&amp;0&amp;0&amp;\cdots&amp;0\\
+-\frac12&amp;1&amp;0&amp;\cdots&amp;0\\
+0&amp;-\frac23&amp;1&amp;\ddots&amp;\vdots\\
+\vdots&amp;\ddots&amp;\ddots&amp;\ddots&amp;0\\
+0&amp;\cdots&amp;0&amp;-\frac{n-1}{n}&amp;1
+\end{pmatrix},\qquad
+U=\begin{pmatrix}
+2&amp;-1&amp;0&amp;\cdots&amp;0\\
+0&amp;\frac32&amp;-1&amp;\ddots&amp;\vdots\\
+0&amp;0&amp;\frac43&amp;\ddots&amp;0\\
+\vdots&amp;\ddots&amp;\ddots&amp;\ddots&amp;-1\\
+0&amp;\cdots&amp;0&amp;0&amp;\frac{n+1}{n}
+\end{pmatrix}.
+\]</div>
+<p>The diagonal of \(U\) follows \(2,3/2,4/3,\ldots,(n+1)/n\). At each step, dividing the subdiagonal entry \(-1\) by the current pivot gives the next multiplier in \(L\). Both factors retain a narrow structure: \(L\) has one subdiagonal below its unit diagonal, and \(U\) has one superdiagonal above its pivots.</p>
+<div aria-labelledby="tridiagonal-demo-heading" class="visual" id="tridiagonal-demo">
+<h4 id="tridiagonal-demo-heading">Tridiagonal elimination</h4>
+<p class="visual-intro">Follow the same elimination for \(A_5\). Each step creates a zero below the pivot, updates the next diagonal entry, and records one multiplier in \(L\).</p>
+<div class="step-toolbar no-print"><button id="lu-prev" type="button">Previous</button><span aria-live="polite" class="step-count" id="lu-step-count"></span><button id="lu-next" type="button">Next</button><button id="lu-reset" type="button">Reset</button><button id="lu-complete" type="button">Completed factors</button></div>
+<div class="eq" id="lu-operation"></div>
+<div class="lu-pair">
+<div class="matrix-card"><p class="matrix-label" id="lu-work-label">Current matrix</p><div aria-label="Matrix during elimination" class="matrix" id="lu-working"></div></div>
+<div class="matrix-card"><p class="matrix-label" id="lu-lower-label">L: stored multipliers</p><div aria-label="Lower triangular factor constructed so far" class="matrix" id="lu-lower"></div></div>
+</div>
+<div class="role-key"><span class="key-center">Pivot / updated diagonal</span><span class="key-left">Eliminated entry / stored multiplier</span></div>
+<p aria-live="polite" class="visual-caption" id="lu-status"></p>
+<div class="work-comparison">
+<h4>Trailing-block updates</h4>
+<p class="visual-intro" id="work-step-label"></p>
+<div class="work-pair">
+<div class="work-item"><p class="matrix-label">Dense matrix</p><svg aria-label="Dense trailing block update" class="work-pattern" id="dense-pattern" role="img" viewBox="0 0 164 164"></svg><p class="work-count" id="dense-work-count"></p></div>
+<div class="work-item"><p class="matrix-label">This tridiagonal matrix</p><svg aria-label="Tridiagonal trailing block update" class="work-pattern" id="tridiagonal-pattern" role="img" viewBox="0 0 164 164"></svg><p class="work-count" id="tridiagonal-work-count"></p></div>
+</div>
+<p class="visual-caption">Filled squares mark coefficients updated in the remaining block. Each highlighted coefficient needs a multiplication and a subtraction; multiplier divisions and right-hand-side updates contribute separately.</p>
+</div>
+</div>
+
+<p>This structure explains the operation count. There are \(n-1\) subdiagonal entries to eliminate, and each step computes one multiplier and updates a fixed number of entries. Applying the same row operations to the right-hand side also requires only a fixed amount of work per step. Elimination therefore takes <strong>\(O(n)\) operations</strong> when the code works with this tridiagonal structure.</p>
+<p>The triangular substitutions benefit from the same local coupling. In back substitution through \(U\), each row uses at most one already-computed neighboring value; forward substitution through \(L\) has the same property. Each substitution therefore takes \(O(n)\) operations. For this system, factorization and the two substitutions all scale linearly with the number of interior grid points.</p>
+</section>
+<section id="pde-solves">
+<h2>3. Repeated linear solves for PDEs</h2>
+<p>The steady-state calculation determines a single spatial profile. Allowing that profile to change with time extends the same discretization idea to a partial differential equation. The time-dependent heat equation is</p>
+<div class="eq" id="heat-equation">\[\frac{\partial u}{\partial t}
+-\kappa\frac{\partial^2u}{\partial x^2}=f(x,t),
+\qquad 0\le x\le1,\quad 0\le t\le T.\]</div>
+<p>The initial condition \(u(x,0)=g(x)\) gives the starting profile. To follow its evolution, use a grid in both space and time. Writing \(u_j^k\approx u(x_j,t_k)\), the time derivative at a fixed spatial point is approximated by the difference between consecutive time levels:</p>
+<div class="eq">\[\frac{\partial u}{\partial t}\approx
+\frac{u_j^{k+1}-u_j^k}{\Delta t}.\]</div>
+<p>Here \(j\) identifies a spatial point and \(k\) identifies a time level. Holding \(j\) fixed isolates the change in time, just as the spatial differences above compare neighboring positions.</p>
+<figure class="space-time-figure" id="space-time-figure">
+<svg aria-labelledby="space-time-title space-time-desc" class="space-time-plot plot" id="space-time-plot" role="img" viewBox="0 0 720 354"><title id="space-time-title">Spatial profiles at successive time levels</title><desc id="space-time-desc">A column collects a spatial profile. A horizontal pair at a fixed spatial point gives the two values used in the time difference.</desc></svg>
+<figcaption>A column shows the profile at time \(t_k\); its interior values form \(\mathbf u^k\). Along the selected row, \(u_j^k\) and \(u_j^{k+1}\) are the two values in the time difference. The first column is supplied by \(u(x,0)=g(x)\).</figcaption>
+</figure>
+
+<h3>Time evolution</h3>
+<p>Combining differences in space and time leads to a sequence of calculations for the evolving profile. In this time-stepping picture, the spatial linear-system calculation is repeated as time advances: the steady-state example requires a profile at one fixed state, while the evolving problem requires profiles at successive time levels.</p>
+<p>This is the connection to the earlier elimination problem. Following the solution through more time steps requires repeating the linear-algebra calculation, so the cost of solving the spatial system matters throughout the evolution.</p>
+</section>
+<section id="least-squares">
+<h2>4. Least-squares problems</h2><p>The differential-equation examples start from a governing equation. In regression, the starting point is a set of measurements and a model to fit to them. Before formulating that fitting problem, it helps to connect the familiar inverse notation for a solution with the calculation used to obtain it.</p>
+<div id="inverse">
+<h3>Linear solves and matrix inversion</h3>
+<p>For an invertible square matrix, the solution can be written as \(\mathbf{x}=A^{-1}\mathbf{b}\). Computationally, the LU factorization provides \(\mathbf{x}\) through the two triangular solves above. The same factors work for any right-hand side, which also provides a way to construct the inverse itself.</p>
+<h4>Columns of the inverse</h4>
+<p>To obtain that inverse, apply the same solver to the matrix equation defining it. The unknown is now a matrix \(X\) satisfying</p>
+<div class="eq">\[AX=I_n,\qquad
+X=\begin{pmatrix}|&amp;|&amp;&amp;|\\
+\mathbf{x}^{(1)}&amp;\mathbf{x}^{(2)}&amp;\cdots&amp;\mathbf{x}^{(n)}\\
+|&amp;|&amp;&amp;|
+\end{pmatrix}.\]</div>
+<p>The identity matrix consists of the canonical basis vectors \(\mathbf{e}_1,\ldots,\mathbf{e}_n\). Reading the equation one column at a time therefore gives</p>
+<div class="eq">\[A\mathbf{x}^{(1)}=\mathbf{e}_1,\qquad
+A\mathbf{x}^{(2)}=\mathbf{e}_2,\qquad\ldots,\qquad
+A\mathbf{x}^{(n)}=\mathbf{e}_n.\]</div>
+<p>Each solution supplies one column of \(A^{-1}\). Since all \(n\) systems share the same \(A\), one factorization supplies the factors for the entire construction.</p>
+<h4>Operation count</h4>
+<p>This shared matrix determines the cost: one dense LU factorization, followed by a pair of triangular solves for each of the \(n\) columns. Using the earlier operation counts gives</p>
+<div class="eq">\[\underbrace{O(n^3)}_{\text{one LU factorization}}
++\underbrace{n\,O(n^2)}_{\text{one pair of triangular solves per column}}
+=O(n^3).\]</div>
+<p>The per-column work is quadratic, and repeating it \(n\) times makes the total cubic. Constructing all columns requires more work than solving for a single right-hand side, but reusing the factors keeps the overall scaling at \(O(n^3)\).</p>
+</div>
+<h3>Line through the origin</h3>
+<p>Now consider how a fitting problem produces linear equations. Suppose a position is measured at times \(t=2,3,4\), giving observations \(y_1,y_2,y_3\). The simplest model to fit is a line through the origin:</p>
+<div class="eq">\[p(t)=xt.\]</div>
+<p>Here \(t\) is the independent variable and \(x\) is a <strong>single unknown slope</strong>. The intercept is fixed at zero, so choosing \(x\) specifies the entire line. For example, \(x=2\) gives the line and three fitted values shown below.</p>
+<figure class="model-figure" id="line-model-figure">
+<svg aria-labelledby="line-model-title line-model-desc" class="plot model-plot" id="line-model-plot" role="img" viewBox="0 0 680 380">
+<title id="line-model-title">Line through the origin</title>
+<desc id="line-model-desc">The line p(t) = 2t passes through the origin and the points (2, 4), (3, 6), and (4, 8). Its slope is x = 2.</desc>
+</svg>
+<noscript><p class="small">Enable JavaScript to display the plot of \(p(t)=2t\).</p></noscript>
+<figcaption>With \(x=2\), the model is \(p(t)=2t\) and the observations are \((4,6,8)^T\). The horizontal variable is \(t\); the coefficient \(x\) controls the slope.</figcaption>
+</figure>
+<div class="table-wrap"><table class="data-table">
+<thead><tr><th>Time \(t\)</th><th>2</th><th>3</th><th>4</th></tr></thead>
+<tbody><tr><th>Observation</th><td>\(y_1\)</td><td>\(y_2\)</td><td>\(y_3\)</td></tr></tbody>
+</table></div>
+<h3>Overdetermined system</h3>
+<p>Evaluating this model at the three measurement times turns an exact fit into three equations for the same slope:</p>
+<div class="eq">\[\underbrace{\begin{pmatrix}2\\3\\4\end{pmatrix}}_{\mathbf{a}}x
+=\underbrace{\begin{pmatrix}y_1\\y_2\\y_3\end{pmatrix}}_{\mathbf{y}},
+\qquad
+\begin{cases}2x=y_1,\\3x=y_2,\\4x=y_3.\end{cases}\]</div>
+<p>The system is <strong>overdetermined</strong> because it contains three equations and one unknown. All three equations agree on a slope precisely when the observation vector is a multiple of \(\mathbf{a}=(2,3,4)^T\):</p>
+<div class="eq">\[\mathbf{y}=x\mathbf{a}
+\quad\Longleftrightarrow\quad
+\frac{y_1}{2}=\frac{y_2}{3}=\frac{y_3}{4}=x.\]</div>
+<p>This holds for \(\mathbf{y}=(4,6,8)^T\), whose entries all give \(x=2\). For \(\mathbf{y}=(4,6,0)^T\), however, the first two observations give \(x=2\) while the third gives \(x=0\). Fitting such data requires a way to balance the discrepancies across observations.</p>
+<h3>Squared-error objective</h3>
+<p>Least squares supplies that criterion by adding the squared differences between the model predictions and all three observations. The task becomes finding the slope that minimizes this total:</p>
+<div class="eq">\[J(x)=(2x-y_1)^2+(3x-y_2)^2+(4x-y_3)^2,
+\qquad \widehat{x}=\underset{x\in\mathbb{R}}{\operatorname{argmin}}\,J(x).\]</div>
+<p>The fitting problem is now a calculus problem in the single variable \(x\). Applying the chain rule to each squared term gives</p>
+<div class="eq">\[\begin{aligned}
+J'(x)
+&amp;=2(2x-y_1)\cdot2+2(3x-y_2)\cdot3+2(4x-y_3)\cdot4\\
+&amp;=(8+18+32)x-(4y_1+6y_2+8y_3)\\
+&amp;=58x-(4y_1+6y_2+8y_3).
+\end{aligned}\]</div>
+<p>At a minimum, the derivative vanishes. Solving \(J'(x)=0\) for the slope gives</p>
+<div class="eq">\[\widehat{x}
+=\frac{4y_1+6y_2+8y_3}{58}
+=\frac{2y_1+3y_2+4y_3}{29}.\]</div>
+<p>The curvature \(J''(x)=58&gt;0\) confirms that this value is the unique minimum. For \(\mathbf{y}=(4,6,0)^T\), it gives \(\widehat{x}=26/29\approx0.896552\). This slope balances the errors across all three observations, with each contributing to the objective.</p>
+<div aria-labelledby="fit-check-heading" class="visual fit-visual" id="fit-check">
+<h4 id="fit-check-heading">Fit and squared error</h4>
+<p class="visual-intro">Choose an observation vector and vary the slope. The line changes in the data plot, while the selected point moves along the squared-error curve. <strong>Least-squares slope</strong> moves both views to the minimum.</p>
+<div class="controls">
+<div class="control"><label for="obs-1">\(y_1\) at \(t=2\)</label><input id="obs-1" step="any" type="number" value="4"/></div>
+<div class="control"><label for="obs-2">\(y_2\) at \(t=3\)</label><input id="obs-2" step="any" type="number" value="6"/></div>
+<div class="control"><label for="obs-3">\(y_3\) at \(t=4\)</label><input id="obs-3" step="any" type="number" value="0"/></div>
+</div>
+<div class="presets"><button id="example-inconsistent" type="button">\(\mathbf{y}=(4,6,0)^T\)</button><button id="example-exact" type="button">\(\mathbf{y}=(4,6,8)^T\)</button><button id="set-optimum" type="button">Least-squares slope</button></div>
+<div class="slope-controls">
+<div class="control"><label for="slope">Current slope \(x\)</label><input id="slope" step="any" type="number" value="2"/></div>
+<div class="control"><label for="slope-slider">Adjust slope</label><input id="slope-slider" max="5" min="-5" step="any" type="range" value="2"/></div>
+</div>
+<div aria-live="polite" class="result-grid">
+<div class="result"><div class="result-label">Optimal slope \(\widehat{x}\)</div><output class="result-value" id="optimal-slope"></output></div>
+<div class="result"><div class="result-label">Current error \(J(x)\)</div><output class="result-value" id="current-cost"></output></div>
+<div class="result"><div class="result-label">Minimum error \(J(\widehat{x})\)</div><output class="result-value" id="minimum-cost"></output></div>
+</div>
+<p class="status" id="fit-status" role="status"></p>
+
+<div class="fit-plots">
+<div class="plot-panel"><p class="plot-heading">Model and observations</p>
+<div class="legend"><span><i></i>Current line</span><span><i class="dot"></i>Observations</span><span><i class="dashed"></i>Residuals</span></div>
+<svg aria-labelledby="fit-title fit-desc" class="plot" id="fit-plot" role="img" viewBox="0 0 420 320"><title id="fit-title">One-parameter least-squares fit</title><desc id="fit-desc">The line through the origin, the observations, and their vertical residuals.</desc></svg>
+<p class="visual-caption">Horizontal axis: time \(t\). Vertical axis: position \(p\).</p></div>
+<div class="plot-panel"><p class="plot-heading">Squared-error objective</p>
+<div class="legend"><span><i></i>\(J(x)\)</span><span><i class="current-dot"></i>Current slope</span><span><i class="minimum-dot"></i>Minimum</span></div>
+<svg aria-labelledby="cost-title cost-desc" class="plot" id="cost-plot" role="img" viewBox="0 0 420 320"><title id="cost-title">Squared-error objective as a function of slope</title><desc id="cost-desc">A quadratic curve with markers at the current slope and the least-squares slope.</desc></svg>
+<p class="visual-caption">Horizontal axis: slope \(x\). Vertical axis: error \(J(x)\).</p></div>
+</div>
+<div class="residual-band">
+<div class="residual-vector"><span>\(\mathbf r=\)</span><div aria-label="Prediction minus observation residual vector" class="matrix vector" id="fit-residual-vector"></div></div>
+<div class="residual-total"><p>\(J(x)=\mathbf r^T\mathbf r=\) <output id="residual-cost"></output></p><p>\(J'(x)=\) <output id="cost-derivative"></output></p></div>
+</div>
+<p class="visual-caption">Each dashed segment gives a component of \(\mathbf r=\mathbf a x-\mathbf y\). Their squared lengths add to the height of the selected point on \(J(x)\).</p>
+
+</div>
+</section>
+<section id="vector-form">
+<h2>5. Generalization of least squares in vector notation</h2><p>The three-point calculation depends on the values \(2,3,4\) through sums of products and squares. Replacing those particular values with a general vector extends the same calculation to any number of observations. Vector notation makes that common structure explicit.</p>
+<h3>Norm and inner product</h3>
+<p>Let \(\mathbf{a}\in\mathbb{R}^m\) collect the known coefficients and \(\mathbf{y}\in\mathbb{R}^m\) the observations, with \(\mathbf{a}\ne\mathbf{0}\). The unknown \(x\) remains a scalar. The vector \(\mathbf{a}x-\mathbf{y}\) collects the prediction errors, and its squared Euclidean norm adds their squares:</p>
+<div class="eq">\[J(x)=\|\mathbf{a}x-\mathbf{y}\|_2^2.\]</div>
+<p>To expand this expression, use the inner product of a vector with itself. For real vectors, the inner product is a matrix product, \(\langle\mathbf{v},\mathbf{w}\rangle=\mathbf{v}^T\mathbf{w}\), so</p>
+<div class="eq">\[\begin{aligned}
+J(x)&amp;=\langle\mathbf{a}x-\mathbf{y},\,\mathbf{a}x-\mathbf{y}\rangle\\
+&amp;=(\mathbf{a}x-\mathbf{y})^T(\mathbf{a}x-\mathbf{y}).
+\end{aligned}\]</div>
+<p>The transpose can be distributed over the difference using the rules</p>
+<div class="eq">\[(B+C)^T=B^T+C^T,\qquad (BC)^T=C^TB^T.\]</div>
+<p>Because \(x\) is a real scalar, these rules give \((\mathbf{a}x)^T=x\mathbf{a}^T\). Multiplying out the two factors then gives</p>
+<div class="eq">\[\begin{aligned}
+J(x)
+&amp;=(x\mathbf{a}^T-\mathbf{y}^T)(\mathbf{a}x-\mathbf{y})\\
+&amp;=x^2\mathbf{a}^T\mathbf{a}
+-x\mathbf{a}^T\mathbf{y}
+-x\mathbf{y}^T\mathbf{a}
++\mathbf{y}^T\mathbf{y}\\
+&amp;=x^2\mathbf{a}^T\mathbf{a}
+-2x\mathbf{a}^T\mathbf{y}
++\mathbf{y}^T\mathbf{y}.
+\end{aligned}\]</div>
+<p>The cross terms combine because \(\mathbf{a}^T\mathbf{y}\) and \(\mathbf{y}^T\mathbf{a}\) are the same scalar inner product. The result is again a quadratic in \(x\), with its coefficients now expressed as vector products.</p>
+<h3>Scalar normal equation</h3>
+<p>With \(\mathbf{a}\) and \(\mathbf{y}\) fixed, only \(x\) varies in this quadratic. Differentiating and setting the result to zero gives</p>
+<div class="eq">\[J'(x)=2x\mathbf{a}^T\mathbf{a}-2\mathbf{a}^T\mathbf{y}=0.\]</div>
+<p>Rearranging gives the <strong>normal equation</strong> for the single coefficient and its solution:</p>
+<div class="eq">\[(\mathbf{a}^T\mathbf{a})\widehat{x}=\mathbf{a}^T\mathbf{y},
+\qquad
+\widehat{x}=\frac{\mathbf{a}^T\mathbf{y}}{\mathbf{a}^T\mathbf{a}}
+=\frac{\sum_{j=1}^{m}a_jy_j}{\sum_{j=1}^{m}a_j^2}.\]</div>
+<p>The denominator is \(\|\mathbf{a}\|_2^2\), which is positive for the nonzero vector \(\mathbf{a}\). Substituting \((2,3,4)^T\) gives \(4+9+16=29\), recovering the earlier three-observation formula.</p>
+<h3>Projection</h3>
+<p>The fitted slope also determines a fitted observation vector, \(\widehat{\mathbf{y}}=\mathbf{a}\widehat{x}\). Among all multiples of \(\mathbf{a}\), this vector is closest to \(\mathbf{y}\) in Euclidean distance. It is the projection of \(\mathbf{y}\) onto the line of multiples of \(\mathbf{a}\).</p>
+<h3>Exact equations and consistency</h3>
+<p>This closest-vector criterion uses the full set of observations. By comparison, an individual equation \(a_1x=y_1\) fixes a slope using just one observation. For the three-point data \((4,6,0)^T\), the first equation fixes \(x=2\), while the third requires \(x=0\).</p>
+<p>Row operations on the exact system expose the same conflict: eliminating with the first row leaves \(0=-8\) in the third. The normal equation instead combines all observations through \(\mathbf{a}^T\mathbf{a}\) and \(\mathbf{a}^T\mathbf{y}\), selecting the slope with the smallest total squared error. This provides the route to fitting several coefficients together.</p>
+</section>
+<section id="normal-equations">
+<h2>6. Multivariate linear regression</h2>
+<p>The vector calculation fitted one coefficient multiplying a single column of known values. In multivariate linear regression, several columns contribute to each observation, and their coefficients are collected in a vector \(\mathbf{x}\). Each predicted value is therefore a linear combination:</p>
+<div class="eq">\[y_i\approx a_{i1}x_1+a_{i2}x_2+\cdots+a_{in}x_n,
+\qquad i=1,\ldots,m.\]</div>
+<h3>Rectangular design matrix</h3>
+<p>Arranging these predictor values into a matrix \(A\) collects the observation equations into one rectangular system. The vector \(\mathbf{y}\) supplies the observed values, taking the place of the earlier right-hand side \(\mathbf{b}\):</p>
+<div class="eq rectangular-system" id="rectangular-system">\[\underbrace{\begin{pmatrix}
+a_{11}&amp;a_{12}&amp;\cdots&amp;a_{1n}\\[3pt]
+a_{21}&amp;a_{22}&amp;\cdots&amp;a_{2n}\\[3pt]
+a_{31}&amp;a_{32}&amp;\cdots&amp;a_{3n}\\[18pt]
+\vdots&amp;\vdots&amp;&amp;\vdots\\[18pt]
+\vdots&amp;\vdots&amp;&amp;\vdots\\[18pt]
+\vdots&amp;\vdots&amp;&amp;\vdots\\[3pt]
+a_{m1}&amp;a_{m2}&amp;\cdots&amp;a_{mn}
+\end{pmatrix}}_{A\; (m\times n)}
+\underbrace{\begin{pmatrix}x_1\\x_2\\\vdots\\x_n\end{pmatrix}}_{\mathbf{x}\; (n\times1)}
+\approx
+\underbrace{\begin{pmatrix}
+y_1\\[3pt]
+y_2\\[3pt]
+y_3\\[18pt]
+\vdots\\[18pt]
+\vdots\\[18pt]
+\vdots\\[3pt]
+y_m
+\end{pmatrix}}_{\mathbf{y}\; (m\times1)}.\]</div>
+<p>Each of the \(m\) rows corresponds to an observation, and each of the \(n\) columns corresponds to a predictor. In an overdetermined regression, \(m&gt;n\), often \(m\gg n\), so <strong>\(A\) is tall and narrow, \(\mathbf{y}\) has the same height, and \(\mathbf{x}\) contains the smaller set of coefficients</strong>. Every prediction depends on those coefficients together, so they are fitted simultaneously.</p>
+<p>The least-squares criterion extends directly: add the squared errors over all observations and minimize that total over the coefficient vector.</p>
+<div class="eq">\[\widehat{\mathbf{x}}
+\in\underset{\mathbf{x}\in\mathbb{R}^{n}}{\operatorname{argmin}}
+\|A\mathbf{x}-\mathbf{y}\|_2^2.\]</div>
+<h3>Normal equations</h3>
+<p>The scalar normal equation extends in the same way. Replacing the column \(\mathbf{a}\) with \(A\) and the scalar slope with \(\widehat{\mathbf{x}}\) gives</p>
+<div class="eq">\[A^TA\widehat{\mathbf{x}}=A^T\mathbf{y}.\]</div>
+<p>The products on the two sides form a <strong>square system in the coefficients</strong>. Their dimensions show how the original rectangular problem has changed:</p>
+<div class="eq">\[\underbrace{A^T}_{n\times m}\underbrace{A}_{m\times n}
+=\underbrace{A^TA}_{n\times n},\qquad
+\underbrace{A^T}_{n\times m}\underbrace{\mathbf{y}}_{m\times1}
+=\underbrace{A^T\mathbf{y}}_{n\times1}.\]</div>
+<p>There are now \(n\) equations for the \(n\) coefficients. The fitting problem has returned to the form of a square linear system, making Gaussian elimination available for computing the coefficients.</p>
+<div aria-labelledby="normal-product-heading" class="visual" id="normal-product-demo">
+<h4 id="normal-product-heading">Column products and normal equations</h4>
+<p class="visual-intro">For seven observations and three coefficients, \(A\) has size \(7\times3\). Select an entry of \(A^TA\) or \(A^T\mathbf y\) to see which columns supply its inner product.</p>
+<div class="normal-layout">
+<div class="normal-inputs">
+<div class="matrix-block"><p class="matrix-label">\(A\; (7\times3)\)</p><div aria-label="Seven by three design matrix" class="matrix symbolic-matrix" id="normal-A"></div></div>
+<div class="matrix-block"><p class="matrix-label">\(\mathbf y\; (7\times1)\)</p><div aria-label="Seven observations" class="matrix vector symbolic-matrix" id="normal-y"></div></div>
+</div>
+<div aria-hidden="true" class="normal-arrow">→</div>
+<div class="normal-outputs">
+<div class="matrix-block"><p class="matrix-label">\(A^TA\; (3\times3)\)</p><div aria-label="Choose an entry of A transpose A" class="matrix product-matrix" id="normal-gram"></div></div>
+<div class="matrix-block"><p class="matrix-label">\(A^T\mathbf y\; (3\times1)\)</p><div aria-label="Choose an entry of A transpose y" class="matrix vector product-matrix" id="normal-rhs"></div></div>
+<p class="visual-caption normal-index-key">Buttons show each entry’s (row, column) index.</p>
+</div>
+</div>
+<div class="eq" id="normal-product-equation"></div>
+<div class="eq normal-expansion" id="normal-product-expansion"></div>
+<p aria-live="polite" class="visual-caption" id="normal-product-status"></p>
+</div>
+
+<details class="supplement" id="matrix-derivation">
+<summary>Derivation detail: several coefficients</summary>
+<p>The connection can also be followed through the objective. The same transpose rules used in the scalar case give</p>
+<div class="eq">\[J(\mathbf{x})
+=\mathbf{x}^TA^TA\mathbf{x}-2\mathbf{x}^TA^T\mathbf{y}
++\mathbf{y}^T\mathbf{y}.\]</div>
+<p>Differentiating with respect to the coefficient vector, and using the symmetry of \(A^TA\), gives</p>
+<div class="eq">\[\nabla_{\mathbf{x}}J
+=2A^TA\mathbf{x}-2A^T\mathbf{y}
+=2A^T(A\mathbf{x}-\mathbf{y}).\]</div>
+<p>Setting all components of the gradient to zero yields \(A^TA\mathbf{x}=A^T\mathbf{y}\), the normal equations.</p>
+</details>
+<h3>Uniqueness and inverse notation</h3>
+<p>The square system has a unique solution when the columns of \(A\) are linearly independent. Under this condition, \(A^TA\) is invertible and the fitted coefficient vector can also be expressed using inverse notation:</p>
+<div class="eq">\[\widehat{\mathbf{x}}=(A^TA)^{-1}A^T\mathbf{y}.\]</div>
+<p>This is the ordinary least-squares formula. As in the <a href="#inverse">matrix-inverse discussion</a>, it expresses the solution algebraically. Computationally, the normal equations can be solved by factoring their coefficient matrix and applying triangular substitution.</p>
+<details class="supplement" id="software">
+<summary>Python check</summary>
+<p>The one-column formula can be checked against <a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.lstsq.html" rel="noopener noreferrer" target="_blank"><code>numpy.linalg.lstsq</code></a> using the same data. Here \(A\) is the \(3\times1\) column of measurement times, so the returned coefficient is the slope of \(p(t)=xt\):</p>
+<pre class="language-python"><code class="language-python">import numpy as np
+
+a = np.array([2.0, 3.0, 4.0])
+y = np.array([4.0, 6.0, 0.0])
+
+# The scalar formula derived above.
+x_formula = (a @ y) / (a @ a)
+
+# The same column as a 3-by-1 design matrix.
+A = a[:, None]
+x_fit, _, _, _ = np.linalg.lstsq(A, y, rcond=None)
+
+print(x_formula)  # 0.896551724137931
+print(x_fit[0])   # Approximately the same value
+assert np.allclose(x_formula, x_fit[0])</code></pre>
+</details>
+</section>
+<section id="discussion">
+<h2 id="assumptions">7. Discussion</h2><p>The calculations determine coefficients for a chosen model and squared-error objective. Interpreting the fit brings in further questions about statistical assumptions, model choice, and other uses of the same formulation.</p>
+<ul>
+<li><strong>Distributional assumptions.</strong> Where do Gaussian or other assumptions enter the statistical interpretation of a least-squares fit?</li>
+<li><strong>Model selection.</strong> How should the fitting function and number of coefficients be chosen to describe the data meaningfully?</li>
+<li><strong>Extensions.</strong> How can the same formulation be used for interpolation and Fourier decomposition?</li>
+</ul>
+</section>
+<footer><div class="footer-row"><span>PHYS5211 · Class 6 · September 29, 2026</span><a href="#main">Back to top</a></div></footer>
+</main>
+<script>
+(function () {
+  'use strict';
+  // Standalone previews link to the earlier notes on the public deployment.
+  // The clean-URL deployment continues to use relative note links.
+  if (location.protocol === 'file:') {
+    document.querySelectorAll('a[data-note]').forEach(function (link) {
+      const hash = link.hash;
+      link.setAttribute('href', 'https://phys5211-notes.vercel.app/' + link.dataset.note + '/' + hash);
+    });
+  } else if (/^https?:$/.test(location.protocol) && /\/20260929-class06\/?$/.test(location.pathname)) {
+    const inNoteDirectory = /\/20260929-class06\/$/.test(location.pathname);
+    document.querySelectorAll('a[data-note]').forEach(function (link) {
+      const hash = link.hash;
+      link.setAttribute('href', (inNoteDirectory ? '../' : './') + link.dataset.note + '/' + hash);
+    });
+  }
+  let closedBeforePrint = [];
+  window.addEventListener('beforeprint', function () {
+    closedBeforePrint = Array.from(document.querySelectorAll('details.supplement:not([open])'));
+    closedBeforePrint.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener('afterprint', function () {
+    closedBeforePrint.forEach(function (d) { d.open = false; });
+    closedBeforePrint = [];
+  });
+  document.getElementById('print-note').addEventListener('click', function () { window.print(); });
+
+  const times = [2, 3, 4];
+  const obsInputs = times.map(function (_, i) { return document.getElementById('obs-' + (i + 1)); });
+  const slopeInput = document.getElementById('slope');
+  const slider = document.getElementById('slope-slider');
+  const status = document.getElementById('fit-status');
+  const svg = document.getElementById('fit-plot');
+  const ns = 'http://www.w3.org/2000/svg';
+  const maximumInput = 1e6;
+  let observationValues = [4, 6, 0];
+  let currentSlope = 2;
+
+  function numberText(value) {
+    if (Math.abs(value) < 1e-12) return '0';
+    const abs = Math.abs(value);
+    if (abs >= 1e7 || abs < 1e-4) return value.toExponential(5);
+    return Number(value.toPrecision(8)).toString();
+  }
+  function add(tag, attrs, text, parent) {
+    const el = document.createElementNS(ns, tag);
+    Object.keys(attrs).forEach(function (key) { el.setAttribute(key, attrs[key]); });
+    if (text !== undefined) el.textContent = text;
+    (parent || svg).appendChild(el);
+    return el;
+  }
+
+  /** Draw the exact-fit line example with native SVG elements. */
+  function drawLineModel() {
+    const plot = document.getElementById('line-model-plot');
+    if (!plot) return;
+    plot.replaceChildren();
+    const put = function (tag, attrs, text) { return add(tag, attrs, text, plot); };
+    put('title', {id: 'line-model-title'}, 'Line through the origin');
+    put('desc', {id: 'line-model-desc'}, 'The line p(t) = 2t has slope x = 2 and passes through (2, 4), (3, 6), and (4, 8).');
+
+    const left = 65, right = 639, top = 30, bottom = 329;
+    const tMin = 0, tMax = 4.6, pMin = 0, pMax = 9.4;
+    const slope = 2;
+    const px = function (t) { return left + (t - tMin) / (tMax - tMin) * (right - left); };
+    const py = function (p) { return bottom - (p - pMin) / (pMax - pMin) * (bottom - top); };
+
+    put('line', {x1: px(0), y1: top, x2: px(0), y2: bottom, class: 'axis'});
+    put('line', {x1: left, y1: py(0), x2: right, y2: py(0), class: 'axis'});
+    for (let t = 0; t <= 4; t += 1) {
+      put('line', {x1: px(t), y1: bottom, x2: px(t), y2: bottom + 5, class: 'axis'});
+      put('text', {x: px(t), y: bottom + 23, 'text-anchor': 'middle', class: 'tick'}, String(t));
+    }
+    for (let p = 2; p <= 8; p += 2) {
+      put('line', {x1: left - 5, y1: py(p), x2: left, y2: py(p), class: 'axis'});
+      put('text', {x: left - 13, y: py(p) + 4, 'text-anchor': 'end', class: 'tick'}, String(p));
+    }
+    put('text', {x: right + 12, y: bottom + 5, class: 'axis-label'}, 't');
+    put('text', {x: left - 13, y: top - 12, 'text-anchor': 'middle', class: 'axis-label'}, 'p(t)');
+    put('line', {x1: px(0), y1: py(0), x2: px(4.5), y2: py(slope * 4.5), class: 'model-line'});
+    put('text', {x: px(0.4), y: py(8.2), class: 'curve-label'}, 'p(t) = 2t');
+    put('text', {x: px(0.4), y: py(8.2) + 25}, 'x = 2');
+    [2, 3, 4].forEach(function (t) {
+      const p = slope * t;
+      put('circle', {cx: px(t), cy: py(p), r: 5, class: 'model-point'});
+      put('text', {x: px(t) + 10, y: py(p) + 19, class: 'point-label'}, '(' + t + ', ' + p + ')');
+    });
+  }
+  drawLineModel();
+
+  const costSvg = document.getElementById('cost-plot');
+  const residualVector = document.getElementById('fit-residual-vector');
+  let slopeDomain = [-0.6, 2.6];
+  let positionDomain = [-4, 13];
+
+  /** Evaluate the squared-error objective directly from the three residuals. */
+  function cost(slope) {
+    return times.reduce(function (sum, t, i) {
+      return sum + (slope * t - observationValues[i]) ** 2;
+    }, 0);
+  }
+  function optimum() {
+    return times.reduce(function (sum, t, i) { return sum + t * observationValues[i]; }, 0) / 29;
+  }
+  function validate() {
+    const values = obsInputs.map(function (input) { return input.valueAsNumber; });
+    const slope = slopeInput.valueAsNumber;
+    const valid = values.every(function (x) { return Number.isFinite(x) && Math.abs(x) <= maximumInput; }) &&
+      Number.isFinite(slope) && Math.abs(slope) <= maximumInput;
+    document.getElementById('set-optimum').disabled = !valid;
+    [svg, costSvg, residualVector].forEach(function (el) { el.style.opacity = valid ? '1' : '0.3'; });
+    if (!valid) {
+      status.textContent = 'Enter finite observations and a slope with magnitudes no larger than 1,000,000.';
+      status.classList.add('error');
+      ['optimal-slope','current-cost','minimum-cost','residual-cost','cost-derivative'].forEach(function (id) {
+        document.getElementById(id).textContent = 'Unavailable';
+      });
+      return false;
+    }
+    observationValues = values;
+    currentSlope = slope;
+    status.classList.remove('error');
+    return true;
+  }
+
+  /** Choose readable tick values without changing the shared interaction range. */
+  function ticks(low, high, count) {
+    const raw = (high - low) / count;
+    const power = Math.pow(10, Math.floor(Math.log10(raw)));
+    const scaled = raw / power;
+    const unit = scaled <= 1 ? 1 : scaled <= 2 ? 2 : scaled <= 5 ? 5 : 10;
+    const step = unit * power;
+    const result = [];
+    for (let value = Math.ceil(low / step) * step; value <= high + step * 1e-8; value += step) {
+      result.push(Math.abs(value) < step * 1e-8 ? 0 : value);
+      if (result.length > 20) break;
+    }
+    return result;
+  }
+  function tickLabel(value) {
+    const abs = Math.abs(value);
+    if (value === 0) return '0';
+    if (abs >= 1e4 || abs < 0.001) return value.toExponential(1).replace('.0e', 'e');
+    return String(Number(value.toPrecision(4)));
+  }
+
+  /** Draw one SVG frame and return its coordinate transforms and append helper. */
+  function frame(target, bounds, labels, title, description, idPrefix) {
+    target.replaceChildren();
+    const put = function (tag, attrs, text, parent) { return add(tag, attrs, text, parent || target); };
+    put('title', {id: idPrefix + '-title'}, title);
+    put('desc', {id: idPrefix + '-desc'}, description);
+    const left = 65, right = 398, top = 26, bottom = 270;
+    const px = function (x) { return left + (x - bounds[0]) / (bounds[1] - bounds[0]) * (right - left); };
+    const py = function (y) { return bottom - (y - bounds[2]) / (bounds[3] - bounds[2]) * (bottom - top); };
+    ticks(bounds[2], bounds[3], 5).forEach(function (value) {
+      put('line', {x1:left, x2:right, y1:py(value), y2:py(value), stroke:'#e8ecf0'});
+      put('text', {x:left-9, y:py(value)+4, 'text-anchor':'end', class:'tick'}, tickLabel(value));
+    });
+    ticks(bounds[0], bounds[1], 5).forEach(function (value) {
+      put('line', {x1:px(value), x2:px(value), y1:bottom, y2:bottom+5, stroke:'#89929b'});
+      put('text', {x:px(value), y:bottom+21, 'text-anchor':'middle', class:'tick'}, tickLabel(value));
+    });
+    put('line', {x1:left,x2:left,y1:top,y2:bottom,stroke:'#89929b'});
+    put('line', {x1:left,x2:right,y1:bottom,y2:bottom,stroke:'#89929b'});
+    if (bounds[2] < 0 && bounds[3] > 0) {
+      put('line', {x1:left,x2:right,y1:py(0),y2:py(0),stroke:'#bec8d1'});
+    }
+    put('text', {x:left, y:16, fill:'#1f2328', 'font-style':'italic'}, labels[1]);
+    put('text', {x:right, y:309, 'text-anchor':'end', fill:'#1f2328', 'font-style':'italic'}, labels[0]);
+    return {put:put,px:px,py:py,left:left,right:right,top:top,bottom:bottom};
+  }
+
+  function draw() {
+    const best = optimum();
+    const dataFrame = frame(svg, [0,4.5,positionDomain[0],positionDomain[1]], ['t','p(t)'],
+      'One-parameter least-squares fit',
+      'Line with slope ' + numberText(currentSlope) + ', and observations ' + observationValues.map(numberText).join(', ') + ' at times 2, 3, and 4.', 'fit');
+    const put = dataFrame.put, px = dataFrame.px, py = dataFrame.py;
+    put('line', {x1:px(0),y1:py(0),x2:px(4.5),y2:py(currentSlope*4.5),stroke:'#0969da','stroke-width':2.4});
+    times.forEach(function (t,i) {
+      const prediction = currentSlope*t;
+      put('line', {x1:px(t),x2:px(t),y1:py(prediction),y2:py(observationValues[i]),stroke:'#89929b','stroke-width':1.8,'stroke-dasharray':'5 4'});
+      put('circle', {cx:px(t),cy:py(prediction),r:3.8,fill:'#fff',stroke:'#0969da','stroke-width':1.6});
+      put('circle', {cx:px(t),cy:py(observationValues[i]),r:4.5,fill:'#1f2328'});
+    });
+
+    const maxCost = Math.max(cost(slopeDomain[0]),cost(slopeDomain[1]),1);
+    const costFrame = frame(costSvg, [slopeDomain[0],slopeDomain[1],0,maxCost*1.1], ['x','J(x)'],
+      'Squared-error objective',
+      'The current slope is ' + numberText(currentSlope) + ' with error ' + numberText(cost(currentSlope)) +
+      '. The least-squares slope is ' + numberText(best) + ' with minimum error ' + numberText(cost(best)) + '.', 'cost');
+    const cput = costFrame.put, cx = costFrame.px, cy = costFrame.py;
+    const path = [];
+    for (let i=0; i<=180; i++) {
+      const x = slopeDomain[0] + (slopeDomain[1]-slopeDomain[0])*i/180;
+      path.push((i===0?'M':'L')+cx(x).toFixed(3)+','+cy(cost(x)).toFixed(3));
+    }
+    cput('path', {d:path.join(' '),fill:'none',stroke:'#0969da','stroke-width':2.3});
+    cput('line', {x1:cx(best),x2:cx(best),y1:cy(0),y2:cy(cost(best)),stroke:'#13786d','stroke-width':1.3,'stroke-dasharray':'3 4'});
+    cput('circle', {cx:cx(best),cy:cy(cost(best)),r:6,fill:'#fff',stroke:'#13786d','stroke-width':2});
+    cput('line', {x1:cx(currentSlope),x2:cx(currentSlope),y1:cy(0),y2:cy(cost(currentSlope)),stroke:'#0969da','stroke-width':1.1,'stroke-dasharray':'3 4'});
+    cput('circle', {cx:cx(currentSlope),cy:cy(cost(currentSlope)),r:4.4,fill:'#0969da',stroke:'#fff','stroke-width':1.2});
+    costSvg.dataset.slope = String(currentSlope);
+    costSvg.dataset.error = String(cost(currentSlope));
+    costSvg.dataset.optimum = String(best);
+
+    const residuals = times.map(function (t,i) { return t*currentSlope-observationValues[i]; });
+    residualVector.replaceChildren();
+    residuals.forEach(function (value) {
+      const row = document.createElement('div'); row.className='mat-row';
+      const cell = document.createElement('div'); cell.className='mat-cell'; cell.textContent=numberText(value);
+      row.appendChild(cell); residualVector.appendChild(row);
+    });
+    residualVector.dataset.values = JSON.stringify(residuals);
+    document.getElementById('residual-cost').textContent=numberText(cost(currentSlope));
+    const derivative=58*(currentSlope-best);
+    document.getElementById('cost-derivative').textContent=numberText(derivative);
+  }
+
+  function refresh(adjustRange) {
+    if (!validate()) return;
+    const best=optimum();
+    if (adjustRange) {
+      const lower=Math.min(0,best,currentSlope), upper=Math.max(1,best,currentSlope);
+      const width=Math.max(upper-lower,1);
+      slopeDomain=[Math.max(-maximumInput,lower-0.3*width),Math.min(maximumInput,upper+0.3*width)];
+      slider.min=String(slopeDomain[0]); slider.max=String(slopeDomain[1]);
+      const verticalValues=observationValues.concat([0,4.5*slopeDomain[0],4.5*slopeDomain[1]]);
+      const ymin=Math.min.apply(null,verticalValues), ymax=Math.max.apply(null,verticalValues);
+      const pad=Math.max(0.08*(ymax-ymin),0.5);
+      positionDomain=[ymin-pad,ymax+pad];
+    }
+    slider.value=String(currentSlope);
+    document.getElementById('optimal-slope').textContent=numberText(best);
+    document.getElementById('current-cost').textContent=numberText(cost(currentSlope));
+    document.getElementById('minimum-cost').textContent=numberText(cost(best));
+    const atMinimum=Math.abs(currentSlope-best)<=1e-10*Math.max(1,Math.abs(best));
+    const exact=cost(best)<=1e-20*Math.max(1,observationValues.reduce(function(s,v){return s+v*v;},0));
+    status.textContent=atMinimum?
+      (exact?'At the minimum: all three residuals vanish, so the fitted line passes through every observation.':'At the minimum: the residuals give the smallest total squared error and the derivative is zero.'):
+      'The two plots use the same slope. Move it to compare the fitted line with the height of J(x).';
+    draw();
+  }
+  obsInputs.forEach(function(input){input.addEventListener('input',function(){refresh(true);});});
+  slopeInput.addEventListener('input',function(){refresh(true);});
+  slider.addEventListener('input',function(){slopeInput.value=slider.value;refresh(false);});
+  document.getElementById('set-optimum').addEventListener('click',function(){
+    if(!validate())return;
+    slopeInput.value=String(optimum());refresh(false);
+  });
+  function preset(values) {
+    obsInputs.forEach(function(input,i){input.value=String(values[i]);});
+    slopeInput.value='2';refresh(true);
+  }
+  document.getElementById('example-exact').addEventListener('click',function(){preset([4,6,8]);});
+  document.getElementById('example-inconsistent').addEventListener('click',function(){preset([4,6,0]);});
+  refresh(true);
+
+})();
+</script>
+<script id="visual-interactions">/* Interactive companions for the equations already developed in the notes. */
+(function () {
+  'use strict';
+  const $ = function (id) { return document.getElementById(id); };
+  const ns = 'http://www.w3.org/2000/svg';
+  const n = 5;
+  let mathQueue = Promise.resolve();
+
+  /** Replace a displayed equation and serialize MathJax updates after initial loading. */
+  function equation(id, tex) {
+    const el = $(id);
+    if (el.dataset.tex === tex) return;
+    el.dataset.tex = tex;
+    const raw = '\\[' + tex + '\\]';
+    if (!window.MathJax || !window.MathJax.typesetPromise) {
+      el.textContent = raw;
+      return;
+    }
+    mathQueue = mathQueue.then(function () {
+      return window.MathJax.startup.promise;
+    }).then(function () {
+      if (el.dataset.tex !== tex) return;
+      window.MathJax.typesetClear([el]);
+      el.textContent = raw;
+      return window.MathJax.typesetPromise([el]);
+    }).catch(function (error) {
+      console.warn('Equation rendering:', error);
+    });
+  }
+  function matrix(rows, label) {
+    const root = document.createElement('div');
+    root.setAttribute('role', 'table');
+    if (label) root.setAttribute('aria-label', label);
+    rows.forEach(function (values) {
+      const row = document.createElement('div');
+      row.className = 'mat-row';
+      row.style.setProperty('--cols', values.length);
+      row.setAttribute('role', 'row');
+      values.forEach(function (value) {
+        const cell = document.createElement('div');
+        cell.className = 'mat-cell';
+        cell.setAttribute('role', 'cell');
+        if (typeof value === 'number' && value === 0) cell.classList.add('zero');
+        if (value && typeof value === 'object' && 'html' in value) {
+          cell.innerHTML = '<span class="matrix-math">' + value.html + '</span>';
+          if (value.label) cell.setAttribute('aria-label', value.label);
+        } else {
+          cell.textContent = String(value);
+        }
+        row.appendChild(cell);
+      });
+      root.appendChild(row);
+    });
+    return root;
+  }
+  function putMatrix(id, rows, label) {
+    const el = $(id), content = matrix(rows, label);
+    el.replaceChildren.apply(el, Array.from(content.children));
+    el.setAttribute('role', 'table');
+    if (label) el.setAttribute('aria-label', label);
+    return Array.from(el.children).map(function (row) { return Array.from(row.children); });
+  }
+  function frac(a, b) {
+    if (b === 1) return a;
+    if (a === 0) return 0;
+    return {html:(a < 0 ? '<span class="fraction-sign">−</span>' : '') +
+      '<span class="fraction"><span class="numerator">'+Math.abs(a)+'</span><span class="denominator">'+b+'</span></span>',
+      label:(a < 0 ? 'minus ' : '') + Math.abs(a) + ' over ' + b};
+  }
+  function symbol(letter, subscript) {
+    return {html:'<var>'+letter+'</var><sub>'+subscript+'</sub>',label:letter+' '+subscript};
+  }
+  function baseMatrix() {
+    return Array.from({length:n}, function (_, i) {
+      return Array.from({length:n}, function (_, j) { return i === j ? 2 : Math.abs(i-j) === 1 ? -1 : 0; });
+    });
+  }
+  function s(tag, attrs, text, parent) {
+    const el = document.createElementNS(ns, tag);
+    Object.keys(attrs || {}).forEach(function (key) { el.setAttribute(key, attrs[key]); });
+    if (text !== undefined) el.textContent = text;
+    parent.appendChild(el);
+    return el;
+  }
+
+  // Grid points, local equations, and rows of the finite-difference system.
+  const nodeRoot = $('grid-nodes');
+  for (let j=0; j<=n+1; j++) {
+    const node = document.createElement('div'); node.className='grid-node'; node.dataset.index=j;
+    const position = document.createElement('div'); position.className='grid-x';
+    position.innerHTML='<var>x</var><sub>'+j+'</sub>';
+    const dot = document.createElement(j===0 || j===n+1 ? 'span' : 'button');
+    dot.className='grid-dot'+(j===0 || j===n+1 ? ' boundary' : '');
+    dot.textContent=String(j);
+    if (dot.tagName==='BUTTON') {
+      dot.type='button';
+      dot.setAttribute('aria-label','Select the equation at interior point x '+j);
+      dot.addEventListener('click',function(){selectGrid(j);});
+    } else {
+      dot.setAttribute('aria-label',j===0?'Left boundary':'Right boundary');
+    }
+    const value=document.createElement('div'); value.className='grid-u';
+    value.innerHTML='<var>u</var><sub>'+j+'</sub>'+(j===0?' = α':j===n+1?' = β':'');
+    node.append(position,dot,value); nodeRoot.appendChild(node);
+  }
+  function selectGrid(j) {
+    $('grid-matrix-demo').dataset.selected=String(j);
+    Array.from(nodeRoot.children).forEach(function(node){
+      const q=Number(node.dataset.index);
+      node.classList.remove('role-left','role-center','role-right');
+      if(q===j-1)node.classList.add('role-left');
+      if(q===j)node.classList.add('role-center');
+      if(q===j+1)node.classList.add('role-right');
+      const btn=node.querySelector('button');
+      if(btn)btn.setAttribute('aria-pressed',String(q===j));
+    });
+    const a=putMatrix('grid-coefficients',baseMatrix(),'Coefficient matrix A 5; selected row '+j);
+    a[j-1][0].parentElement.classList.add('selected-row');
+    for(let c=0;c<n;c++) {
+      const offset=c+1-j;
+      if(Math.abs(offset)<=1)a[j-1][c].classList.add(offset===-1?'role-left':offset===0?'role-center':'role-right');
+    }
+    const u=putMatrix('grid-unknowns',Array.from({length:n},function(_,i){return [symbol('u',i+1)];}),'Interior unknown values');
+    for(let c=0;c<n;c++) {
+      const offset=c+1-j;
+      if(Math.abs(offset)<=1)u[c][0].classList.add(offset===-1?'role-left':offset===0?'role-center':'role-right');
+    }
+    const rhs=Array.from({length:n},function(_,i){
+      let html='<var>h</var><sup>2</sup><var>f</var>(<var>x</var><sub>'+(i+1)+'</sub>)';
+      if(i===0)html+='<span class="boundary-term alpha"> + α</span>';
+      if(i===n-1)html+='<span class="boundary-term beta"> + β</span>';
+      return [{html:html}];
+    });
+    const b=putMatrix('grid-rhs',rhs,'Right-hand side with boundary values');
+    b[j-1][0].parentElement.classList.add('selected-row');
+    const left=j===1?'\\alpha':'u_{'+(j-1)+'}';
+    const right=j===n?'\\beta':'u_{'+(j+1)+'}';
+    equation('grid-local-equation','{\\color{#9A5700}{-'+left+'}}+{\\color{#0969da}{2u_{'+j+'}}}-{\\color{#13786d}{'+right+'}}=h^2f(x_{'+j+'}).');
+    $('grid-boundary-equation').hidden=j!==1 && j!==n;
+    if(j===1) {
+      equation('grid-boundary-equation','\\Longrightarrow\\quad 2u_1-u_2=h^2f(x_1)+{\\color{#9A5700}{\\alpha}}.');
