@@ -998,3 +998,196 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
     $('grid-boundary-equation').hidden=j!==1 && j!==n;
     if(j===1) {
       equation('grid-boundary-equation','\\Longrightarrow\\quad 2u_1-u_2=h^2f(x_1)+{\\color{#9A5700}{\\alpha}}.');
+      $('grid-matrix-status').textContent='Row 1 uses the known left boundary u₀ = α. Moving that term to the right leaves two unknowns in this row of A₅.';
+    } else if(j===n) {
+      equation('grid-boundary-equation','\\Longrightarrow\\quad -u_4+2u_5=h^2f(x_5)+{\\color{#13786d}{\\beta}}.');
+      $('grid-matrix-status').textContent='Row 5 uses the known right boundary u₆ = β. Moving that term to the right leaves two unknowns in this row of A₅.';
+    } else {
+      $('grid-matrix-status').textContent='Row '+j+' couples u'+['₀','₁','₂','₃','₄','₅','₆'][j-1]+', u'+['₀','₁','₂','₃','₄','₅','₆'][j]+' and u'+['₀','₁','₂','₃','₄','₅','₆'][j+1]+'. The three nonzero coefficients occupy the subdiagonal, diagonal and superdiagonal.';
+    }
+  }
+  selectGrid(3);
+
+  // Exact rational entries of the five-point tridiagonal elimination.
+  let luStep=1;
+  function luMatrices(step) {
+    const work=baseMatrix();
+    const workNumeric=baseMatrix();
+    const lower=Array.from({length:n},function(_,i){return Array.from({length:n},function(_,j){return i===j?1:0;});});
+    const lowerNumeric=lower.map(function(row){return row.slice();});
+    for(let k=1;k<=step;k++) {
+      work[k][k-1]=0;
+      work[k][k]=frac(k+2,k+1);
+      workNumeric[k][k-1]=0;
+      workNumeric[k][k]=(k+2)/(k+1);
+      lower[k][k-1]=frac(-k,k+1);
+      lowerNumeric[k][k-1]=-k/(k+1);
+    }
+    return {work:work,lower:lower,workNumeric:workNumeric,lowerNumeric:lowerNumeric};
+  }
+  function drawPattern(id,k,isDense) {
+    const svg=$(id); svg.replaceChildren();
+    s('title',{},isDense?'Dense update at step '+k:'Tridiagonal update at step '+k,svg);
+    s('desc',{},isDense?'The trailing '+(n-k)+' by '+(n-k)+' block is updated.':'Only the next diagonal entry is updated in the trailing block.',svg);
+    const pivot=k-1, cell=28, gap=3, origin=6;
+    for(let i=0;i<n;i++)for(let j=0;j<n;j++) {
+      const updated=isDense ? i>=k && j>=k : i===k && j===k;
+      const nonzero=isDense ? !(i>j && j<pivot) : i===j || j===i+1 || (i===j+1 && j>=pivot);
+      const x=origin+j*(cell+gap),y=origin+i*(cell+gap);
+      const isPivot=i===pivot&&j===pivot;
+      s('rect',{x:x,y:y,width:cell,height:cell,rx:2,fill:updated?'#ddf0ff':'#fff',stroke:isPivot?'#0969da':updated?'#7eb5e6':'#d9e1e8','stroke-width':isPivot?2:1},undefined,svg);
+      if(nonzero)s('circle',{cx:x+cell/2,cy:y+cell/2,r:2.1,fill:updated?'#0969da':'#89929b'},undefined,svg);
+    }
+  }
+  function refreshLU() {
+    const values=luMatrices(luStep);
+    const work=putMatrix('lu-working',values.work,'Current tridiagonal matrix after '+luStep+' elimination steps');
+    const lower=putMatrix('lu-lower',values.lower,'Lower factor multipliers after '+luStep+' elimination steps');
+    $('lu-working').dataset.values=JSON.stringify(values.workNumeric);
+    $('lu-lower').dataset.values=JSON.stringify(values.lowerNumeric);
+    $('tridiagonal-demo').dataset.step=String(luStep);
+    $('lu-step-count').textContent=luStep+' / '+(n-1);
+    $('lu-prev').disabled=luStep===0;
+    $('lu-next').disabled=luStep===n-1;
+    $('lu-complete').disabled=luStep===n-1;
+    $('lu-work-label').textContent=luStep===n-1?'U: completed upper factor':luStep===0?'A₅: before elimination':'Current matrix after step '+luStep;
+    $('lu-lower-label').textContent=luStep===n-1?'L: completed lower factor':'L: multipliers stored so far';
+    if(luStep===0) {
+      work[0][0].classList.add('role-center','active-pivot');
+      work[1][0].classList.add('role-left');
+      equation('lu-operation','\\ell_{21}=\\frac{-1}{2}=-\\frac12.');
+      $('lu-status').textContent='The first pivot is 2. Its only nonzero entry below it is −1, so the first multiplier is −1/2. Select Next to apply that row operation.';
+    } else {
+      const k=luStep;
+      work[k-1][k-1].classList.add('role-center');
+      work[k][k].classList.add('role-center','active-pivot');
+      work[k][k-1].classList.remove('zero');
+      work[k][k-1].classList.add('eliminated');
+      lower[k][k-1].classList.add('role-left');
+      equation('lu-operation','R_{'+(k+1)+'}\\leftarrow R_{'+(k+1)+'}+\\frac{'+k+'}{'+(k+1)+'}R_{'+k+'},\\qquad \\ell_{'+(k+1)+','+k+'}=-\\frac{'+k+'}{'+(k+1)+'}.');
+      $('lu-status').textContent='Step '+k+': the subdiagonal entry becomes zero and the next diagonal is '+(k+2)+'/'+(k+1)+'. L stores the multiplier −'+k+'/'+(k+1)+'.'+(k===n-1?' All four subdiagonal entries are now eliminated, and A₅ = LU.':'');
+    }
+    const shown=Math.max(1,luStep),r=n-shown;
+    $('work-step-label').textContent='At pivot stage '+shown+', '+r+' row'+(r===1?'':'s')+' and '+r+' column'+(r===1?'':'s')+' remain below and to the right of the pivot.';
+    $('dense-work-count').textContent=r+' × '+r+' = '+(r*r)+' coefficient'+(r*r===1?'':'s');
+    $('tridiagonal-work-count').textContent='1 diagonal coefficient';
+    drawPattern('dense-pattern',shown,true);
+    drawPattern('tridiagonal-pattern',shown,false);
+  }
+  $('lu-prev').addEventListener('click',function(){luStep=Math.max(0,luStep-1);refreshLU();});
+  $('lu-next').addEventListener('click',function(){luStep=Math.min(n-1,luStep+1);refreshLU();});
+  $('lu-reset').addEventListener('click',function(){luStep=0;refreshLU();});
+  $('lu-complete').addEventListener('click',function(){luStep=n-1;refreshLU();});
+  refreshLU();
+
+  // A schematic space-time grid: no particular time-stepping scheme is assumed.
+  function drawSpaceTime() {
+    const svg=$('space-time-plot'); svg.replaceChildren();
+    const compact=svg.clientWidth<560;
+    const width=compact?Math.max(320,svg.clientWidth):720;
+    svg.setAttribute('viewBox','0 0 '+width+' 354');
+    const put=function(tag,attrs,text,parent){return s(tag,attrs,text,parent||svg);};
+    put('title',{id:'space-time-title'},'Spatial profiles at successive time levels');
+    put('desc',{id:'space-time-desc'},'A vertical column at time t k contains the spatial profile. Its interior values form vector u k. A horizontal pair at x j contains u j k and u j k plus one. The initial column is given by g(x).');
+    const xs=compact?[76,(76+width-40)/2,width-40]:[145,285,425,565];
+    const kinds=compact?[0,2,3]:[0,1,2,3];
+    const left=compact?57:110, right=compact?width-23:620;
+    const axisLabelX=compact?45:94;
+    const profileX=xs[kinds.indexOf(2)], nextX=xs[kinds.indexOf(3)];
+    const top=66,bottom=276,dy=(bottom-top)/6;
+    const py=function(j){return bottom-j*dy;};
+    put('rect',{x:xs[0]-18,y:top-13,width:36,height:bottom-top+26,rx:7,fill:'#e7f5ef'});
+    put('rect',{x:profileX-18,y:py(5)-13,width:36,height:py(1)-py(5)+26,rx:7,fill:'#e7f2fd'});
+    for(let j=0;j<=6;j++) {
+      put('line',{x1:left,x2:right,y1:py(j),y2:py(j),stroke:j===3?'#d6aa6b':'#e0e6eb','stroke-dasharray':j===3?'4 4':'2 4'});
+      put('text',{x:axisLabelX,y:py(j)+4,'text-anchor':'end'},['x₀','x₁','x₂','xⱼ','x₄','x₅','x₆'][j]);
+    }
+    xs.forEach(function(x,idx){
+      const k=kinds[idx];
+      put('line',{x1:x,x2:x,y1:top,y2:bottom,stroke:'#d9e1e8'});
+      for(let j=0;j<=6;j++) {
+        const selectedPair=j===3&&(k===2||k===3);
+        const fill=selectedPair?'#fff1d5':k===2&&j>0&&j<6?'#0969da':k===0?'#13786d':'#fff';
+        put('circle',{cx:x,cy:py(j),r:selectedPair?5.7:3.7,fill:fill,stroke:selectedPair?'#9a5700':k===2?'#0969da':k===0?'#13786d':'#89929b','stroke-width':selectedPair?1.8:1.3});
+      }
+      put('text',{x:x,y:bottom+30,'text-anchor':'middle'},['t₀ = 0','t₁','tₖ','tₖ₊₁'][k]);
+    });
+    put('text',{x:xs[0],y:28,'text-anchor':'middle',class:'initial-label'},'Initial profile');
+    put('text',{x:xs[0],y:47,'text-anchor':'middle',class:'initial-label'},'g(x)');
+    put('text',{x:profileX,y:28,'text-anchor':'middle',class:'profile-label'},'Spatial profile');
+    put('text',{x:profileX,y:47,'text-anchor':'middle',class:'profile-label','font-weight':'600'},'uᵏ');
+    const defs=put('defs',{});
+    const marker=put('marker',{id:'time-difference-arrow',viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:6,markerHeight:6,orient:'auto'},undefined,defs);
+    put('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#9a5700'},undefined,marker);
+    put('line',{x1:profileX+10,x2:nextX-12,y1:py(3),y2:py(3),stroke:'#9a5700','stroke-width':1.6,'marker-end':'url(#time-difference-arrow)'});
+    put('text',{x:profileX,y:py(3)-17,'text-anchor':'middle',class:'pair-label'},'uⱼᵏ');
+    put('text',{x:nextX,y:py(3)-17,'text-anchor':'middle',class:'pair-label'},'uⱼᵏ⁺¹');
+    put('text',{x:(profileX+nextX)/2,y:py(3)+25,'text-anchor':'middle',class:'pair-label'},'fixed xⱼ');
+    if(!compact)put('text',{x:631,y:bottom+30,fill:'#89929b'},'…');
+    put('line',{x1:left,x2:compact?width-18:650,y1:bottom+45,y2:bottom+45,stroke:'#a8b3bd'});
+    put('text',{x:compact?width-9:657,y:bottom+49,'font-style':'italic'},'t');
+    put('text',{x:axisLabelX,y:43,'text-anchor':'end','font-style':'italic'},'x');
+  }
+  drawSpaceTime();
+  if(window.ResizeObserver) {
+    const profileResize=new ResizeObserver(function(){drawSpaceTime();});
+    profileResize.observe($('space-time-plot'));
+  } else {
+    window.addEventListener('resize',drawSpaceTime);
+  }
+
+  // Select entries of the normal equations and trace them to the input columns.
+  function makeProductButtons(id,rows,cols,kind) {
+    const el=$(id); el.replaceChildren();
+    for(let i=1;i<=rows;i++) {
+      const row=document.createElement('div');row.className='mat-row';row.style.setProperty('--cols',cols);
+      for(let j=1;j<=cols;j++) {
+        const cell=document.createElement('div');cell.className='mat-cell';
+        const btn=document.createElement('button');btn.type='button';
+        btn.dataset.kind=kind;btn.dataset.row=i;btn.dataset.col=j;
+        btn.textContent='('+i+', '+j+')';
+        btn.setAttribute('aria-label',(kind==='gram'?'A transpose A':'A transpose y')+', row '+i+', column '+j);
+        btn.addEventListener('click',function(){selectProduct(kind,i,j);});
+        cell.appendChild(btn);row.appendChild(cell);
+      }
+      el.appendChild(row);
+    }
+  }
+  makeProductButtons('normal-gram',3,3,'gram');
+  makeProductButtons('normal-rhs',3,1,'rhs');
+  function colored(value,color) {return '{\\color{'+color+'}{'+value+'}}';}
+  function selectProduct(kind,row,col) {
+    const root=$('normal-product-demo');root.dataset.kind=kind;root.dataset.row=row;root.dataset.col=col;
+    root.querySelectorAll('button[data-kind]').forEach(function(btn){
+      btn.setAttribute('aria-pressed',String(btn.dataset.kind===kind&&Number(btn.dataset.row)===row&&Number(btn.dataset.col)===col));
+    });
+    const a=putMatrix('normal-A',Array.from({length:7},function(_,i){return Array.from({length:3},function(_,j){return symbol('a',String(i+1)+String(j+1));});}),'Seven by three design matrix');
+    const y=putMatrix('normal-y',Array.from({length:7},function(_,i){return [symbol('y',i+1)];}),'Seven observations');
+    for(let i=0;i<7;i++) {
+      a[i][row-1].classList.add('role-center');
+      if(kind==='gram'&&col!==row)a[i][col-1].classList.add('role-left');
+      if(kind==='rhs')y[i][0].classList.add('role-left');
+    }
+    let summand,expanded=[];
+    const color2=kind==='gram'&&row===col?'#0969da':'#9A5700';
+    if(kind==='gram') {
+      summand=colored('a_{i'+row+'}','#0969da')+'\\,'+colored('a_{i'+col+'}',color2);
+      equation('normal-product-equation','(A^TA)_{'+row+col+'}=\\sum_{i=1}^{7}'+summand);
+      [1,2,7].forEach(function(i){expanded.push(colored('a_{'+i+row+'}','#0969da')+'\\,'+colored('a_{'+i+col+'}',color2));});
+      equation('normal-product-expansion','= '+expanded[0]+'+'+expanded[1]+'+\\cdots+'+expanded[2]+'.');
+      $('normal-product-status').textContent=row===col?
+        'This diagonal entry pairs column '+row+' with itself, adding its seven squared entries. It becomes one diagonal coefficient of the square normal-equation system.':
+        'Entry ('+row+', '+col+') pairs column '+row+' with column '+col+'. Summing the seven row-wise products gives one coefficient of the square normal-equation system.';
+    } else {
+      summand=colored('a_{i'+row+'}','#0969da')+'\\,'+colored('y_i','#9A5700');
+      equation('normal-product-equation','(A^T\\mathbf y)_{'+row+'}=\\sum_{i=1}^{7}'+summand);
+      [1,2,7].forEach(function(i){expanded.push(colored('a_{'+i+row+'}','#0969da')+'\\,'+colored('y_{'+i+'}','#9A5700'));});
+      equation('normal-product-expansion','= '+expanded[0]+'+'+expanded[1]+'+\\cdots+'+expanded[2]+'.');
+      $('normal-product-status').textContent='Right-hand-side entry '+row+' pairs column '+row+' of A with the observation vector y. All seven observations contribute to this one entry.';
+    }
+  }
+  selectProduct('gram',1,2);
+  document.documentElement.dataset.visualsReady='true';
+})();
+</script></body>
+</html>
