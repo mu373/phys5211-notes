@@ -422,7 +422,7 @@ d_j=a-\frac{r^2}{d_{j-1}},\quad j=2,\ldots,5.\]</div>
 <p>The resulting \(\mathbf u^{k+1}\) becomes the current profile for the next step. <strong>Factorization happens once; the two triangular solves repeat at each time step.</strong> With storage and operations that use the tridiagonal structure, the factorization and each pair of solves take \(O(n)\) work for \(n\) interior samples.</p>
 
 <details class="supplement" id="pde-worked-steps">
-<summary>Worked example: the first time step and why there are 36 steps</summary>
+<summary>Step calculation</summary>
 <p>Use the \(r=1\) factors above, with no internal heating, \(f=0\), and both ends held at zero, \(\alpha=\beta=0\). The right-hand side is then simply \(\mathbf b^k=\mathbf u^k\). Start with the same initial profile as the figure, \(g(x)=\sin(\pi x)\), sampled at the five interior positions:</p>
 <div class="eq">\[\mathbf u^0=\begin{pmatrix}\frac12\\\frac{\sqrt3}{2}\\1\\\frac{\sqrt3}{2}\\\frac12\end{pmatrix}.\]</div>
 <h4>Forward substitution</h4>
@@ -450,7 +450,7 @@ d_j=a-\frac{r^2}{d_{j-1}},\quad j=2,\ldots,5.\]</div>
 </details>
 
 <details class="supplement" id="pde-python">
-<summary>Python calculation: reuse one LU factorization for 36 time steps</summary>
+<summary>Python</summary>
 <p>This code reproduces the worked example using NumPy and SciPy. <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lu_factor.html" rel="noopener noreferrer" target="_blank"><code>lu_factor</code></a> computes the factors once, outside the loop; <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lu_solve.html" rel="noopener noreferrer" target="_blank"><code>lu_solve</code></a> uses them to solve for the next temperatures. SciPy also handles row pivoting; no row swaps are needed for this matrix.</p>
 <pre class="language-python"><code class="language-python">import numpy as np
 from scipy.linalg import lu_factor, lu_solve
