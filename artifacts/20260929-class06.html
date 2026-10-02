@@ -106,12 +106,13 @@ window.MathJax = {
 #grid-nodes{margin:24px 0 14px;gap:4px}
 #grid-nodes:before{top:36px;height:22px;left:7%;right:7%;border:1px solid #a9b3be;border-radius:0;background:var(--rod-gradient)}
 #grid-nodes .grid-x{height:22px;margin-bottom:14px;font-size:12px}
-#grid-nodes .grid-dot{width:22px;height:22px;min-height:22px;padding:0;background:var(--sample-temperature);border:1px solid #59636e}
-#grid-nodes .boundary{border-style:dashed}
+#grid-nodes .grid-dot{width:22px;height:22px;min-height:22px;padding:0;background:transparent;border:0}
+#grid-nodes .grid-dot:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--sample-temperature);border:1px solid #59636e;box-sizing:border-box}
+#grid-nodes button.grid-dot:hover:before{border-color:#1f2328}
 #grid-nodes .grid-u{margin-top:14px;font-size:14px}
-#grid-nodes .role-left .grid-dot{outline:2px solid #9a5700;outline-offset:4px}
-#grid-nodes .role-center .grid-dot{outline:3px solid #0969da;outline-offset:4px}
-#grid-nodes .role-right .grid-dot{outline:2px solid #13786d;outline-offset:4px}
+#grid-nodes .role-left .grid-dot:before{border-color:#9a5700;border-width:1.5px}
+#grid-nodes .role-center .grid-dot:before{width:11px;height:11px;border:2px solid #0969da}
+#grid-nodes .role-right .grid-dot:before{border-color:#13786d;border-width:1.5px}
 .temperature-key{display:flex;align-items:center;justify-content:center;gap:10px;font-size:12px;color:#424a53;margin:12px 0}
 .temperature-ramp{display:inline-block;width:140px;max-width:32%;height:12px;border-radius:0;background:linear-gradient(to right,#fef3c7,#fde047,#fdba74,#f97316,#b91c1c)}
 .temperature-example{font-size:12px;line-height:1.7;color:#59636e;margin:12px 0 16px}
