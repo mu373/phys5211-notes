@@ -71,6 +71,7 @@ footer{border-top:1px solid #d1d9e0;margin-top:34px;padding-top:15px;font-size:1
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 @media print{@page{margin:18mm}body{font-size:10.5pt;line-height:1.5}main{margin:0;padding:0;max-width:none}.print,.contents,.skip,.no-print,.controls,.coeff-grid,.presets{display:none!important}h1{font-size:22pt}h2{font-size:17pt;margin-top:28px}h3{font-size:13pt}h1,h2,h3,h4{break-after:avoid}.eq,tr,.plot-panel,.figure,.row-calculation{break-inside:avoid}.eq{overflow:visible;font-size:.92em}th,td{font-size:9pt;padding:6px}.visual{padding:12px;background:#fff;break-inside:auto}.plot-grid{grid-template-columns:1fr 1fr}.result-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.result{padding:8px}.result-value{font-size:11pt}.small,.scope,.visual-caption{font-size:9pt}a{color:#222}details{background:#fff;break-inside:auto}summary{color:#222}pre,pre code{white-space:pre-wrap;font-size:8.8pt}.table-wrap{overflow:visible}.fit-table button{border:0;padding:0;min-height:0}.matrix-layout{grid-template-columns:1.2fr 1fr}.matrix-readout{padding:10px}.matrix-readout p{font-size:10pt}.figure{max-width:145mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 
+.course-name a{color:inherit}
 </style>
 <style id="revision-styles">
 .formula-block{margin:6px 0 22px}
@@ -222,7 +223,7 @@ footer{border-top:1px solid #d1d9e0;margin-top:34px;padding-top:15px;font-size:1
 <a class="skip" href="#main">Skip to notes</a>
 <main id="main">
 <header>
-<p class="course-name">Introduction to Scientific Computing in the Era of AI</p>
+<p class="course-name"><a href="/">Introduction to Scientific Computing in the Era of AI</a></p>
 <div class="topline"><p class="meta">PHYS5211 · Class 7 · October 1, 2026</p><button class="print" id="print-note" type="button">Print / PDF</button></div>
 <h1>Least squares and basis functions</h1>
 <p>Linear systems provide a common language for solving differential equations and fitting data. <strong>In a least-squares fit, the unknowns are coefficients</strong>: first a single slope, then the weights of polynomial or sinusoidal terms. Writing these fits in terms of basis functions reveals their shared geometry and leads back to differential equations, where an unknown solution can also be represented by its coefficients.</p>
@@ -736,7 +737,7 @@ A.T @ residual is approximately zero: True</code></pre><p>The three coefficients
 <section id="discussion"><h2>8. Next topics</h2>
 <p id="qr-preview"><strong>QR factorization.</strong> The role of orthogonality leads to an alternative way of solving least-squares problems, using norm-preserving transformations. The construction of the QR factors and their numerical behavior are the next topic.</p>
 <p><strong>Gaussian processes.</strong> The function-approximation viewpoint also raises a related question: how does a finite basis representation connect to a probabilistic model over functions?</p></section>
-<footer><div class="footer-row"><span>PHYS5211 · Class 7 · October 1, 2026</span><a href="#main">Back to top</a></div></footer>
+<footer><div class="footer-row"><span>PHYS5211 · Class 7 · October 1, 2026</span><span><a href="/">Back to all notes</a> · <a href="#main">Back to top</a></span></div></footer>
 </main>
 <script>
 (function () {

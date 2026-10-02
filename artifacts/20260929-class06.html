@@ -69,6 +69,7 @@ footer{border-top:1px solid #d1d9e0;margin-top:34px;padding-top:15px;font-size:1
 .rectangular-system{margin:24px 0}
 .model-figure figcaption{font-size:13px;color:#59636e;text-align:left;line-height:1.6;margin-top:10px}
 @media print{.model-figure{break-inside:avoid;max-width:150mm}}
+.course-name a{color:inherit}
 </style>
 <script>
 window.MathJax = {
@@ -123,7 +124,7 @@ window.MathJax = {
 <a class="skip" href="#main">Skip to notes</a>
 <main id="main">
 <header>
-<p class="course-name">Introduction to Scientific Computing in the Era of AI</p>
+<p class="course-name"><a href="/">Introduction to Scientific Computing in the Era of AI</a></p>
 <div class="topline"><p class="meta">PHYS5211 · Class 6 · September 29, 2026</p><button class="print" id="print-note" type="button">Print / PDF</button></div>
 <h1>Linear systems and least squares</h1>
 <p>Linear systems connect the numerical solution of differential equations with the fitting of data. Gaussian elimination supplies a common computational tool: first for values on a spatial grid, then for coefficients in a least-squares model. Following these two applications shows how the structure of a problem determines both the calculation and its cost.</p>
@@ -743,7 +744,7 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
 <li><strong>Extensions.</strong> How can the same formulation be used for interpolation and Fourier decomposition?</li>
 </ul>
 </section>
-<footer><div class="footer-row"><span>PHYS5211 · Class 6 · September 29, 2026</span><a href="#main">Back to top</a></div></footer>
+<footer><div class="footer-row"><span>PHYS5211 · Class 6 · September 29, 2026</span><span><a href="/">Back to all notes</a> · <a href="#main">Back to top</a></span></div></footer>
 </main>
 <script>
 (function () {
