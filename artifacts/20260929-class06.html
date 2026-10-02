@@ -370,9 +370,128 @@ U=\begin{pmatrix}
 \frac{u_j^{k+1}-u_j^k}{\Delta t}.\]</div>
 <p>Keeping \(j\) fixed isolates time change. Within a single rod, keeping \(k\) fixed instead lets us compare neighboring positions for the spatial second difference. These two comparisons approximate the two derivatives in the heat equation.</p>
 
-<h3>Time evolution</h3>
-<p>Combining these differences gives a calculation for advancing the temperature profile from one time level to the next. With an implicit time-stepping method, the new temperatures satisfy a linear system. If the spatial grid, material properties, and time step stay fixed, its coefficient matrix can stay the same while the right-hand side changes with the preceding temperatures and source.</p>
-<p>This brings us back to LU factorization: factor the fixed matrix once, then use triangular substitution for each new right-hand side. The steady problem finds one temperature profile; the evolving problem repeatedly computes profiles at successive times. The time-stepping method determines the precise matrix used in those solves.</p>
+<h3 id="pde-time-step">From the derivative approximations to one time step</h3>
+<p>The time difference above is the starting point. On its own, it does not determine the next temperature: the heat equation tells us how heat exchange and the source produce that change. To close the calculation, choose <strong>backward Euler</strong>: evaluate the spatial second difference and the source at the new time \(t_{k+1}\). Substituting both approximations into the heat equation gives</p>
+<div class="eq">\[\underbrace{\frac{u_j^{k+1}-u_j^k}{\Delta t}}_{\text{time difference}}
+=\kappa\underbrace{\frac{u_{j-1}^{k+1}-2u_j^{k+1}+u_{j+1}^{k+1}}{h^2}}_{\text{spatial second difference}}
++f(x_j,t_{k+1}).\]</div>
+<p>The current temperatures \(u_j^k\) are known; the new temperatures \(u_j^{k+1}\) are unknown. Define \(r=\kappa\Delta t/h^2\), multiply by \(\Delta t\), and collect the unknowns on the left:</p>
+<div class="eq">\[-r u_{j-1}^{k+1}+(1+2r)u_j^{k+1}-r u_{j+1}^{k+1}
+=u_j^k+\Delta t\,f(x_j,t_{k+1}).\]</div>
+<p>As in the steady problem, each equation connects only the left neighbor, the selected position, and the right neighbor. The difference is that these are now the temperatures of the <strong>next rod in time</strong>. Because neighboring new temperatures are unknown together, we solve their equations simultaneously.</p>
+
+<h3 id="pde-step-matrix">A matrix for the next temperature profile</h3>
+<p>For five interior samples, keep the endpoint temperatures fixed at \(u_0^k=\alpha\) and \(u_6^k=\beta\). Moving the known endpoint terms to the right gives</p>
+<div class="eq">\[M\mathbf u^{k+1}=\mathbf b^k,\qquad M=I_5+rA_5,\]</div>
+<div class="eq">\[M=\begin{pmatrix}
+1+2r&amp;-r&amp;0&amp;0&amp;0\\
+-r&amp;1+2r&amp;-r&amp;0&amp;0\\
+0&amp;-r&amp;1+2r&amp;-r&amp;0\\
+0&amp;0&amp;-r&amp;1+2r&amp;-r\\
+0&amp;0&amp;0&amp;-r&amp;1+2r
+\end{pmatrix},\]</div>
+<div class="eq">\[\mathbf b^k=
+\underbrace{\mathbf u^k}_{\text{current temperatures}}
++\underbrace{\Delta t\,\mathbf f^{k+1}}_{\text{internal heating}}
++\underbrace{r\begin{pmatrix}\alpha\\0\\0\\0\\\beta\end{pmatrix}}_{\text{endpoint temperatures}},
+\quad \mathbf f^{k+1}=\begin{pmatrix}f(x_1,t_{k+1})\\\vdots\\f(x_5,t_{k+1})\end{pmatrix}.\]</div>
+<p>The matrix \(A_5\) is the steady finite-difference matrix from Section 2. For this time step, the matrix to factor is \(M\). Its entries stay fixed when \(h\), \(\Delta t\), and \(\kappa\) stay fixed; the right-hand side changes as the temperature evolves.</p>
+
+<h3 id="pde-lu">Factor once, then reuse the factors</h3>
+<p>The same tridiagonal elimination produces \(M=LU\). Write \(a=1+2r\), let \(d_j\) be the diagonal entries of \(U\), and let \(\ell_{j,j-1}\) be the subdiagonal entries of the unit lower triangular factor \(L\). The elimination recurrence is</p>
+<div class="eq">\[d_1=a,\qquad
+\ell_{j,j-1}=\frac{-r}{d_{j-1}},\qquad
+d_j=a-\frac{r^2}{d_{j-1}},\quad j=2,\ldots,5.\]</div>
+<p>The superdiagonal of \(U\) remains \(-r\). To see actual factors, choose \(h=1/6\), \(\kappa=1\), and \(\Delta t=1/36\), so \(r=1\) and \(a=3\). The first row operation is \(R_2\leftarrow R_2+\tfrac13R_1\): it removes the first subdiagonal entry and changes the next diagonal to \(3-\tfrac13=\tfrac83\). Continuing gives</p>
+<div class="eq">\[L=\begin{pmatrix}
+1&amp;0&amp;0&amp;0&amp;0\\
+-\frac13&amp;1&amp;0&amp;0&amp;0\\
+0&amp;-\frac38&amp;1&amp;0&amp;0\\
+0&amp;0&amp;-\frac8{21}&amp;1&amp;0\\
+0&amp;0&amp;0&amp;-\frac{21}{55}&amp;1
+\end{pmatrix},\]</div>
+<div class="eq">\[U=\begin{pmatrix}
+3&amp;-1&amp;0&amp;0&amp;0\\
+0&amp;\frac83&amp;-1&amp;0&amp;0\\
+0&amp;0&amp;\frac{21}8&amp;-1&amp;0\\
+0&amp;0&amp;0&amp;\frac{55}{21}&amp;-1\\
+0&amp;0&amp;0&amp;0&amp;\frac{144}{55}
+\end{pmatrix}.\]</div>
+<p>Now advance one time level by building \(\mathbf b^k\), solving from top to bottom with \(L\), and then from bottom to top with \(U\):</p>
+<div class="eq">\[L\mathbf z=\mathbf b^k,\qquad U\mathbf u^{k+1}=\mathbf z.\]</div>
+<p>The resulting \(\mathbf u^{k+1}\) becomes the current profile for the next step. <strong>Factorization happens once; the two triangular solves repeat at each time step.</strong> With storage and operations that use the tridiagonal structure, the factorization and each pair of solves take \(O(n)\) work for \(n\) interior samples.</p>
+
+<details class="supplement" id="pde-worked-steps">
+<summary>Worked example: the first time step and why there are 36 steps</summary>
+<p>Use the \(r=1\) factors above, with no internal heating, \(f=0\), and both ends held at zero, \(\alpha=\beta=0\). The right-hand side is then simply \(\mathbf b^k=\mathbf u^k\). Start with the same initial profile as the figure, \(g(x)=\sin(\pi x)\), sampled at the five interior positions:</p>
+<div class="eq">\[\mathbf u^0=\begin{pmatrix}\frac12\\\frac{\sqrt3}{2}\\1\\\frac{\sqrt3}{2}\\\frac12\end{pmatrix}.\]</div>
+<h4>Forward substitution</h4>
+<p>Solve \(L\mathbf z=\mathbf u^0\) from the top. For example, the first two rows give \(z_1=1/2\) and \(-\tfrac13z_1+z_2=\sqrt3/2\), so \(z_2=\sqrt3/2+1/6\). Applying the same substitution to the remaining rows gives</p>
+<div class="eq">\[\mathbf z\approx\begin{pmatrix}0.500000\\1.032692\\1.387260\\1.394505\\1.032447\end{pmatrix}.\]</div>
+<h4>Back substitution</h4>
+<p>Solve \(U\mathbf u^1=\mathbf z\) from the bottom. The last row gives \(u_5^1=z_5/(144/55)\); the preceding row gives \(u_4^1=(z_4+u_5^1)/(55/21)\). Continuing upward produces the next temperature profile:</p>
+<div class="eq">\[\boxed{\mathbf u^1\approx\begin{pmatrix}0.394338\\0.683013\\0.788675\\0.683013\\0.394338\end{pmatrix}}.\]</div>
+<p>The center temperature falls from \(1\) to approximately \(0.788675\). For the second step, use this new vector as the right-hand side and solve with the same \(L,U\). No new factorization is needed.</p>
+<h4>How many times do we repeat?</h4>
+<p>One solve advances time by \(\Delta t=1/36\). After \(k\) steps, \(t_k=k\Delta t=k/36\). To reach the chosen final time \(T=1\), we need \(k/36=1\), hence <strong>36 steps</strong>:</p>
+<div class="eq">\[0\longrightarrow\frac1{36}\longrightarrow\frac2{36}\longrightarrow\cdots\longrightarrow\frac{36}{36}=1.\]</div>
+<p>The number 36 comes from the selected final time and time increment; it is not a required number for the heat equation. In general, \(N=T/\Delta t\) when this ratio is an integer. Here there is one LU factorization and 36 pairs of triangular solves, producing 37 profiles including the initial state.</p>
+<div class="table-wrap"><table class="data-table">
+<caption>Center temperature computed by backward Euler</caption>
+<thead><tr><th>Step \(k\)</th><th>Time \(t_k\)</th><th>Center temperature \(u_3^k\)</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>0</td><td>1.000000</td></tr>
+<tr><td>1</td><td>\(1/36\)</td><td>0.788675</td></tr>
+<tr><td>2</td><td>\(2/36\)</td><td>0.622008</td></tr>
+<tr><td>3</td><td>\(3/36\)</td><td>0.490563</td></tr>
+<tr><td>36</td><td>1</td><td>0.000194</td></tr>
+</tbody></table></div>
+<p>These are numerical approximations from backward Euler. The earlier figure uses the exact continuous solution to illustrate cooling; the numerical profiles approach it as the spatial and time increments are refined.</p>
+</details>
+
+<details class="supplement" id="pde-python">
+<summary>Python calculation: reuse one LU factorization for 36 time steps</summary>
+<p>This code reproduces the worked example using NumPy and SciPy. <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lu_factor.html" rel="noopener noreferrer" target="_blank"><code>lu_factor</code></a> computes the factors once, outside the loop; <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lu_solve.html" rel="noopener noreferrer" target="_blank"><code>lu_solve</code></a> uses them to solve for the next temperatures. SciPy also handles row pivoting; no row swaps are needed for this matrix.</p>
+<pre class="language-python"><code class="language-python">import numpy as np
+from scipy.linalg import lu_factor, lu_solve
+
+n = 5                     # Five interior temperature samples
+h = 1 / (n + 1)
+kappa = 1.0
+dt = 1 / 36
+T = 1.0
+steps = round(T / dt)      # Exactly 36 steps in this example
+r = kappa * dt / h**2
+
+M = (
+    np.diag(np.full(n, 1 + 2 * r))
+    + np.diag(np.full(n - 1, -r), 1)
+    + np.diag(np.full(n - 1, -r), -1)
+)
+
+x = np.arange(1, n + 1) * h
+u = np.sin(np.pi * x)      # Initial temperature profile
+history = [u.copy()]
+
+lu, piv = lu_factor(M)     # Factor once, before the time loop
+
+print("step   time       center temperature")
+print(f"{0:4d}   {0:8.5f}   {u[n // 2]:.6f}")
+for k in range(1, steps + 1):
+    b = u.copy()          # Zero source and zero endpoint temperatures
+    u = lu_solve((lu, piv), b)
+    history.append(u.copy())
+    if k in (1, 2, 3, steps):
+        print(f"{k:4d}   {k * dt:8.5f}   {u[n // 2]:.6f}")</code></pre>
+<p>Expected output:</p>
+<pre><code>step   time       center temperature
+   0    0.00000   1.000000
+   1    0.02778   0.788675
+   2    0.05556   0.622008
+   3    0.08333   0.490563
+  36    1.00000   0.000194</code></pre>
+<p><code>history[k]</code> stores the five interior temperatures at time \(k\Delta t\). Here the source and both endpoint temperatures are zero, so the right-hand side is the preceding profile. For nonzero sources or endpoints, add their contributions to <code>b</code> as in the formula above. This small example stores a full matrix for clarity; SciPy's dense LU routines do not exploit the tridiagonal storage used for the \(O(n)\) algorithm.</p>
+</details>
 </section>
 <section id="least-squares">
 <h2>4. Least-squares problems</h2><p>The differential-equation examples start from a governing equation. In regression, the starting point is a set of measurements and a model to fit to them. Before formulating that fitting problem, it helps to connect the familiar inverse notation for a solution with the calculation used to obtain it.</p>
