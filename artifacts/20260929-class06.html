@@ -104,7 +104,7 @@ window.MathJax = {
 
 /* Rod fills encode temperature; outlines retain the matrix-row selection roles. */
 #grid-nodes{margin:24px 0 14px;gap:4px}
-#grid-nodes:before{top:36px;height:22px;left:7%;right:7%;border:1px solid #a9b3be;border-radius:11px;background:var(--rod-gradient)}
+#grid-nodes:before{top:36px;height:22px;left:7%;right:7%;border:1px solid #a9b3be;border-radius:0;background:var(--rod-gradient)}
 #grid-nodes .grid-x{height:22px;margin-bottom:14px;font-size:12px}
 #grid-nodes .grid-dot{width:22px;height:22px;min-height:22px;padding:0;background:var(--sample-temperature);border:1px solid #59636e}
 #grid-nodes .boundary{border-style:dashed}
@@ -113,9 +113,9 @@ window.MathJax = {
 #grid-nodes .role-center .grid-dot{outline:3px solid #0969da;outline-offset:4px}
 #grid-nodes .role-right .grid-dot{outline:2px solid #13786d;outline-offset:4px}
 .temperature-key{display:flex;align-items:center;justify-content:center;gap:10px;font-size:12px;color:#424a53;margin:12px 0}
-.temperature-ramp{display:inline-block;width:140px;max-width:32%;height:12px;border-radius:6px;background:linear-gradient(to right,#dbeafe,#fef3c7,#fdba74,#f97316,#b91c1c)}
+.temperature-ramp{display:inline-block;width:140px;max-width:32%;height:12px;border-radius:0;background:linear-gradient(to right,#fef3c7,#fde047,#fdba74,#f97316,#b91c1c)}
 .temperature-example{font-size:12px;line-height:1.7;color:#59636e;margin:12px 0 16px}
-.space-time-plot g.pair-label{color:#1f2328}
+.space-time-plot g.initial-label,.space-time-plot g.pair-label{color:#1f2328}.space-time-plot .initial-label,.space-time-plot .pair-label{fill:#1f2328}
 @media(max-width:560px){#grid-nodes{gap:0}#grid-nodes .grid-u{font-size:12px}#grid-nodes .grid-x{font-size:11px}}
 </style></head>
 <body>
@@ -916,6 +916,12 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
       console.warn('Equation rendering:', error);
     });
   }
+  function typesetInline(elements) {
+    if (!window.MathJax || !window.MathJax.typesetPromise) return;
+    mathQueue=mathQueue.then(function(){return window.MathJax.startup.promise;})
+      .then(function(){return window.MathJax.typesetPromise(elements);})
+      .catch(function(error){console.warn('Inline math rendering:',error);});
+  }
   function matrix(rows, label) {
     const root = document.createElement('div');
     root.setAttribute('role', 'table');
@@ -974,7 +980,7 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
 
   // One temperature scale for both rod diagrams; selection uses outlines.
   function temperatureColor(value) {
-    const stops = [[219,234,254],[254,243,199],[253,186,116],[249,115,22],[185,28,28]];
+    const stops = [[254,243,199],[253,224,71],[253,186,116],[249,115,22],[185,28,28]];
     const q = Math.max(0,Math.min(1,value))*4;
     const i = Math.min(3,Math.floor(q)), a = q-i;
     return 'rgb('+stops[i].map(function(c,k){return Math.round(c*(1-a)+stops[i+1][k]*a);}).join(',')+')';
@@ -991,7 +997,7 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
   for (let j=0; j<=n+1; j++) {
     const node = document.createElement('div'); node.className='grid-node'; node.dataset.index=j;
     const position = document.createElement('div'); position.className='grid-x';
-    position.innerHTML='<var>x</var><sub>'+j+'</sub>';
+    position.textContent='\\(x_{'+j+'}\\)';
     const dot = document.createElement(j===0 || j===n+1 ? 'span' : 'button');
     dot.className='grid-dot'+(j===0 || j===n+1 ? ' boundary' : '');
     dot.style.setProperty('--sample-temperature',temperatureColor(4*(j/6)*(1-j/6)));
@@ -1003,10 +1009,13 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
       dot.setAttribute('aria-label',j===0?'Left boundary':'Right boundary');
     }
     const value=document.createElement('div'); value.className='grid-u';
-    value.innerHTML='<var>u</var><sub>'+j+'</sub>'+(j===0?' = α':j===n+1?' = β':'');
+    value.textContent='\\(u_{'+j+'}'+(j===0?'=\\alpha':j===n+1?'=\\beta':'')+'\\)';
     node.append(position,dot,value); nodeRoot.appendChild(node);
   }
+  typesetInline([nodeRoot]);
   function selectGrid(j) {
+    const mathRoots=[$('grid-unknowns'),$('grid-rhs'),$('grid-matrix-status')];
+    if(window.MathJax && window.MathJax.typesetClear)window.MathJax.typesetClear(mathRoots);
     $('grid-matrix-demo').dataset.selected=String(j);
     Array.from(nodeRoot.children).forEach(function(node){
       const q=Number(node.dataset.index);
@@ -1023,16 +1032,14 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
       const offset=c+1-j;
       if(Math.abs(offset)<=1)a[j-1][c].classList.add(offset===-1?'role-left':offset===0?'role-center':'role-right');
     }
-    const u=putMatrix('grid-unknowns',Array.from({length:n},function(_,i){return [symbol('u',i+1)];}),'Interior unknown values');
+    const u=putMatrix('grid-unknowns',Array.from({length:n},function(_,i){return [{html:'\\(u_{'+(i+1)+'}\\)',label:'u '+(i+1)}];}),'Interior unknown values');
     for(let c=0;c<n;c++) {
       const offset=c+1-j;
       if(Math.abs(offset)<=1)u[c][0].classList.add(offset===-1?'role-left':offset===0?'role-center':'role-right');
     }
     const rhs=Array.from({length:n},function(_,i){
-      let html='<var>h</var><sup>2</sup><var>f</var>(<var>x</var><sub>'+(i+1)+'</sub>)';
-      if(i===0)html+='<span class="boundary-term alpha"> + α</span>';
-      if(i===n-1)html+='<span class="boundary-term beta"> + β</span>';
-      return [{html:html}];
+      const tex='h^2f(x_{'+(i+1)+'})'+(i===0?'+\\alpha':i===n-1?'+\\beta':'');
+      return [{html:'\\('+tex+'\\)'}];
     });
     const b=putMatrix('grid-rhs',rhs,'Right-hand side with boundary values');
     b[j-1][0].parentElement.classList.add('selected-row');
@@ -1042,13 +1049,14 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
     $('grid-boundary-equation').hidden=j!==1 && j!==n;
     if(j===1) {
       equation('grid-boundary-equation','\\Longrightarrow\\quad 2u_1-u_2=h^2f(x_1)+{\\color{#9A5700}{\\alpha}}.');
-      $('grid-matrix-status').textContent='Row 1 uses the known left boundary u₀ = α. Moving that term to the right leaves two unknowns in this row of A₅.';
+      $('grid-matrix-status').textContent='Row 1 uses the known left boundary \\(u_0=\\alpha\\). Moving that term to the right leaves two unknowns in this row of \\(A_5\\).';
     } else if(j===n) {
       equation('grid-boundary-equation','\\Longrightarrow\\quad -u_4+2u_5=h^2f(x_5)+{\\color{#13786d}{\\beta}}.');
-      $('grid-matrix-status').textContent='Row 5 uses the known right boundary u₆ = β. Moving that term to the right leaves two unknowns in this row of A₅.';
+      $('grid-matrix-status').textContent='Row 5 uses the known right boundary \\(u_6=\\beta\\). Moving that term to the right leaves two unknowns in this row of \\(A_5\\).';
     } else {
-      $('grid-matrix-status').textContent='Row '+j+' couples u'+['₀','₁','₂','₃','₄','₅','₆'][j-1]+', u'+['₀','₁','₂','₃','₄','₅','₆'][j]+' and u'+['₀','₁','₂','₃','₄','₅','₆'][j+1]+'. The three nonzero coefficients occupy the subdiagonal, diagonal and superdiagonal.';
+      $('grid-matrix-status').textContent='Row '+j+' couples \\(u_{'+(j-1)+'}\\), \\(u_{'+j+'}\\) and \\(u_{'+(j+1)+'}\\). The three nonzero coefficients occupy the subdiagonal, diagonal and superdiagonal.';
     }
+    typesetInline(mathRoots);
   }
   selectGrid(3);
 
@@ -1183,7 +1191,7 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
         const x=i/40, temperature=Math.sin(Math.PI*x)*Math.exp(-Math.PI*Math.PI*times[k]);
         put('stop',{offset:(i*2.5)+'%','stop-color':temperatureColor(temperature)},undefined,gradient);
       }
-      put('rect',{x:left,y:y-rodHeight/2,width:right-left,height:rodHeight,rx:rodHeight/2,fill:'url(#rod-time-gradient-'+k+')',stroke:k===2?'#0969da':'#89929b','stroke-width':k===2?2:1});
+      put('rect',{x:left,y:y-rodHeight/2,width:right-left,height:rodHeight,fill:'url(#rod-time-gradient-'+k+')',stroke:k===2?'#0969da':'#89929b','stroke-width':k===2?2:1});
       for(let j=0;j<=6;j++) {
         const temperature=Math.sin(Math.PI*j/6)*Math.exp(-Math.PI*Math.PI*times[k]);
         const selected=j===3 && (k===2 || k===3);
