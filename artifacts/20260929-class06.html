@@ -101,6 +101,22 @@ window.MathJax = {
 @media print{.visual{padding:12px;background:#fff;border-color:#d1d9e0}.visual>h4{font-size:12pt}.visual-intro{font-size:10pt}.visual-caption{font-size:9pt}.matrix-card{padding:10px 8px}.lu-pair{grid-template-columns:1fr 1fr}.lu-pair .matrix{--cell-w:36px;--cell-h:37px}.fit-plots{grid-template-columns:1fr 1fr}.normal-layout{grid-template-columns:auto 25px auto}.normal-arrow{transform:none}.matrix-card,.grid-nodes,.grid-system,.lu-pair,.work-pair,.normal-layout,.space-time-figure,.residual-band{break-inside:avoid}.visual{break-inside:auto}.diagram-scroll{overflow:visible}.visual .eq{break-inside:avoid}.product-matrix button{border:0;background:transparent}.product-matrix button[aria-pressed=true]{border:1px solid #0969da}.grid-dot{pointer-events:none}.fit-plots .legend{min-height:28px}}
 .matrix-math{display:inline-block;white-space:nowrap}.matrix-math sup{font-size:.7em;vertical-align:super;line-height:0}.matrix-math sub{vertical-align:sub;line-height:0}
 @media(max-width:560px){.grid-system{display:grid;grid-template-columns:auto auto;justify-content:center;align-items:start;gap:18px 14px;width:auto;min-width:0}.grid-system>.matrix-block:first-child{grid-column:1;grid-row:1}.grid-system>.matrix-block:nth-child(2){grid-column:2;grid-row:1}.grid-system>.matrix-block:last-child{grid-column:1/-1;grid-row:2}.grid-system>.operator{grid-column:1/-1;grid-row:2;justify-self:center;align-self:center;transform:translateX(-102px);padding-top:27px;z-index:1}}
+
+/* Rod fills encode temperature; outlines retain the matrix-row selection roles. */
+#grid-nodes{margin:24px 0 14px;gap:4px}
+#grid-nodes:before{top:36px;height:22px;left:7%;right:7%;border:1px solid #a9b3be;border-radius:11px;background:var(--rod-gradient)}
+#grid-nodes .grid-x{height:22px;margin-bottom:14px;font-size:12px}
+#grid-nodes .grid-dot{width:22px;height:22px;min-height:22px;padding:0;background:var(--sample-temperature);border:1px solid #59636e}
+#grid-nodes .boundary{border-style:dashed}
+#grid-nodes .grid-u{margin-top:14px;font-size:14px}
+#grid-nodes .role-left .grid-dot{outline:2px solid #9a5700;outline-offset:4px}
+#grid-nodes .role-center .grid-dot{outline:3px solid #0969da;outline-offset:4px}
+#grid-nodes .role-right .grid-dot{outline:2px solid #13786d;outline-offset:4px}
+.temperature-key{display:flex;align-items:center;justify-content:center;gap:10px;font-size:12px;color:#424a53;margin:12px 0}
+.temperature-ramp{display:inline-block;width:140px;max-width:32%;height:12px;border-radius:6px;background:linear-gradient(to right,#dbeafe,#fef3c7,#fdba74,#f97316,#b91c1c)}
+.temperature-example{font-size:12px;line-height:1.7;color:#59636e;margin:12px 0 16px}
+.space-time-plot g.pair-label{color:#1f2328}
+@media(max-width:560px){#grid-nodes{gap:0}#grid-nodes .grid-u{font-size:12px}#grid-nodes .grid-x{font-size:11px}}
 </style></head>
 <body>
 <a class="skip" href="#main">Skip to notes</a>
@@ -224,23 +240,29 @@ z_2&amp;=\operatorname{fl}(2-10^4)=-1.00\times10^4.
 <section id="finite-differences">
 <h2>2. Finite differences and tridiagonal systems</h2>
 <p class="scope">Class 5 review: ordinary differential equation</p>
-<p>With a method for solving \(A\mathbf{x}=\mathbf{b}\) in hand, the next question is where such a system arises. An ordinary differential equation provides one example: approximating a derivative by differences turns a relation between functions into linear equations for their values on a grid.</p>
-<h3>Steady-state problem</h3>
-<p>For a concrete case, take the one-dimensional steady-state heat equation. The unknown is the spatial profile \(u(x)\), with prescribed values at both endpoints:</p>
+<p>Imagine a thin metal rod whose ends are held at prescribed temperatures. Heat flows from warmer regions toward cooler regions, and a source inside the rod may add heat. The question is: <strong>what temperature does each position settle to?</strong> Turning this physical question into a finite set of unknown temperatures will give a linear system.</p>
+<h3>Temperature along a rod: the steady state</h3>
+<p>The coordinate \(x\) identifies a <strong>position along the rod</strong>; \(u(x)\) is the <strong>temperature at that position</strong>. Hold the endpoint temperatures at \(u(0)=\alpha\) and \(u(1)=\beta\), and wait until the temperature at every position stops changing. Heat can still flow: at each position, heat entering, heat leaving, and internal heating balance. This is the <strong>steady state</strong>.</p>
+<p>With constant material properties and the conduction coefficient scaled to one, that balance is the ordinary differential equation below. The source \(f(x)\) represents internal heating in this scaled equation; the unknown is the spatial temperature profile \(u(x)\).</p>
 <div class="eq">\[-\frac{d^2u}{dx^2}=f(x),\qquad 0\le x\le1,
 \qquad u(0)=\alpha,\quad u(1)=\beta.\]</div>
-<p>To represent this profile by finitely many values, divide the interval into \(m\) equal parts:</p>
+<p>Without internal heating, a rod held at different endpoint temperatures settles to a straight temperature profile. With positive internal heating and equally cool ends, the interior becomes warmer, allowing the generated heat to escape toward the ends. The second derivative \(u''\) measures the curvature of this profile and enters the local heat balance.</p>
+<h3>Sample the rod at a finite set of positions</h3>
+<p>A computer can approximate the continuous profile by keeping its temperature at a finite set of positions. Divide the interval into \(m\) equal parts, with spacing \(h\):</p>
 <div class="eq">\[x_j=jh,\qquad h=\frac1m,\qquad j=0,\ldots,m.\]</div>
-<p>The boundary conditions already supply the endpoint values. This leaves the \(m-1\) interior values \(u_j\approx u(x_j)\) to be found; write \(n=m-1\) for the number of unknowns.</p>
-<h3>Second difference</h3>
-<p>Equations for these interior values follow by approximating the second derivative. First use neighboring function values to estimate two slopes, then take their difference over the grid spacing:</p>
+<p>Here \(x_j\) is a location and \(u_j\approx u(x_j)\) is its temperature. For example, with six intervals, \(x_3=3/6\) is the midpoint of the rod. The endpoint values are already known, so only the \(m-1\) interior temperatures need to be found. Write \(n=m-1\) for this number of unknowns.</p>
+<h3>Local heat balance and the second difference</h3>
+<p>Each interior sample exchanges heat with its two neighbors. With equal spacing, constant material properties, and no local source, the finite-difference balance puts its temperature at the <strong>average of its two neighbors</strong>. A temperature above that average loses heat overall; one below it gains heat. Internal heating raises the temperature needed for balance:</p>
+<div class="eq">\[u_j=\underbrace{\frac{u_{j-1}+u_{j+1}}{2}}_{\text{neighbor average}}+\underbrace{\frac{h^2f(x_j)}{2}}_{\text{internal heating}}.\]</div>
+<p>This local balance follows by approximating \(u''\). The first derivative is a temperature slope; the second derivative measures how that slope changes. Estimate the slopes to the left and right of a sample, then take their difference over the spacing:</p>
 <div class="eq">\[u''(x_j)\approx
 \frac{\dfrac{u_{j+1}-u_j}{h}-\dfrac{u_j-u_{j-1}}{h}}{h}
 =\frac{u_{j+1}-2u_j+u_{j-1}}{h^2}.\]</div>
-<p>Substituting this expression into \(-u''=f\) and multiplying by \(h^2\) gives one linear equation at each interior point:</p>
+<p>The numerator is twice the difference between the neighbor average and \(u_j\). Substituting this second difference into \(-u''=f\) and multiplying by \(h^2\) gives the same heat balance, rearranged as one linear equation per interior position:</p>
 <div class="eq">\[-u_{j-1}+2u_j-u_{j+1}=h^2f(x_j),
 \qquad j=1,\ldots,n.\]</div>
-<p>The coefficients \(-1,2,-1\) connect each interior value to its two neighbors. At the ends of the grid, the known values \(u_0=\alpha\) and \(u_m=\beta\) move to the right-hand side, so the first and last equations are</p>
+<h3>One position becomes one matrix row</h3>
+<p>All interior temperatures must satisfy their local balances <strong>at the same time</strong>. The coefficients \(-1,2,-1\) connect the left neighbor, the selected position, and the right neighbor. At the ends of the grid, the known temperatures \(u_0=\alpha\) and \(u_m=\beta\) move to the right-hand side, so the first and last equations are</p>
 <div class="eq">\[2u_1-u_2=h^2f(x_1)+\alpha,\qquad
 -u_{n-1}+2u_n=h^2f(x_n)+\beta.\]</div>
 <p>Collecting these equations gives the full system for \(n\ge2\):</p>
@@ -258,8 +280,10 @@ z_2&amp;=\operatorname{fl}(2-10^4)=-1.00\times10^4.
 <p>The boundary-value problem has now become \(A_n\mathbf{u}=\mathbf{b}\). Because each equation couples only neighboring grid values, the nonzero coefficients lie on three diagonals. This structure changes the amount of work required by elimination.</p>
 <div aria-labelledby="grid-matrix-heading" class="visual" id="grid-matrix-demo">
 <h4 id="grid-matrix-heading">Grid points and matrix rows</h4>
-<p class="visual-intro">Take five interior unknowns, so \(h=1/6\). Select an interior grid point to follow its equation into the corresponding row of \(A_5\).</p>
-<div aria-label="Spatial grid" class="grid-nodes" id="grid-nodes"></div>
+<p class="visual-intro">This is one rod sampled at seven positions, including its two endpoints. Five interior temperatures are unknown, so \(h=1/6\). Select an interior sample to connect its local heat balance to a row of \(A_5\). The labels \(x_j\) identify positions; \(u_j\) identifies their temperatures.</p>
+<div aria-label="A rod with seven temperature sample positions" class="grid-nodes" id="grid-nodes"></div>
+<div class="temperature-key"><span>Cooler</span><span aria-hidden="true" class="temperature-ramp"></span><span>Warmer</span></div>
+<p class="temperature-example">The temperature colors illustrate a normalized steady profile \(u(x)=4x(1-x)\), with cool ends and uniform heating: \(\alpha=\beta=0\), \(f(x)=8\). The equations and matrix labels remain general. Outlines identify the three samples used in the selected equation.</p>
 <div class="role-key"><span class="key-left">Left neighbor: −1</span><span class="key-center">Selected point: 2</span><span class="key-right">Right neighbor: −1</span></div>
 <div class="equation-stack"><div class="eq" id="grid-local-equation"></div><div class="eq" hidden="" id="grid-boundary-equation"></div></div>
 <div aria-label="Selected row in the tridiagonal system" class="diagram-scroll" tabindex="0">
@@ -326,22 +350,28 @@ U=\begin{pmatrix}
 </section>
 <section id="pde-solves">
 <h2>3. Repeated linear solves for PDEs</h2>
-<p>The steady-state calculation determines a single spatial profile. Allowing that profile to change with time extends the same discretization idea to a partial differential equation. The time-dependent heat equation is</p>
+<p>The previous section asked what temperatures the rod settles to. Now ask: <strong>how does its temperature change before it settles?</strong> The unknown becomes \(u(x,t)\), depending on both position and time. Heat moving between neighboring regions and heat generated internally change the temperature at each position:</p>
 <div class="eq" id="heat-equation">\[\frac{\partial u}{\partial t}
 -\kappa\frac{\partial^2u}{\partial x^2}=f(x,t),
 \qquad 0\le x\le1,\quad 0\le t\le T.\]</div>
-<p>The initial condition \(u(x,0)=g(x)\) gives the starting profile. To follow its evolution, use a grid in both space and time. Writing \(u_j^k\approx u(x_j,t_k)\), the time derivative at a fixed spatial point is approximated by the difference between consecutive time levels:</p>
+<p>The term \(\partial u/\partial t\) is the temperature change at a fixed position. The spatial second derivative describes the effect of heat exchange, and \(\kappa\) sets the diffusion rate. When the time derivative vanishes, this returns to the steady heat balance; Section 2 used the scaled case \(\kappa=1\).</p>
+<h3>One rod at each time level</h3>
+<p>The initial condition \(u(x,0)=g(x)\) supplies the starting temperature profile; endpoint temperatures must also be specified. Keep the same spatial samples and now choose time levels \(t_k\). Write \(u_j^k\approx u(x_j,t_k)\): \(j\) chooses a position along the rod, and \(k\) chooses a time. The collection of interior temperatures at one time is the vector \(\mathbf u^k\).</p>
+<p>In the figure, <strong>each horizontal rod is a snapshot at one time</strong>. Read downward to follow time; read across a rod to follow position. The colors illustrate cooling with \(\kappa=1\), \(f=0\), and both ends held at zero, using the exact normalized profile \(u(x,t)=\sin(\pi x)e^{-\pi^2t}\).</p>
+<figure class="space-time-figure" id="space-time-figure">
+<svg aria-labelledby="space-time-title space-time-desc" class="space-time-plot plot" id="space-time-plot" role="img" viewBox="0 0 720 420"><title id="space-time-title">A rod cooling at successive times</title><desc id="space-time-desc">Position runs horizontally along each colored rod; time increases downward. The center starts warm and cools. A vertical pair at a fixed position supplies the two temperatures in a time difference.</desc></svg>
+<div class="temperature-key"><span>Cooler: 0</span><span aria-hidden="true" class="temperature-ramp"></span><span>Warmer: 1</span></div>
+<figcaption>A row shows the rod at time \(t_k\); its interior temperatures form \(\mathbf u^k\). The marked vertical pair holds position \(x_j\) fixed and compares \(u_j^k\) with \(u_j^{k+1}\). The top rod is the initial profile \(g(x)\). Temperature colors use the same normalized scale for every row.</figcaption>
+</figure>
+<h3>Compare successive times at a fixed position</h3>
+<p>To approximate the time derivative, compare the temperature at the <strong>same position</strong> on two successive rods, then divide by the elapsed time:</p>
 <div class="eq">\[\frac{\partial u}{\partial t}\approx
 \frac{u_j^{k+1}-u_j^k}{\Delta t}.\]</div>
-<p>Here \(j\) identifies a spatial point and \(k\) identifies a time level. Holding \(j\) fixed isolates the change in time, just as the spatial differences above compare neighboring positions.</p>
-<figure class="space-time-figure" id="space-time-figure">
-<svg aria-labelledby="space-time-title space-time-desc" class="space-time-plot plot" id="space-time-plot" role="img" viewBox="0 0 720 354"><title id="space-time-title">Spatial profiles at successive time levels</title><desc id="space-time-desc">A column collects a spatial profile. A horizontal pair at a fixed spatial point gives the two values used in the time difference.</desc></svg>
-<figcaption>A column shows the profile at time \(t_k\); its interior values form \(\mathbf u^k\). Along the selected row, \(u_j^k\) and \(u_j^{k+1}\) are the two values in the time difference. The first column is supplied by \(u(x,0)=g(x)\).</figcaption>
-</figure>
+<p>Keeping \(j\) fixed isolates time change. Within a single rod, keeping \(k\) fixed instead lets us compare neighboring positions for the spatial second difference. These two comparisons approximate the two derivatives in the heat equation.</p>
 
 <h3>Time evolution</h3>
-<p>Combining differences in space and time leads to a sequence of calculations for the evolving profile. In this time-stepping picture, the spatial linear-system calculation is repeated as time advances: the steady-state example requires a profile at one fixed state, while the evolving problem requires profiles at successive time levels.</p>
-<p>This is the connection to the earlier elimination problem. Following the solution through more time steps requires repeating the linear-algebra calculation, so the cost of solving the spatial system matters throughout the evolution.</p>
+<p>Combining these differences gives a calculation for advancing the temperature profile from one time level to the next. With an implicit time-stepping method, the new temperatures satisfy a linear system. If the spatial grid, material properties, and time step stay fixed, its coefficient matrix can stay the same while the right-hand side changes with the preceding temperatures and source.</p>
+<p>This brings us back to LU factorization: factor the fixed matrix once, then use triangular substitution for each new right-hand side. The steady problem finds one temperature profile; the evolving problem repeatedly computes profiles at successive times. The time-stepping method determines the precise matrix used in those solves.</p>
 </section>
 <section id="least-squares">
 <h2>4. Least-squares problems</h2><p>The differential-equation examples start from a governing equation. In regression, the starting point is a set of measurements and a model to fit to them. Before formulating that fitting problem, it helps to connect the familiar inverse notation for a solution with the calculation used to obtain it.</p>
@@ -942,18 +972,32 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
     return el;
   }
 
+  // One temperature scale for both rod diagrams; selection uses outlines.
+  function temperatureColor(value) {
+    const stops = [[219,234,254],[254,243,199],[253,186,116],[249,115,22],[185,28,28]];
+    const q = Math.max(0,Math.min(1,value))*4;
+    const i = Math.min(3,Math.floor(q)), a = q-i;
+    return 'rgb('+stops[i].map(function(c,k){return Math.round(c*(1-a)+stops[i+1][k]*a);}).join(',')+')';
+  }
+  function rodGradient(profile) {
+    return 'linear-gradient(to right,'+Array.from({length:41},function(_,i){
+      return temperatureColor(profile(i/40))+' '+(i*2.5)+'%';
+    }).join(',')+')';
+  }
+
   // Grid points, local equations, and rows of the finite-difference system.
   const nodeRoot = $('grid-nodes');
+  nodeRoot.style.setProperty('--rod-gradient',rodGradient(function(x){return 4*x*(1-x);}));
   for (let j=0; j<=n+1; j++) {
     const node = document.createElement('div'); node.className='grid-node'; node.dataset.index=j;
     const position = document.createElement('div'); position.className='grid-x';
     position.innerHTML='<var>x</var><sub>'+j+'</sub>';
     const dot = document.createElement(j===0 || j===n+1 ? 'span' : 'button');
     dot.className='grid-dot'+(j===0 || j===n+1 ? ' boundary' : '');
-    dot.textContent=String(j);
+    dot.style.setProperty('--sample-temperature',temperatureColor(4*(j/6)*(1-j/6)));
     if (dot.tagName==='BUTTON') {
       dot.type='button';
-      dot.setAttribute('aria-label','Select the equation at interior point x '+j);
+      dot.setAttribute('aria-label','Select the equation at interior point x '+j+', position '+(j/6).toFixed(3)+' along the rod');
       dot.addEventListener('click',function(){selectGrid(j);});
     } else {
       dot.setAttribute('aria-label',j===0?'Left boundary':'Right boundary');
@@ -1084,8 +1128,8 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
   // Cache LaTeX as native SVG so labels stay sharp in print and on resize.
   const spaceTimeMath = new Map();
   const spaceTimeTex = ['x_0','x_1','x_2','x_j','x_4','x_5','x_6',
-    't_0=0','t_1','t_k','t_{k+1}','g(x)','\\mathbf{u}^k',
-    'u_j^k','u_j^{k+1}','x_j','t','x'];
+    't_0=0','t_1','t_k','t_{k+1}','\\mathbf{u}^0','\\mathbf{u}^1',
+    '\\mathbf{u}^k','\\mathbf{u}^{k+1}','g(x)','u_j^k','u_j^{k+1}','x_j','t','x'];
   function spaceTimeLabel(svg, attrs, tex, fallback) {
     const cached = spaceTimeMath.get(tex);
     if (!cached) return s('text', attrs, fallback, svg);
@@ -1107,53 +1151,57 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
   }
   function drawSpaceTime() {
     const svg=$('space-time-plot'); svg.replaceChildren();
-    const compact=svg.clientWidth<560;
-    const width=compact?Math.max(320,svg.clientWidth):720;
-    svg.setAttribute('viewBox','0 0 '+width+' 354');
+    const width=Math.max(320,svg.clientWidth), compact=width<560;
+    svg.setAttribute('viewBox','0 0 '+width+' 420');
     const put=function(tag,attrs,text,parent){return s(tag,attrs,text,parent||svg);};
     const math=function(attrs,tex,fallback){return spaceTimeLabel(svg,attrs,tex,fallback);};
-    put('title',{id:'space-time-title'},'Spatial profiles at successive time levels');
-    put('desc',{id:'space-time-desc'},'A vertical column at time t k contains the spatial profile. Its interior values form vector u k. A horizontal pair at x j contains u j k and u j k plus one. The initial column is given by g(x).');
-    const xs=compact?[76,(76+width-40)/2,width-40]:[145,285,425,565];
-    const kinds=compact?[0,2,3]:[0,1,2,3];
-    const left=compact?57:110, right=compact?width-23:620;
-    const axisLabelX=compact?45:94;
-    const profileX=xs[kinds.indexOf(2)], nextX=xs[kinds.indexOf(3)];
-    const top=66,bottom=276,dy=(bottom-top)/6;
-    const py=function(j){return bottom-j*dy;};
-    put('rect',{x:xs[0]-18,y:top-13,width:36,height:bottom-top+26,rx:7,fill:'#e7f5ef'});
-    put('rect',{x:profileX-18,y:py(5)-13,width:36,height:py(1)-py(5)+26,rx:7,fill:'#e7f2fd'});
-    for(let j=0;j<=6;j++) {
-      put('line',{x1:left,x2:right,y1:py(j),y2:py(j),stroke:j===3?'#d6aa6b':'#e0e6eb','stroke-dasharray':j===3?'4 4':'2 4'});
-      math({x:axisLabelX,y:py(j)+4,'text-anchor':'end'},spaceTimeTex[j],['x₀','x₁','x₂','xⱼ','x₄','x₅','x₆'][j]);
-    }
-    xs.forEach(function(x,idx){
-      const k=kinds[idx];
-      put('line',{x1:x,x2:x,y1:top,y2:bottom,stroke:'#d9e1e8'});
-      for(let j=0;j<=6;j++) {
-        const selectedPair=j===3&&(k===2||k===3);
-        const fill=selectedPair?'#fff1d5':k===2&&j>0&&j<6?'#0969da':k===0?'#13786d':'#fff';
-        put('circle',{cx:x,cy:py(j),r:selectedPair?5.7:3.7,fill:fill,stroke:selectedPair?'#9a5700':k===2?'#0969da':k===0?'#13786d':'#89929b','stroke-width':selectedPair?1.8:1.3});
-      }
-      math({x:x,y:bottom+30,'text-anchor':'middle'},['t_0=0','t_1','t_k','t_{k+1}'][k],['t₀ = 0','t₁','tₖ','tₖ₊₁'][k]);
-    });
-    put('text',{x:xs[0],y:28,'text-anchor':'middle',class:'initial-label'},'Initial profile');
-    math({x:xs[0],y:47,'text-anchor':'middle',class:'initial-label'},'g(x)','g(x)');
-    put('text',{x:profileX,y:28,'text-anchor':'middle',class:'profile-label'},'Spatial profile');
-    math({x:profileX,y:47,'text-anchor':'middle',class:'profile-label'},'\\mathbf{u}^k','uᵏ');
+    put('title',{id:'space-time-title'},'A rod cooling at successive times');
+    put('desc',{id:'space-time-desc'},'Four horizontal rods show temperatures at times 0, 0.03, 0.06, and 0.09. Position increases to the right; time increases downward. Warm colors fade as the rod cools, with both ends held at zero. A vertical pair at the midpoint compares the temperatures at two successive times.');
+    const left=compact?78:110, right=width-(compact?46:83);
+    const px=function(j){return left+(right-left)*j/6;};
+    const rows=[101,183,265,347], times=[0,0.03,0.06,0.09];
+    const rodHeight=22, selectedX=px(3);
     const defs=put('defs',{});
     const marker=put('marker',{id:'time-difference-arrow',viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:6,markerHeight:6,orient:'auto'},undefined,defs);
-    put('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#9a5700'},undefined,marker);
-    put('line',{x1:profileX+10,x2:nextX-12,y1:py(3),y2:py(3),stroke:'#9a5700','stroke-width':1.6,'marker-end':'url(#time-difference-arrow)'});
-    math({x:profileX,y:py(3)-17,'text-anchor':'middle',class:'pair-label'},'u_j^k','uⱼᵏ');
-    math({x:nextX,y:py(3)-17,'text-anchor':'middle',class:'pair-label'},'u_j^{k+1}','uⱼᵏ⁺¹');
-    const fixedX=(profileX+nextX)/2;
-    put('text',{x:fixedX-3,y:py(3)+25,'text-anchor':'end',class:'pair-label'},'fixed');
-    math({x:fixedX+3,y:py(3)+25,class:'pair-label'},'x_j','xⱼ');
-    if(!compact)put('text',{x:631,y:bottom+30,fill:'#89929b'},'…');
-    put('line',{x1:left,x2:compact?width-18:650,y1:bottom+45,y2:bottom+45,stroke:'#a8b3bd'});
-    math({x:compact?width-9:657,y:bottom+49},'t','t');
-    math({x:axisLabelX,y:43,'text-anchor':'end'},'x','x');
+    put('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#1f2328'},undefined,marker);
+    const timeMarker=put('marker',{id:'time-axis-arrow',viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:6,markerHeight:6,orient:'auto'},undefined,defs);
+    put('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#59636e'},undefined,timeMarker);
+    // Position runs along each rod. All seven spatial samples stay aligned.
+    put('text',{x:left,y:18},'Position along the rod');
+    put('line',{x1:left,x2:right,y1:39,y2:39,stroke:'#a9b3be'});
+    for(let j=0;j<=6;j++) {
+      put('line',{x1:px(j),x2:px(j),y1:36,y2:42,stroke:'#89929b'});
+      math({x:px(j),y:62,'text-anchor':'middle'},['x_0','x_1','x_2','x_j','x_4','x_5','x_6'][j],['x₀','x₁','x₂','xⱼ','x₄','x₅','x₆'][j]);
+    }
+    math({x:right+13,y:43},'x','x');
+    put('line',{x1:12,x2:12,y1:76,y2:377,stroke:'#59636e','marker-end':'url(#time-axis-arrow)'});
+    math({x:12,y:63,'text-anchor':'middle'},'t','t');
+    put('line',{x1:selectedX,x2:selectedX,y1:73,y2:372,stroke:'#89929b','stroke-dasharray':'3 5'});
+    rows.forEach(function(y,k){
+      const gradient=put('linearGradient',{id:'rod-time-gradient-'+k,x1:'0%',x2:'100%',y1:'0%',y2:'0%'},undefined,defs);
+      for(let i=0;i<=40;i++) {
+        const x=i/40, temperature=Math.sin(Math.PI*x)*Math.exp(-Math.PI*Math.PI*times[k]);
+        put('stop',{offset:(i*2.5)+'%','stop-color':temperatureColor(temperature)},undefined,gradient);
+      }
+      put('rect',{x:left,y:y-rodHeight/2,width:right-left,height:rodHeight,rx:rodHeight/2,fill:'url(#rod-time-gradient-'+k+')',stroke:k===2?'#0969da':'#89929b','stroke-width':k===2?2:1});
+      for(let j=0;j<=6;j++) {
+        const temperature=Math.sin(Math.PI*j/6)*Math.exp(-Math.PI*Math.PI*times[k]);
+        const selected=j===3 && (k===2 || k===3);
+        put('circle',{cx:px(j),cy:y,r:selected?5.5:3.5,fill:temperatureColor(temperature),stroke:selected?'#1f2328':'#59636e','stroke-width':selected?2:1});
+      }
+      math({x:left-17,y:y+5,'text-anchor':'end'},['t_0=0','t_1','t_k','t_{k+1}'][k],['t₀ = 0','t₁','tₖ','tₖ₊₁'][k]);
+      math({x:right+14,y:y+5,class:'profile-label'},['\\mathbf{u}^0','\\mathbf{u}^1','\\mathbf{u}^k','\\mathbf{u}^{k+1}'][k],['u⁰','u¹','uᵏ','uᵏ⁺¹'][k]);
+    });
+    put('text',{x:selectedX,y:136,'text-anchor':'middle',class:'initial-label'},'Initial profile');
+    math({x:selectedX,y:157,'text-anchor':'middle',class:'initial-label'},'g(x)','g(x)');
+    // A vertical pair compares time change at one fixed position.
+    put('line',{x1:selectedX,x2:selectedX,y1:rows[2]+9,y2:rows[3]-10,stroke:'#1f2328','stroke-width':1.5,'marker-end':'url(#time-difference-arrow)'});
+    math({x:selectedX+13,y:rows[2]-18,class:'pair-label'},'u_j^k','uⱼᵏ');
+    math({x:selectedX+13,y:rows[3]+30,class:'pair-label'},'u_j^{k+1}','uⱼᵏ⁺¹');
+    put('text',{x:selectedX+13,y:(rows[2]+rows[3])/2-5,class:'pair-label'},'same position');
+    math({x:selectedX+13,y:(rows[2]+rows[3])/2+16,class:'pair-label'},'x_j','xⱼ');
+    put('text',{x:left,y:406},'Left end: 0');
+    put('text',{x:right,y:406,'text-anchor':'end'},'Right end: 0');
   }
   drawSpaceTime();
   window.addEventListener('load', function () {
