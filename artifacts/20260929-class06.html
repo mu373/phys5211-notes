@@ -91,10 +91,10 @@ window.MathJax = {
 .grid-nodes{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:relative;gap:4px;margin:22px 0 12px}.grid-nodes:before{content:"";position:absolute;height:1px;background:#a9b3be;left:7%;right:7%;top:46px}
 .grid-node{position:relative;text-align:center;z-index:1;min-width:0}.grid-x{font-size:12px;color:#59636e;margin-bottom:7px;height:20px}.grid-u{font-size:15px;margin-top:7px;white-space:nowrap}.grid-node .grid-dot{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;padding:0;margin:0 auto;background:#fff;border:1px solid #89929b;font-size:14px;min-height:38px;font-variant-numeric:tabular-nums}.grid-node .boundary{border-style:dashed;background:#f0f3f6}.grid-node .grid-dot:hover{border-color:#0969da}.grid-node.role-left .grid-dot{background:#fff1d5;color:#824b00;border-color:#9a5700}.grid-node.role-center .grid-dot{background:#ddf0ff;color:#0550ae;border:2px solid #0969da;font-weight:700}.grid-node.role-right .grid-dot{background:#dbf4ed;color:#126e60;border-color:#13786d}
 .role-key{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 18px;font-size:12px;margin:14px 0}.role-key>span{display:inline-flex;align-items:center;gap:6px}.role-key>span:before{content:"";width:9px;height:9px;border:1px solid currentColor;border-radius:2px;display:inline-block;background:transparent}.key-left{color:#824b00}.key-left:before{background:#fff1d5!important}.key-center{color:#0550ae}.key-center:before{background:#ddf0ff!important}.key-right{color:#126e60}.key-right:before{background:#dbf4ed!important}
-.matrix{--cell-w:42px;--cell-h:39px;display:inline-flex;flex-direction:column;padding:5px 9px;position:relative;vertical-align:middle;font-variant-numeric:tabular-nums;line-height:1.2;background:#fff}.matrix:before,.matrix:after{content:"";position:absolute;top:0;bottom:0;width:7px;border-top:1.5px solid #59636e;border-bottom:1.5px solid #59636e;pointer-events:none}.matrix:before{left:0;border-left:1.5px solid #59636e}.matrix:after{right:0;border-right:1.5px solid #59636e}.mat-row{display:grid;grid-template-columns:repeat(var(--cols,1),var(--cell-w));position:relative}.mat-cell{display:flex;justify-content:center;align-items:center;min-width:0;min-height:var(--cell-h);padding:3px 2px;font-size:17px;white-space:nowrap;border:1px solid transparent}.mat-cell.zero{color:#a9b1b9}.mat-cell.role-left{background:#fff1d5;color:#824b00}.mat-cell.role-center{background:#ddf0ff;color:#0550ae}.mat-cell.role-right{background:#dbf4ed;color:#126e60}.mat-cell.active-pivot{outline:2px solid #0969da;outline-offset:-3px;font-weight:650}.mat-cell.eliminated{border:1px dashed #9a5700;background:#fff8ed;color:#824b00}.mat-cell.selected-output{background:#ddf0ff;color:#0550ae}.mat-row.selected-row{background:#edf3f9}.matrix-label{font-size:14px;text-align:center;color:#424a53;margin:0 0 12px;line-height:1.6}.matrix-block{text-align:center;flex:none;min-width:0}.operator{font-size:22px;align-self:center;padding-top:28px;color:#424a53}.grid-system{display:flex;align-items:flex-start;justify-content:center;gap:14px;width:max-content;min-width:100%;padding:5px 0}.grid-rhs{--cell-w:151px}.grid-rhs .mat-cell{font-size:14px}.grid-rhs .boundary-term{font-weight:600;margin-left:3px}.boundary-term.alpha{color:#824b00}.boundary-term.beta{color:#126e60}.grid-system .vector:not(.grid-rhs){--cell-w:38px}.matrix var,.grid-u var,.grid-x var{font-family:Georgia,"Times New Roman",serif}.matrix sub,.grid-u sub,.grid-x sub{font-size:.7em}
+.matrix{--cell-w:42px;--cell-h:39px;display:inline-flex;flex-direction:column;padding:5px 9px;position:relative;vertical-align:middle;font-variant-numeric:tabular-nums;line-height:1.2;background:#fff}.matrix:before,.matrix:after{content:"";position:absolute;top:0;bottom:0;width:7px;border-top:1.5px solid #59636e;border-bottom:1.5px solid #59636e;pointer-events:none}.matrix:before{left:0;border-left:1.5px solid #59636e}.matrix:after{right:0;border-right:1.5px solid #59636e}.mat-row{display:grid;grid-template-columns:repeat(var(--cols,1),var(--cell-w));position:relative}.mat-cell{display:flex;justify-content:center;align-items:center;min-width:0;min-height:var(--cell-h);padding:3px 2px;font-size:17px;white-space:nowrap;border:1px solid transparent}.mat-cell.zero{color:#a9b1b9}.mat-cell.role-left{background:#fff1d5;color:#824b00}.mat-cell.role-center{background:#ddf0ff;color:#0550ae}.mat-cell.role-right{background:#dbf4ed;color:#126e60}.mat-cell.active-pivot{outline:2px solid #0969da;outline-offset:-3px;font-weight:650}.mat-cell.eliminated{border:1px dashed #9a5700;background:#fff8ed;color:#824b00}.mat-cell.selected-output{background:#ddf0ff;color:#0550ae}.mat-row.selected-row{background:#edf3f9}.matrix-label{font-size:14px;text-align:center;color:#424a53;margin:0 0 12px;line-height:1.6}.matrix-block{text-align:center;flex:none;min-width:0}.grid-system>.operator{font-size:22px;align-self:center;padding-top:28px;color:#424a53}.grid-system{display:flex;align-items:flex-start;justify-content:center;gap:14px;width:max-content;min-width:100%;padding:5px 0}.grid-rhs{--cell-w:151px}.grid-rhs .mat-cell{font-size:14px}.grid-rhs .boundary-term{font-weight:600;margin-left:3px}.boundary-term.alpha{color:#824b00}.boundary-term.beta{color:#126e60}.grid-system .vector:not(.grid-rhs){--cell-w:38px}.matrix var,.grid-u var,.grid-x var{font-family:Georgia,"Times New Roman",serif}.matrix sub,.grid-u sub,.grid-x sub{font-size:.7em}
 .fraction{display:inline-flex;flex-direction:column;text-align:center;font-size:.83em;vertical-align:middle;line-height:1.05;min-width:14px}.fraction .numerator{border-bottom:1px solid currentColor;padding:0 2px 2px}.fraction .denominator{padding:2px 2px 0}.fraction-sign{padding-right:1px}.matrix-card{text-align:center;background:#fff;border:1px solid #e0e6eb;border-radius:6px;padding:15px 12px;min-width:0}.lu-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0}.lu-pair .matrix{--cell-h:44px;--cell-w:44px}.step-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 18px}.step-count{font-size:13px;font-variant-numeric:tabular-nums;min-width:63px;text-align:center}.step-toolbar button{font-size:13px}.step-toolbar #lu-reset{margin-left:auto}.work-comparison{border-top:1px solid #d8e1e9;padding-top:16px;margin-top:20px}.work-comparison h4{font-size:15px;margin:0 0 8px}.work-comparison .visual-intro{margin-bottom:12px}.work-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;max-width:580px;margin:0 auto}.work-item{text-align:center}.work-item .matrix-label{margin-bottom:8px}.work-pattern{width:164px;max-width:100%;height:auto;display:block;margin:auto}.work-count{font-size:14px;line-height:1.5;margin:8px 0 0;font-variant-numeric:tabular-nums}
 .fit-plots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}.fit-plots .plot-panel{margin:0;padding:12px 9px;min-width:0}.fit-plots .legend{min-height:37px;align-content:flex-start;gap:5px 12px;font-size:11px}.fit-plots .plot-heading{font-size:14px;margin-bottom:8px}.fit-plots .plot text{font-size:12px}.fit-plots .visual-caption{font-size:12px;margin:4px 3px 0}.fit-plots .legend i{width:16px}.fit-plots .legend i.dot{width:7px;height:7px}.legend i.current-dot{border:0;border-radius:50%;width:8px;height:8px;background:#0969da}.legend i.minimum-dot{border:1.5px solid #13786d;border-radius:50%;width:9px;height:9px;background:#fff}.residual-band{display:flex;align-items:center;justify-content:center;gap:22px 38px;flex-wrap:wrap;padding:15px;background:#fff;border:1px solid #e0e6eb;border-radius:6px}.residual-vector{display:flex;align-items:center;gap:8px}.residual-vector .matrix{--cell-w:100px;--cell-h:28px}.residual-vector .mat-cell{font-size:15px}.residual-total p{margin:5px 0;font-size:15px}.residual-total output{font-variant-numeric:tabular-nums}.fit-visual .status{margin-top:5px;margin-bottom:10px}
-.space-time-figure{margin:25px 0}.space-time-figure .space-time-plot{display:block;width:100%;max-width:720px;height:auto;margin:auto}.space-time-figure figcaption{font-size:13px;color:#59636e;line-height:1.65;margin:10px auto 0;max-width:720px}.space-time-plot text{font-size:14px}.space-time-plot .profile-label{font-size:15px;fill:#0550ae}.space-time-plot .initial-label{fill:#126e60}.space-time-plot .pair-label{fill:#824b00}
+.space-time-figure{margin:25px 0}.space-time-figure .space-time-plot{display:block;width:100%;max-width:720px;height:auto;margin:auto}.space-time-figure figcaption{font-size:13px;color:#59636e;line-height:1.65;margin:10px auto 0;max-width:720px}.space-time-plot text{font-size:14px}.space-time-plot .math-label-svg{overflow:visible}.space-time-plot g.initial-label{color:#126e60}.space-time-plot g.profile-label{color:#0550ae}.space-time-plot g.pair-label{color:#824b00}.space-time-plot .profile-label{font-size:15px;fill:#0550ae}.space-time-plot .initial-label{fill:#126e60}.space-time-plot .pair-label{fill:#824b00}
 .normal-layout{display:grid;grid-template-columns:auto 25px auto;justify-content:center;align-items:center;gap:20px;margin:22px 0}.normal-inputs{display:flex;align-items:flex-start;gap:16px}.normal-inputs .matrix{--cell-w:43px;--cell-h:32px}.normal-inputs .matrix.vector{--cell-w:40px}.normal-inputs .mat-cell{font-size:17px}.normal-arrow{color:#89929b;font-size:25px;text-align:center}.normal-outputs{display:flex;gap:16px;justify-content:center;align-items:flex-start;flex-wrap:wrap;max-width:275px}.normal-outputs .matrix-label{font-size:13px}.product-matrix{--cell-w:43px;--cell-h:40px}.product-matrix .mat-cell{padding:2px}.product-matrix button{font-size:12px;padding:6px 2px;min-height:36px;width:100%;line-height:1.2;background:#fff;border-color:#d1d9e0}.product-matrix button[aria-pressed=true]{background:#ddf0ff;border:2px solid #0969da;color:#0550ae;font-weight:650}.normal-index-key{width:100%;margin:0;font-size:12px;text-align:center}.normal-expansion{font-size:.91em!important}.normal-product-demo .visual-caption{margin-top:8px}
 @media(max-width:767px){.visual{padding:15px 12px}.lu-pair{grid-template-columns:1fr}.lu-pair .matrix{--cell-w:44px}.normal-layout{grid-template-columns:1fr;gap:12px}.normal-inputs,.normal-outputs{justify-content:center}.normal-outputs{margin:auto;max-width:none}.normal-arrow{transform:rotate(90deg)}.fit-plots{grid-template-columns:1fr}.fit-plots .legend{min-height:20px;font-size:12px}.grid-node .grid-dot{width:32px;height:32px;min-height:32px;font-size:12px}.grid-nodes:before{top:43px}.grid-u{font-size:12px}.grid-x{font-size:11px}.grid-nodes{gap:0}.role-key{font-size:11px;gap:7px 10px}.grid-system .matrix{--cell-w:33px}.grid-system .grid-rhs{--cell-w:134px}.grid-system{gap:10px}.grid-system .mat-cell{font-size:15px}.grid-system .grid-rhs .mat-cell{font-size:13px}.step-toolbar #lu-reset{margin-left:0}.step-toolbar #lu-complete{font-size:12px}.work-count{font-size:12px}.work-pair{gap:12px}.work-comparison .visual-caption{font-size:12px}.normal-index-key{flex-basis:100%}}
 @media(max-width:380px){.visual{padding:14px 9px}.step-toolbar{gap:6px}.step-toolbar button{padding:6px 8px}.grid-u{font-size:11px}.grid-node .grid-dot{width:29px;height:29px;min-height:29px}.grid-nodes:before{top:41px}}
@@ -1081,12 +1081,37 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
   refreshLU();
 
   // A schematic space-time grid: no particular time-stepping scheme is assumed.
+  // Cache LaTeX as native SVG so labels stay sharp in print and on resize.
+  const spaceTimeMath = new Map();
+  const spaceTimeTex = ['x_0','x_1','x_2','x_j','x_4','x_5','x_6',
+    't_0=0','t_1','t_k','t_{k+1}','g(x)','\\mathbf{u}^k',
+    'u_j^k','u_j^{k+1}','x_j','t','x'];
+  function spaceTimeLabel(svg, attrs, tex, fallback) {
+    const cached = spaceTimeMath.get(tex);
+    if (!cached) return s('text', attrs, fallback, svg);
+    const group = s('g', {class:attrs.class || '', 'data-tex':tex}, undefined, svg);
+    const label = cached.cloneNode(true);
+    const box = label.viewBox.baseVal;
+    const scale = (attrs.class === 'profile-label' ? 15 : 14) / 1000;
+    const width = box.width * scale, height = box.height * scale;
+    const anchor = attrs['text-anchor'];
+    label.classList.add('math-label-svg');
+    label.setAttribute('width', width);
+    label.setAttribute('height', height);
+    label.setAttribute('x', attrs.x - (anchor === 'middle' ? width / 2 : anchor === 'end' ? width : 0));
+    label.setAttribute('y', attrs.y + box.y * scale);
+    label.setAttribute('aria-label', fallback);
+    label.style.verticalAlign = '';
+    group.appendChild(label);
+    return group;
+  }
   function drawSpaceTime() {
     const svg=$('space-time-plot'); svg.replaceChildren();
     const compact=svg.clientWidth<560;
     const width=compact?Math.max(320,svg.clientWidth):720;
     svg.setAttribute('viewBox','0 0 '+width+' 354');
     const put=function(tag,attrs,text,parent){return s(tag,attrs,text,parent||svg);};
+    const math=function(attrs,tex,fallback){return spaceTimeLabel(svg,attrs,tex,fallback);};
     put('title',{id:'space-time-title'},'Spatial profiles at successive time levels');
     put('desc',{id:'space-time-desc'},'A vertical column at time t k contains the spatial profile. Its interior values form vector u k. A horizontal pair at x j contains u j k and u j k plus one. The initial column is given by g(x).');
     const xs=compact?[76,(76+width-40)/2,width-40]:[145,285,425,565];
@@ -1100,7 +1125,7 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
     put('rect',{x:profileX-18,y:py(5)-13,width:36,height:py(1)-py(5)+26,rx:7,fill:'#e7f2fd'});
     for(let j=0;j<=6;j++) {
       put('line',{x1:left,x2:right,y1:py(j),y2:py(j),stroke:j===3?'#d6aa6b':'#e0e6eb','stroke-dasharray':j===3?'4 4':'2 4'});
-      put('text',{x:axisLabelX,y:py(j)+4,'text-anchor':'end'},['x₀','x₁','x₂','xⱼ','x₄','x₅','x₆'][j]);
+      math({x:axisLabelX,y:py(j)+4,'text-anchor':'end'},spaceTimeTex[j],['x₀','x₁','x₂','xⱼ','x₄','x₅','x₆'][j]);
     }
     xs.forEach(function(x,idx){
       const k=kinds[idx];
@@ -1110,25 +1135,38 @@ assert np.allclose(x_formula, x_fit[0])</code></pre>
         const fill=selectedPair?'#fff1d5':k===2&&j>0&&j<6?'#0969da':k===0?'#13786d':'#fff';
         put('circle',{cx:x,cy:py(j),r:selectedPair?5.7:3.7,fill:fill,stroke:selectedPair?'#9a5700':k===2?'#0969da':k===0?'#13786d':'#89929b','stroke-width':selectedPair?1.8:1.3});
       }
-      put('text',{x:x,y:bottom+30,'text-anchor':'middle'},['t₀ = 0','t₁','tₖ','tₖ₊₁'][k]);
+      math({x:x,y:bottom+30,'text-anchor':'middle'},['t_0=0','t_1','t_k','t_{k+1}'][k],['t₀ = 0','t₁','tₖ','tₖ₊₁'][k]);
     });
     put('text',{x:xs[0],y:28,'text-anchor':'middle',class:'initial-label'},'Initial profile');
-    put('text',{x:xs[0],y:47,'text-anchor':'middle',class:'initial-label'},'g(x)');
+    math({x:xs[0],y:47,'text-anchor':'middle',class:'initial-label'},'g(x)','g(x)');
     put('text',{x:profileX,y:28,'text-anchor':'middle',class:'profile-label'},'Spatial profile');
-    put('text',{x:profileX,y:47,'text-anchor':'middle',class:'profile-label','font-weight':'600'},'uᵏ');
+    math({x:profileX,y:47,'text-anchor':'middle',class:'profile-label'},'\\mathbf{u}^k','uᵏ');
     const defs=put('defs',{});
     const marker=put('marker',{id:'time-difference-arrow',viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:6,markerHeight:6,orient:'auto'},undefined,defs);
     put('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#9a5700'},undefined,marker);
     put('line',{x1:profileX+10,x2:nextX-12,y1:py(3),y2:py(3),stroke:'#9a5700','stroke-width':1.6,'marker-end':'url(#time-difference-arrow)'});
-    put('text',{x:profileX,y:py(3)-17,'text-anchor':'middle',class:'pair-label'},'uⱼᵏ');
-    put('text',{x:nextX,y:py(3)-17,'text-anchor':'middle',class:'pair-label'},'uⱼᵏ⁺¹');
-    put('text',{x:(profileX+nextX)/2,y:py(3)+25,'text-anchor':'middle',class:'pair-label'},'fixed xⱼ');
+    math({x:profileX,y:py(3)-17,'text-anchor':'middle',class:'pair-label'},'u_j^k','uⱼᵏ');
+    math({x:nextX,y:py(3)-17,'text-anchor':'middle',class:'pair-label'},'u_j^{k+1}','uⱼᵏ⁺¹');
+    const fixedX=(profileX+nextX)/2;
+    put('text',{x:fixedX-3,y:py(3)+25,'text-anchor':'end',class:'pair-label'},'fixed');
+    math({x:fixedX+3,y:py(3)+25,class:'pair-label'},'x_j','xⱼ');
     if(!compact)put('text',{x:631,y:bottom+30,fill:'#89929b'},'…');
     put('line',{x1:left,x2:compact?width-18:650,y1:bottom+45,y2:bottom+45,stroke:'#a8b3bd'});
-    put('text',{x:compact?width-9:657,y:bottom+49,'font-style':'italic'},'t');
-    put('text',{x:axisLabelX,y:43,'text-anchor':'end','font-style':'italic'},'x');
+    math({x:compact?width-9:657,y:bottom+49},'t','t');
+    math({x:axisLabelX,y:43,'text-anchor':'end'},'x','x');
   }
   drawSpaceTime();
+  window.addEventListener('load', function () {
+    if (!window.MathJax || !window.MathJax.tex2svgPromise) return;
+    mathQueue = mathQueue.then(function () {return window.MathJax.startup.promise;})
+      .then(async function () {
+        for (const tex of spaceTimeTex) {
+          const container = await window.MathJax.tex2svgPromise(tex, {display:false});
+          spaceTimeMath.set(tex, container.querySelector('svg'));
+        }
+        drawSpaceTime();
+      }).catch(function (error) {console.warn('Figure math rendering:', error);});
+  });
   if(window.ResizeObserver) {
     const profileResize=new ResizeObserver(function(){drawSpaceTime();});
     profileResize.observe($('space-time-plot'));
